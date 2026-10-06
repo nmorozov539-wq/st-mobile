@@ -1,7 +1,7 @@
 # Dependencies and generated packages
 node_modules/
 dist/
-/pocket-tavern-phone*.zip
+/pocket-tavern-*.zip
 __pycache__/
 *.py[cod]
 

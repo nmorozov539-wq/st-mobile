@@ -1,11 +1,14 @@
 import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js';
 import { RuntimeConnection } from './transport.js';
 import { formatMessage } from './format.js';
+import { createSettingsPanel } from './settings.js';
 import { probeEngine } from './engine-health.js';
 const $ = id => document.getElementById(id);
 const state = createLocalState(localStorage);
 let snapshot, characters = [], chats = [], busy = true, connected = false, sessionId;
 let requestId, stream, editing, naming, reviewRequired = false, initializing = false;
+let settingsPanel;
+let streamReasoning = '';
 let renderedTarget, streamFrame, streamText = '', observingTimer, healthRunning = false, healthEpoch = 0;
 const connection = new RuntimeConnection(onEvent);
 const rpc = (method, argument, timeout) => connection.request(method, argument, timeout);
@@ -15,11 +18,14 @@ const el = (tag, text = '', className) => { const node = document.createElement(
 function saveDraft() { if (!snapshot) return; state.saveDraft(snapshot, $('draft').value); }
 function controls() {
     const locked = busy || !connected || reviewRequired;
+    $('settings-button').disabled = locked;
+    settingsPanel?.setLocked(locked);
     $('send').disabled = locked || !snapshot?.characterKey || !$('draft').value.trim();
     $('draft').disabled = busy || !snapshot?.characterKey;
     $('refresh').disabled = busy || !connected;
     $('history-button').disabled = busy || !connected || !snapshot?.characterKey;
     $('new-chat').disabled = locked || !snapshot?.characterKey;
+    $('delete-chat').disabled = locked || !snapshot?.chatId;
     $('rename-chat').disabled = locked || !snapshot?.chatId;
     document.querySelectorAll('#characters button').forEach(button => button.disabled = busy || !connected);
     document.querySelectorAll('.message-tools button').forEach(button => button.disabled = locked);
@@ -53,6 +59,11 @@ function follow(force = false) {
     if (force) { $('messages').scrollTop = $('messages').scrollHeight; $('jump').hidden = true; }
     else $('jump').hidden = isNearBottom($('messages'));
 }
+function thinking(text, duration) {
+    const details = el('details', '', 'thinking'); details.hidden = !text;
+    details.append(el('summary', `Thinking${Number.isFinite(duration) ? ' · '+(duration/1000).toFixed(1)+'s' : ''}`));
+    const body = el('div', '', 'thinking-body'); body.innerHTML = formatMessage(text); details.append(body); return details;
+}
 function render({ forceBottom = false } = {}) {
     const previousTop = $('messages').scrollTop, nearBottom = isNearBottom($('messages'));
     const currentTarget = state.draftKey(snapshot), changed = renderedTarget !== currentTarget;
@@ -70,7 +81,7 @@ function render({ forceBottom = false } = {}) {
     snapshot.messages.forEach((message, index) => {
         const article = el('article', '', `message ${message.is_user ? 'user' : ''}`);
         const bubble = el('div', '', 'bubble'); bubble.innerHTML = formatMessage(message.mes);
-        article.append(el('div', message.name ?? (message.is_user ? 'You' : character?.name), 'byline'), bubble);
+        article.append(el('div', message.name ?? (message.is_user ? 'You' : character?.name), 'byline'), thinking(message.extra?.reasoning ?? '', message.extra?.reasoning_duration), bubble);
         const tools = el('div', '', 'message-tools');
         const edit = el('button', 'Edit'); edit.onclick = () => { editing = target(index); $('edit-text').value = message.mes; $('editor').returnValue = ''; $('editor').showModal(); }; tools.append(edit);
         if (index === snapshot.messages.length - 1 && !message.is_user && !message.is_system) {
@@ -126,15 +137,16 @@ async function mutate(kind, operation, success, options = {}) {
 }
 function makeStream(text = '') {
     stream = el('article', '', 'message stream'); const bubble = el('div', '', 'bubble'); bubble.innerHTML = formatMessage(text);
-    stream.append(el('div', 'Reply arriving…', 'byline'), bubble); $('messages').append(stream); follow(true);
+    stream.append(el('div', 'Reply arriving…', 'byline'), thinking(streamReasoning), bubble); $('messages').append(stream); follow(true);
 }
 function onEvent(event) {
     if (event.requestId !== requestId) return;
     if (event.type === 'text.replace' && stream) {
-        streamText = event.text; $('stop').disabled = event.state !== 'running';
+        streamText = event.text; streamReasoning = event.reasoning ?? ''; $('stop').disabled = event.state !== 'running';
         if (!streamFrame) streamFrame = requestAnimationFrame(() => {
             streamFrame = null; if (!stream) return;
             const near = isNearBottom($('messages')); stream.querySelector('.bubble').innerHTML = formatMessage(streamText);
+            const details = stream.querySelector('.thinking'); details.hidden = !streamReasoning; details.querySelector('.thinking-body').innerHTML = formatMessage(streamReasoning);
             near ? follow(true) : follow();
         });
     }
@@ -158,7 +170,7 @@ async function generateReply(mode = 'send') {
         const argument = { requestId: nextRequestId, text: mode === 'send' ? $('draft').value : '', mode,
             ...targetOf(snapshot), expectedMessage: mode === 'swipe' ? JSON.stringify(snapshot.messages.at(-1)) : undefined };
         const journal = { kind: 'send', sessionId, target: targetOf(snapshot), argument, beforeCount: snapshot.messages.length };
-        state.begin(journal); requestId = nextRequestId; controls(); status('Waiting for the model…'); $('stop').disabled = true; makeStream();
+        state.begin(journal); requestId = nextRequestId; controls(); status('Waiting for the model…'); $('stop').disabled = true; streamReasoning = ''; makeStream();
         try { const result = await rpc('send', argument, 180000); applyOperation(result, journal); await loadHistory(); }
         catch (error) {
             if (knownRejection(error)) state.finish();
@@ -180,10 +192,10 @@ async function restoreTarget(desired) {
 }
 async function observe(journal, operation) {
     busy = true; requestId = journal.argument.requestId;
-    if (!stream) makeStream(operation.text);
+    if (!stream) { streamReasoning = operation.reasoning ?? ''; makeStream(operation.text); }
     else onEvent({ type: 'text.replace', ...operation });
     controls();
-    $('stop').disabled = operation.state !== 'running' || !operation.text;
+    $('stop').disabled = operation.state !== 'running' || !(operation.text || operation.reasoning);
     observingTimer = setTimeout(async () => {
         observingTimer = null;
         try {
@@ -231,6 +243,13 @@ function nameChat(kind) {
     $('chat-name-input').value = kind === 'rename' ? snapshot.chatId : `Conversation ${new Date().toLocaleDateString()} ${crypto.randomUUID().slice(0,6)}`.replaceAll('/','-');
     $('chat-name').returnValue = ''; $('chat-name').showModal(); $('chat-name-input').select();
 }
+let deleting;
+$('delete-chat').onclick = () => { deleting = targetOf(snapshot); $('delete-name').textContent = snapshot.chatId; $('delete-confirm').returnValue = ''; $('delete-confirm').showModal(); };
+$('delete-confirm').addEventListener('close', () => { if ($('delete-confirm').returnValue !== 'delete') return; action(async () => {
+    const old = deleting;
+    await mutate('delete', () => rpc('manage', { action:'delete', ...old, name:old.chatId }, 45000), 'Conversation deleted · replacement saved');
+    state.saveDraft(old, ''); $('history').close();
+}); });
 $('new-chat').onclick = () => nameChat('create'); $('rename-chat').onclick = () => nameChat('rename');
 $('chat-name').addEventListener('close', () => { if ($('chat-name').returnValue !== 'save') return; action(async () => {
     const name = $('chat-name-input').value.trim();
@@ -275,4 +294,5 @@ setInterval(checkHealth, 3000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkHealth(); });
 window.addEventListener('pageshow', checkHealth);
 setTimeout(() => { if (!connected && !initializing) { busy = false; recovery('The local engine has not started yet. Start the test tavern, then reconnect.', 'Waiting for the engine'); } }, 25000);
+settingsPanel = createSettingsPanel({ rpc, action, adoptSnapshot: async () => adopt(await rpc('snapshot')), status, locked: () => !connected || reviewRequired });
 controls(); recovery('The local engine is starting…', 'Connecting');

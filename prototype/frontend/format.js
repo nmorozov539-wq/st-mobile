@@ -1,10 +1,13 @@
 // A deliberately small Markdown renderer. Raw HTML is always escaped.
 export const escapeHTML = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function dialogue(text) {
+    return text.split(/("[^"\n]+"|“[^”\n]+”)/g).map(part => /^("|“)/.test(part) ? `<span class="dialogue">${escapeHTML(part)}</span>` : escapeHTML(part)).join('');
+}
 function inline(text) {
     const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|\*[^*\n]+\*|\[[^\]\n]+\]\([^\s)]+\))/g;
     let html = '', cursor = 0;
     for (const match of text.matchAll(pattern)) {
-        html += escapeHTML(text.slice(cursor, match.index)); const token = match[0];
+        html += dialogue(text.slice(cursor, match.index)); const token = match[0];
         if (token.startsWith('`')) html += `<code>${escapeHTML(token.slice(1,-1))}</code>`;
         else if (token.startsWith('**')) html += `<strong>${escapeHTML(token.slice(2,-2))}</strong>`;
         else if (token.startsWith('*')) html += `<em>${escapeHTML(token.slice(1,-1))}</em>`;
@@ -15,7 +18,7 @@ function inline(text) {
         }
         cursor = match.index + token.length;
     }
-    return html + escapeHTML(text.slice(cursor));
+    return html + dialogue(text.slice(cursor));
 }
 export function formatMessage(text) {
     const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n');

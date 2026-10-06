@@ -1,5 +1,5 @@
 // ST behavior lives in the runtime bindings; this module owns operation tracking.
-export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation }) {
+export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration }) {
     let ready = false;
     let selecting = false;
     let disposed = false;
@@ -36,7 +36,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         handshake() {
             context();
             return { protocolVersion: 1, supportedSTVersion: supportedVersion, runtimeVersion,
-                capabilities: ['characters.list', 'characters.select', 'chat.snapshot', 'chats.list', 'chats.open', 'chats.create', 'chats.rename', 'runtime.activity',
+                capabilities: ['characters.list', 'characters.select', 'chat.snapshot', 'chats.list', 'chats.open', 'chats.create', 'chats.rename', 'chats.delete', 'runtime.activity', ...(configuration ? ['settings.read', 'settings.change'] : []),
                     ...(generation ? ['generation.send', 'generation.stop', 'generation.status', 'message.edit', 'swipes.select', 'swipes.generate'] : [])] };
         },
         listCharacters() {
@@ -79,6 +79,16 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                 return after;
             } finally { selecting = false; }
         },
+        settings() { context(); if (!configuration) fail('UNSUPPORTED', 'Settings are unavailable.'); return clone(configuration.read()); },
+        async configure(argument) {
+            context();
+            if (!configuration) fail('UNSUPPORTED', 'Settings are unavailable.');
+            if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation before changing settings.');
+            if (!argument || argument.revision !== configuration.read().revision) fail('STALE_SETTINGS', 'Settings changed. Reopen the settings panel first.');
+            selecting = true;
+            try { return clone(await configuration.change(argument)); }
+            finally { selecting = false; }
+        },
         activity() { context(); return { busy: !!(selecting || active || isBusy()), operation: active ? clone(active.status) : null }; },
         async listChats() {
             const before = snapshot();
@@ -90,12 +100,20 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             if (!generation) fail('UNSUPPORTED', 'Chat management is unavailable.');
             if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation first.');
             if (before.groupId || !before.characterKey || before.characterKey !== characterKey || before.chatId !== chatId) fail('STALE_TARGET', 'The selected conversation changed. Refresh first.');
-            if (!['open', 'create', 'rename'].includes(action) || typeof name !== 'string' || !name.trim() || name !== name.trim() || name.length > 120 || /[\\/<>:"|?*\x00-\x1f]/.test(name) || /[. ]$/.test(name)) fail('INVALID_NAME', 'Use a chat name without slashes, special filename characters, or trailing dots.');
+            if (!['open', 'create', 'rename', 'delete'].includes(action) || typeof name !== 'string' || !name.trim() || name !== name.trim() || name.length > 120 || /[\\/<>:"|?*\x00-\x1f]/.test(name) || /[. ]$/.test(name)) fail('INVALID_NAME', 'Use a chat name without slashes, special filename characters, or trailing dots.');
             selecting = true;
             try {
                 await generation.verifyPersistence(before);
                 const chats = await generation.listChats(characterKey);
                 const exists = chats.some(chat => chat.id === name);
+                if (action === 'delete') {
+                    if (name !== chatId || !exists) fail('CHAT_NOT_FOUND', 'Only the current saved conversation can be deleted.');
+                    await generation.deleteChat(name);
+                    const after = snapshot(), saved = await generation.listChats(characterKey);
+                    if (saved.some(chat => chat.id === name) || after.chatId === name || after.characterKey !== characterKey || after.groupId) fail('DELETE_FAILED', 'Cannot verify the deleted conversation and its replacement.');
+                    await generation.verifyPersistence(after);
+                    return after;
+                }
                 if (action === 'open' && !exists) fail('CHAT_NOT_FOUND', 'That conversation no longer exists. Refresh the history.');
                 if (action !== 'open' && chats.some(chat => chat.id.toLocaleLowerCase() === name.toLocaleLowerCase())) fail('NAME_EXISTS', 'A conversation with that name already exists.');
                 if (action === 'rename') await generation.renameChat(chatId, name);
@@ -156,15 +174,16 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             if (mode === 'swipe' && JSON.stringify(before.messages.at(-1)) !== expectedMessage) fail('STALE_MESSAGE', 'The reply changed. Refresh before generating an alternative.');
             // Bound memory without discarding deduplication records during a session.
             if (operations.size >= 100) fail('SESSION_LIMIT', 'Prototype session limit reached. Reload and read the saved chat before sending a new request.');
-            const operation = { signature, status: { requestId, state: 'running', persistence: 'unverified', text: '' }, promise: null };
+            const operation = { signature, status: { requestId, state: 'running', persistence: 'unverified', text: '', reasoning: '' }, promise: null };
             active = operation;
             operations.set(requestId, operation);
             operation.promise = (async () => {
                 let submissionError;
                 let unsubscribe = () => {};
                 try {
-                    unsubscribe = generation.subscribeText(text => {
+                    unsubscribe = generation.subscribeText((text, reasoning = '') => {
                         operation.status.text = String(text);
+                        operation.status.reasoning = String(reasoning);
                         emit({ type: 'text.replace', ...operation.status });
                     });
                     // submit must use ST's composer path, not append a second user message.
@@ -187,6 +206,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                         if (after.messages.length !== before.messages.length || newReply.swipes?.length !== oldSwipes.length + 1 || oldSwipes.some((value, index) => newReply.swipes[index] !== value)) fail('SWIPE_FAILED', 'ST did not preserve the old alternatives and add exactly one reply.');
                     }
                     operation.status.text = answers.at(-1)?.mes ?? operation.status.text;
+                    operation.status.reasoning = answers.at(-1)?.extra?.reasoning ?? operation.status.reasoning;
                     operation.status.snapshot = after;
                     // Readback runs even after provider failure, so saved user/partial messages are reported honestly.
                     await generation.verifyPersistence(after);

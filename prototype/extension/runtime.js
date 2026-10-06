@@ -1,4 +1,4 @@
-import { sendTextareaMessage, swipe, syncMesToSwipe } from '/script.js';
+import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteCharacterChatByName } from '/script.js';
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
@@ -39,6 +39,15 @@ export function createGenerationRuntime(getContext) {
             await loadChat(name);
         },
         async reloadSavedChat() { await getContext().reloadCurrentChat(); },
+        async deleteChat(name) {
+            const ctx = getContext();
+            await deleteCharacterChatByName(ctx.characterId, name);
+            const rows = await this.listChats(ctx.characters[ctx.characterId].avatar);
+            if (rows.some(row => row.id === name)) fail('DELETE_FAILED', 'ST did not delete the conversation.');
+            const next = rows[0]?.id ?? `Conversation ${crypto.randomUUID().slice(0,8)}`;
+            await loadChat(next);
+            await getContext().saveChat();
+        },
         async renameChat(oldName, newName) {
             const ctx = getContext();
             await ctx.saveChat();
@@ -51,7 +60,7 @@ export function createGenerationRuntime(getContext) {
         },
         validate(text) {
             const ctx = getContext();
-            if (ctx.onlineStatus === 'no_connection') fail('NO_CONNECTION', 'Connect ST to the local mock model first.');
+            if (ctx.onlineStatus === 'no_connection') fail('NO_CONNECTION', 'Choose a connection in Settings and connect ST first.');
             if (text.trimStart().startsWith('/')) fail('UNSUPPORTED_COMMAND', 'This experiment accepts ordinary text; slash commands come later.');
             if (composer().value.trim()) fail('COMPOSER_BUSY', 'ST already has a draft. Clear it or send it from ST before using the experiment.');
             if (hasPendingFileAttachment()) fail('ATTACHMENT_PENDING', 'Remove ST’s pending attachment before using this text-only experiment.');
@@ -96,8 +105,9 @@ export function createGenerationRuntime(getContext) {
         },
         subscribeText(listener) {
             const ctx = getContext();
-            ctx.eventSource.on(ctx.eventTypes.STREAM_TOKEN_RECEIVED, listener);
-            return () => ctx.eventSource.removeListener(ctx.eventTypes.STREAM_TOKEN_RECEIVED, listener);
+            const receive = text => listener(text, streamingProcessor?.reasoningHandler?.reasoning ?? '');
+            ctx.eventSource.on(ctx.eventTypes.STREAM_TOKEN_RECEIVED, receive);
+            return () => ctx.eventSource.removeListener(ctx.eventTypes.STREAM_TOKEN_RECEIVED, receive);
         },
         stop() { return getContext().stopGeneration(); },
         async verifyPersistence(snapshot) {

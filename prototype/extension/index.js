@@ -1,6 +1,8 @@
-import { createAdapter } from './adapter.js?build=phone2';
-import { createGenerationRuntime } from './runtime.js?build=phone2';
+import { createAdapter } from './adapter.js?build=combined1';
+import { createGenerationRuntime } from './runtime.js?build=combined1';
 import { isGenerating, isChatSaving } from '/script.js';
+
+import { createConfigurationRuntime } from './configuration.js';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -11,7 +13,7 @@ const sessionId = crypto.randomUUID();
 const runtime = createGenerationRuntime(getContext);
 const adapter = createAdapter({ getContext, isBusy: () => isGenerating() || isChatSaving,
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
-    generation: runtime });
+    generation: runtime, configuration: createConfigurationRuntime(getContext) });
 
 if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
     let port;
@@ -20,6 +22,7 @@ if (window.parent !== window && new URLSearchParams(location.search).has('mobile
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),
         chats: () => adapter.listChats(), manage: arg => adapter.manageChat(arg),
+        settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
         activity: () => adapter.activity(), reconcile: () => adapter.reconcile(), reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
     window.addEventListener('message', event => {
         if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'st-mobile-connect' || !event.ports[0]) return;

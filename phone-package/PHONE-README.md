@@ -1,80 +1,61 @@
-# Pocket Tavern phone test
+# Pocket Tavern combined prototype v0.4
 
-This kit creates a separate test tavern from your installed SillyTavern 1.19.0 engine. It does not copy your personal `data` directory, config, credentials, characters or chats. Its fresh defaults connect to the included local mock model. Your regular ST is not modified. No APK, Python, npm install, or model API key is needed.
+This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied installed dependencies. It does not include ST or dependencies in the small download: preparation copies your phone's installed code. After preparation, running the combined folder does not depend on the original installation. No Android app yet.
 
-## Update your existing phone test (v3)
+## Fresh normal setup
 
-Stop the test servers with Ctrl+C in Termux. Extract this ZIP into Download; keep its `pocket-tavern-phone-v3` folder. Then:
-
-```sh
-cd ~/storage/downloads/pocket-tavern-phone-v3
-node update-test.cjs
-node start-test.cjs
-```
-
-Reload the phone browser at **http://127.0.0.1:8123/st-mobile/**. Do not rerun preparation on your existing test folder. The updater preserves `data`, `config.yaml` and settings, backs up previous code, and checks the original ST source before applying compatibility fixes. Both test ports must be free before updating. Startup now fetches an uncached session token and verifies it with a ping before loading or saving settings; a rejected token is reread at most twice. No settings-save request is replayed. The new mock accepts `[slow]` or a message starting with `slow`, streams for about 27 seconds, and rejects empty prompts. Your regular ST does not need to stop.
-
-## First run
-
-1. Download `pocket-tavern-phone-v3.zip` onto the phone. Extract it with your phone's file manager into **Download**. Inside you should have `pocket-tavern-phone-v3/prepare-test.cjs`.
-2. Open Termux. If ST is occupying its current session, open another Termux session. Leave the regular ST installation alone.
-3. If Termux cannot access Downloads, run `termux-setup-storage` and allow the Android storage request. This lets Termux read the downloaded kit.
-4. Run these commands one at a time:
+Extract the ZIP in Downloads. Stop an old Pocket Tavern test session with Ctrl+C; it uses the same port. In Termux:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-phone-v3
-node prepare-test.cjs ~/SillyTavern
-node start-test.cjs
+cd ~/storage/downloads/pocket-tavern-combined-v0.4
+node prepare.cjs ~/SillyTavern ~/pocket-tavern
+cd ~/pocket-tavern
+node start.cjs
 ```
 
-`~/SillyTavern` must be the ST folder containing `server.js` and `package.json`. If yours is elsewhere, replace that argument with its actual path. Preparation checks version 1.19.0 and refuses to overwrite an existing test folder. If extraction created an extra folder, use the folder containing `prepare-test.cjs`.
+Open **http://127.0.0.1:8123/st-mobile/**. The original ST interface is also served at the root address. One ST server owns `~/pocket-tavern/data`; standard user files live in `data/default-user`. Your usual ST data is not copied or changed. Allow space for the full ST code and dependencies; their size depends on your installation. Preparation refuses an existing destination.
 
-5. Wait until Termux says **SillyTavern is listening**. On the same phone, open:
+Use Settings to select OpenRouter, save your API key in ST, connect, refresh the model list, and choose a model. No model ID is hardcoded. Keys are not returned to the frontend or stored in its localStorage. Sending a message uses your provider and may incur its normal charges. Only mock-provider generation has been verified locally; real OpenRouter testing requires you to configure the phone.
 
-**http://127.0.0.1:8123/st-mobile/**
+Presets are existing chat-completion presets. Personas and global lorebooks are existing ST selections, not editors. Character/chat lore remains intact. Presets may change model/source or other generation options; check the connection afterward. Full ST controls remain available. Automatic continuation, automatic swipe, tools, groups and slash commands remain outside the supported prototype scope.
 
-The kit runs ST at port 8123 and its mock model at 8124, both on this phone only. It is independent of the PC preview at the same URL. Neither port should already be in use. It reads shared installed dependencies but does not change them. Allow space for a copy of ST's code and public defaults.
+## Isolated mock testing
 
-## Reopen later
-
-Do not run preparation again. Open Termux and run:
+Prepare a DIFFERENT fresh folder with explicit mock settings:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-phone-v3
-node start-test.cjs
+cd ~/storage/downloads/pocket-tavern-combined-v0.4
+node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
+cd ~/pocket-tavern-combined-test
+node start.cjs --mock
 ```
 
-Keep the extracted kit for its launcher. The persistent test data lives in `~/pocket-tavern-phone-test/data`. Ctrl+C stops both test servers. Return to your usual ST address to use your regular installation. Nothing was added to it or needs uninstalling.
+Try `[think]` for separate reasoning, `[slow]` for a stoppable stream, and `[fail]` for a provider failure. One launcher starts both ST and the local fixture model. Ctrl+C stops both. Normal mode runs ST alone. Mock mode is refused for a normal-data installation to avoid accidentally using real-provider settings during a mock test.
 
-## First checks — keep it simple
+## Update an existing prototype
 
-- Choose Seraphina and send “Hello”. You should receive a reply beginning “The phone bridge works!”. The status should end with **saved chat verified**.
-- Open Chats, create a test conversation, type a draft, switch chats and return. Check that the draft stays with its own conversation.
-- Send `[slow]`; once text appears, press Stop. The partial reply should stay saved.
-- Edit a reply; try `**bold**` and `*italics*`. Try + New reply and the alternative arrows.
-- Switch to another phone app, return, and check whether the chat and draft are intact. Then try a short screen lock. Report whether it continued, paused, disconnected, or lost anything.
-- For restart recovery, send `[slow]`, stop the test servers with Ctrl+C in Termux, then start them again. In the browser press Reconnect, inspect the disk-saved conversation, then press **I checked the saved chat**. The app should not resend the message automatically.
+Stop its launcher first. From the newly extracted kit:
 
-Start with the first “Hello” test and tell me what you see; we can work through the rest together.
+```sh
+node update-test.cjs ~/pocket-tavern
+```
 
-## If something fails
+Then return to the combined folder and run `node start.cjs`. For a combined mock fixture use `--mock`. The updater also supports old isolated test folders such as `~/pocket-tavern-phone-test`; those still start with `node start-test.cjs` from the kit. Updates preserve data/settings/config and back up prior code. Combined folders retain the unpatched ST source fragments needed for compatible updates, so updates do not require the original ST folder.
 
-- **Folder does not exist:** ST is installed at a different path, or the extracted folder is nested. Send the command you usually use to start ST and the error text.
-- **Wrong version:** do not upgrade your regular ST just for this kit; tell me the version printed by the installer.
-- **Test folder already exists:** use the start command. Existing test chats are preserved.
-- **Port in use:** stop the other test session; do not close unrelated processes blindly.
-- **Waiting for engine:** check Termux's first error. Open `http://127.0.0.1:8123/` to check that the test engine itself loads. This phone kit has no PC diagnostic overlay.
-- **No model connection:** open the test engine at that root address and inspect the Custom/OpenAI-compatible connection. Fresh defaults point to `http://127.0.0.1:8124/v1`, model `st-mobile-mock`. No key is needed.
-- **Screen lock or switching apps stops it:** report it first. Background execution is exactly what we are testing; this kit does not change battery or background permissions automatically.
+## Optional controlled copy of existing user data — later
 
-## Limits
+This is a copy, not a format conversion or merge. Make a backup first and stop both ST servers before copying. Use matching ST 1.19.0 data. Prepare a NEW normal combined folder, but do not start it yet. From the extracted kit:
 
-Preparation, isolation and installer guards were tested on PC. The phone launcher was syntax-checked; actual Android execution and lifecycle still need your phone test. This is a web frontend with the full ST browser runtime loaded offscreen, not an APK. Basic Markdown only; no groups, attachments, slash commands, tools, automatic continuation, or touch swipe gestures. Drafts use browser localStorage and do not sync between browsers or devices. Only the local mock has been validated. Avoid multiple frontend tabs writing the same test chat.
+```sh
+node import-data.cjs ~/SillyTavern/data/default-user ~/pocket-tavern
+```
 
-Compatibility fixes apply only inside the copied test engine: explicit CSRF headers for async token counts, a stable test-specific session cookie, and exact local aliases for copied image-codec WASM assets. CSRF and file-path checks remain enabled. Your original ST is untouched. A direct uncached heartbeat checks the server every three seconds while the page is active, and immediately when returning to it. Reload engine is available during review if the hidden runtime is stuck.
+The importer refuses any existing destination user folder, mock installations and symlinked user files. Original files remain intact. It copies settings, characters, chats, presets, lorebooks, personas and credentials stored within default-user; treat the new folder as private. Server-level configuration and third-party extension code are not migrated. Custom data roots require the actual source default-user path. This does not provide automatic synchronization between installations or support two servers writing one data folder. Do not use it while either server is active.
 
-ST's official Android documentation: https://docs.sillytavern.app/installation/android-(termux)/
+## Limits and recovery
 
-### A settings/CSRF warning in your regular ST
+ST handles prompts/generation/saving. The complete ST browser runtime remains loaded offscreen. The app keeps only drafts/navigation and an interrupted-operation journal in browser localStorage. Browser storage is not a chat database. Engine loss disables writes; reconnection rereads saved data and never resubmits an uncertain write automatically.
 
-This updater only patches the isolated test engine. The original kit shared ST's cookie name across ports; v2 and v3 use a separate test cookie. After updating, close old ST and Pocket Tavern browser tabs, restart your usual ST, and open its normal address in a fresh tab. Do not delete browser storage or ST data. If the warning returns, note the failing request URL and status from that usual-ST session; the test-only startup change is not evidence that a regular-ST issue is fixed.
+Compatibility changes are applied only to the prepared engine: explicit tokenizer CSRF headers, a separate session cookie, uncached startup-token validation, and exact local codec-WASM aliases. Security checks remain enabled. An old regular-ST tab may need closing/reopening after the original kit's cookie collision; your usual installation is not patched.
+
+Android background lifetime and real-provider reasoning behavior still require phone testing. Selecting a preset/persona/lorebook needs saved-state and prompt validation; a successful mock run alone does not establish compatibility with all presets, extensions or providers. Chat deletion asks for confirmation; Pocket Tavern provides no undo.

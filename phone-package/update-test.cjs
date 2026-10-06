@@ -6,27 +6,30 @@ const net=require('node:net');
 const {patchEngine}=require('./compatibility.cjs');
 function update(target,bundle=__dirname){
     target=fs.realpathSync(target);
-    const marker=JSON.parse(fs.readFileSync(path.join(target,'.pocket-tavern-test.json')));
+    const combined=fs.existsSync(path.join(target,'.pocket-tavern.json'));
+    const marker=JSON.parse(fs.readFileSync(path.join(target,combined?'.pocket-tavern.json':'.pocket-tavern-test.json')));
     if(marker.version!==1||!marker.source)throw Error('This is not a recognized Pocket Tavern test folder.');
-    const source=fs.realpathSync(marker.source);
-    if(source===target||target.startsWith(source+path.sep))throw Error('Refusing to update the regular ST installation.');
+    const source=combined?target:fs.realpathSync(marker.source);
+    const base=combined?path.join(target,'.pocket-base'):source;
+    if(!combined && (source===target||target.startsWith(source+path.sep)))throw Error('Refusing to update the regular ST installation.');
     for(const folder of [source,target])if(JSON.parse(fs.readFileSync(path.join(folder,'package.json'))).version!=='1.19.0')throw Error('Both engines must report ST 1.19.0.');
     for(const name of ['frontend/index.html','extension/index.js','mock-model.mjs'])if(!fs.existsSync(path.join(bundle,name)))throw Error('Incomplete phone kit. Extract the new ZIP completely.');
     const stage=fs.mkdtempSync(path.join(target,'.pocket-update-'));
     const code=['public/scripts/tokenizers.js','src/server-main.js','src/fetch-patch.js','public/script.js'];
     try{
-        for(const name of code){fs.mkdirSync(path.dirname(path.join(stage,name)),{recursive:true});fs.copyFileSync(path.join(source,name),path.join(stage,name));}
+        for(const name of code){fs.mkdirSync(path.dirname(path.join(stage,name)),{recursive:true});fs.copyFileSync(path.join(base,name),path.join(stage,name));}
         // Validate every source fragment before touching installed test assets.
         patchEngine(stage,source,{cookieRoot:target});
         const backup=path.join(target,'.pocket-backups',path.basename(stage));fs.mkdirSync(backup,{recursive:true});
-        const updates=[...code,'public/scripts/pocket-session-init.js','public/st-mobile','public/scripts/extensions/third-party/st-mobile-experiment','mock-model.mjs'];
+        const updates=[...code,'public/scripts/pocket-session-init.js','public/st-mobile','public/scripts/extensions/third-party/st-mobile-experiment','mock-model.mjs', ...(combined?['start.cjs']:[])];
         for(const name of updates){const old=path.join(target,name);if(fs.existsSync(old)){const dest=path.join(backup,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.cpSync(old,dest,{recursive:true});}}
         for(const name of [...code,'public/scripts/pocket-session-init.js'])fs.copyFileSync(path.join(stage,name),path.join(target,name));
         if(fs.existsSync(path.join(stage,'.pocket-wasm')))fs.cpSync(path.join(stage,'.pocket-wasm'),path.join(target,'.pocket-wasm'),{recursive:true});
         fs.cpSync(path.join(bundle,'frontend'),path.join(target,'public/st-mobile'),{recursive:true});
         fs.cpSync(path.join(bundle,'extension'),path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment'),{recursive:true});
         fs.copyFileSync(path.join(bundle,'mock-model.mjs'),path.join(target,'mock-model.mjs'));
-        return {target,backup};
+        if(combined)fs.copyFileSync(path.join(bundle,'start.cjs'),path.join(target,'start.cjs'));
+        return {target,backup,mode:combined?'combined':'test',mock:!!marker.mock};
     } finally {fs.rmSync(stage,{recursive:true,force:true});}
 }
 module.exports={update};
@@ -36,5 +39,5 @@ if(require.main===module)(async()=>{
     const result=update(process.argv[2]||path.join(os.homedir(),'pocket-tavern-phone-test'));
     console.log('Updated test frontend and compatibility fixes. Existing chats, settings and data were preserved.');
     console.log('Previous code backup:',result.backup);
-    console.log('Next: node start-test.cjs — then reload the PHONE browser.');
+    console.log(result.mode==='combined'?`Next: cd ${JSON.stringify(result.target)} and run node start.cjs${result.mock?' --mock':''} — then reload the PHONE browser.`:'Next: node start-test.cjs — then reload the PHONE browser.');
 })().catch(error=>{console.error(error.message);process.exitCode=1;});

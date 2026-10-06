@@ -233,3 +233,33 @@ test('recovery reloads saved state without saving or replaying a request and gua
     assert.equal((await adapter.reloadSaved()).messages[0].mes,'saved reply');
     assert.equal(reloaded,1); assert.equal(verified,1);
 });
+
+test('configuration rejects stale revisions and shares the chat operation lock', async () => {
+    const {ctx} = withGeneration(); let finish, changes=0;
+    const configuration={read:()=>({revision:'current',selected:{preset:'Default'}}),change:()=>new Promise(resolve=>{changes++;finish=()=>resolve(configuration.read());})};
+    const adapter=createAdapter({getContext:()=>ctx,isBusy:()=>false,supportedVersion:'1.19.0',runtimeVersion:'1.19.0',configuration});adapter.markReady();
+    await assert.rejects(adapter.configure({revision:'old',kind:'preset'}),{code:'STALE_SETTINGS'});assert.equal(changes,0);
+    const pending=adapter.configure({revision:'current',kind:'preset'});
+    await assert.rejects(adapter.selectCharacter('a.png'),{code:'BUSY'});
+    await assert.rejects(adapter.configure({revision:'current'}),{code:'BUSY'});
+    finish();await pending;assert.equal(adapter.activity().busy,false);
+});
+
+test('deletion must remove the saved chat and switch to a verified replacement', async () => {
+    const {adapter,ctx,generation}=withChats();
+    let rows=[{id:'fixture'},{id:'older'}];generation.listChats=async()=>rows;
+    generation.deleteChat=async name=>{rows=rows.filter(row=>row.id!==name);ctx.chatId='older';};
+    assert.equal((await adapter.manageChat({action:'delete',characterKey:'a.png',chatId:'fixture',name:'fixture'})).chatId,'older');
+    assert.ok(!(await adapter.listChats()).some(row=>row.id==='fixture'));
+    generation.deleteChat=async()=>{};
+    await assert.rejects(adapter.manageChat({action:'delete',characterKey:'a.png',chatId:'older',name:'older'}),{code:'DELETE_FAILED'});
+});
+
+test('reasoning streams separately from reply text and survives the completion snapshot', async () => {
+    const {ctx,adapter,request}=withGeneration({subscribeText(fn){this.receive=fn;return()=>{};},async submit(text){ctx.chat.push({mes:text,is_user:true});this.receive('', 'Considering');this.receive('Answer','Considering');ctx.chat.push({mes:'Answer',is_user:false,extra:{reasoning:'Considering',reasoning_duration:1}});}});
+    const events=[];adapter.subscribe(event=>events.push(event));
+    const result=await adapter.sendMessage(request);
+    assert.equal(events.find(event=>event.type==='text.replace').text,'');
+    assert.equal(events.find(event=>event.type==='text.replace').reasoning,'Considering');
+    assert.equal(result.reasoning,'Considering');assert.equal(result.snapshot.messages.at(-1).extra.reasoning,'Considering');
+});

@@ -273,3 +273,10 @@ test('library and extension mutations share the engine lock while extension read
  assert.deepEqual(await adapter.extensions({id:'memory',action:'stop'}),{stopping:true});
  release({saved:true});await writing;assert.deepEqual(await adapter.extensions({id:'memory',action:'settings'}),{done:true});
 });
+
+test('snapshot reports current persona and preset without rewriting historical messages',()=>{
+ const {ctx,adapter}=setup();adapter.markReady();
+ ctx.name1='Alex';ctx.chatCompletionSettings={preset_settings_openai:'Creative'};ctx.chat[0].name='You';
+ assert.deepEqual(adapter.snapshot().presentation,{personaName:'Alex',preset:'Creative'});
+ assert.equal(ctx.chat[0].name,'You');ctx.name1='Morgan';assert.equal(adapter.snapshot().presentation.personaName,'Morgan');
+});

@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.5.0.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.5.1.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.0
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.1
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -76,3 +76,7 @@ Memory controls run the pinned [Summaryception](https://github.com/Lodactio/Exte
 The adapted extension's complete source, pinned commit and original license are in vendor/Extension-Summaryception and included in the phone ZIP. Its automatic updating is disabled to retain the coordination patch. The extension registry gives future integrations a common read/control route, but other extensions have no automatic mobile UI adaptation yet.
 
 After importing real data, run the kit’s updater before the first launch. It backs up and updates recognized user-local Summaryception/bridge code as well as the bundled global code, because ST gives user-local extensions priority. Other extension code and all chat/settings files are retained.
+
+## v0.5.1 visibility fixes
+
+The chat shows the active ST persona and chat-completion preset. User bylines use the current persona without rewriting stored messages. Preset entries show On/Off switches alongside their text, in native ST prompt order. The editor defaults to ST 1.19’s active global order (100001); other saved orders are selectable and retain independent states. Save in ST applies changes. Entry reordering remains in the full ST editor.

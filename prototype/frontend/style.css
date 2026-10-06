@@ -16,3 +16,8 @@ header #settings-button{font-size:12px;margin-left:0;padding:7px 10px}@media(max
 
 #memory-options label{display:block;margin:12px 0}#memory-options input:not([type=checkbox]),#memory-options textarea{width:100%;box-sizing:border-box}#memory-preview{white-space:pre-wrap;overflow-wrap:anywhere}header{flex-wrap:wrap}
 #asset-fields textarea{min-height:100px}#asset-fields textarea[rows="1"]{min-height:48px;max-height:100px}#asset-fields textarea[rows="6"]{min-height:140px}header #memory-badge{font-size:12px;margin-left:0;padding:7px 10px}#asset-editor,#library-panel,#memory-panel{max-height:calc(100dvh - 32px);overscroll-behavior:contain}#asset-editor .dialog-heading,#memory-panel .dialog-heading,#library-panel .dialog-heading{position:sticky;top:0;z-index:1;background:#29212b;padding:10px 0}
+
+.active-config{display:flex;flex-wrap:wrap;gap:.35rem 1rem;padding:.5rem 1rem;border-bottom:1px solid #444;font-size:.85rem;color:var(--muted,#b8b3ac)}
+.active-config span{overflow-wrap:anywhere;min-width:0}
+.prompt-switch{display:flex!important;align-items:center;gap:.65rem;padding:.5rem 0;font-weight:600}
+.prompt-switch input{width:auto!important;accent-color:#c69c65}

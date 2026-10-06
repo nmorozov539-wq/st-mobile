@@ -1,10 +1,10 @@
-import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.5.0';
-import { RuntimeConnection } from './transport.js?build=0.5.0';
-import { formatMessage } from './format.js?build=0.5.0';
-import { createSettingsPanel } from './settings.js?build=0.5.0';
-import { probeEngine } from './engine-health.js?build=0.5.0';
-import { createMemoryPanel } from './memory.js?build=0.5.0';
-import { createLibrary } from './library.js?build=0.5.0';
+import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.5.1';
+import { RuntimeConnection } from './transport.js?build=0.5.1';
+import { formatMessage } from './format.js?build=0.5.1';
+import { createSettingsPanel } from './settings.js?build=0.5.1';
+import { probeEngine } from './engine-health.js?build=0.5.1';
+import { createMemoryPanel } from './memory.js?build=0.5.1';
+import { createLibrary } from './library.js?build=0.5.1';
 const $ = id => document.getElementById(id);
 const state = createLocalState(localStorage);
 let snapshot, characters = [], chats = [], busy = true, connected = false, sessionId;
@@ -75,6 +75,8 @@ function render({ forceBottom = false } = {}) {
     const character = characters.find(c => c.key === snapshot?.characterKey);
     $('name').textContent = character?.name ?? 'Welcome to the tavern';
     $('avatar').replaceChildren(portrait(character, true));
+    $('active-persona').textContent = `Persona: ${snapshot?.presentation?.personaName ?? 'You'}`;
+    $('active-preset').textContent = `Preset: ${snapshot?.presentation?.preset ?? 'None'}`;
     $('subtitle').textContent = snapshot?.chatId ?? 'Choose a character to begin'; $('subtitle').title = snapshot?.chatId ?? '';
     $('characters').replaceChildren(...characters.map(c => {
         const button = el('button', '', c.key === snapshot?.characterKey ? 'selected' : '');
@@ -86,7 +88,7 @@ function render({ forceBottom = false } = {}) {
     snapshot.messages.forEach((message, index) => {
         const article = el('article', '', `message ${message.is_user ? 'user' : ''}`);
         const bubble = el('div', '', 'bubble'); bubble.innerHTML = formatMessage(message.mes);
-        article.append(el('div', message.name ?? (message.is_user ? 'You' : character?.name), 'byline'), thinking(message.extra?.reasoning ?? '', message.extra?.reasoning_duration), bubble);
+        article.append(el('div', message.is_user ? (snapshot?.presentation?.personaName || message.name || 'You') : (message.name ?? character?.name), 'byline'), thinking(message.extra?.reasoning ?? '', message.extra?.reasoning_duration), bubble);
         const tools = el('div', '', 'message-tools');
         const edit = el('button', 'Edit'); edit.onclick = () => { editing = target(index); $('edit-text').value = message.mes; $('editor').returnValue = ''; $('editor').showModal(); }; tools.append(edit);
         if (index === snapshot.messages.length - 1 && !message.is_user && !message.is_system) {

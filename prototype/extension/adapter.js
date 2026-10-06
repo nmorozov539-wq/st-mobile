@@ -23,7 +23,8 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         const ctx = context();
         return clone({ characterKey: ctx.characters[ctx.characterId]?.avatar ?? null,
             groupId: ctx.groupId ?? null, chatId: ctx.chatId ?? null,
-            messages: ctx.chat, metadata: ctx.chatMetadata });
+            messages: ctx.chat, metadata: ctx.chatMetadata,
+            presentation: { personaName: ctx.name1 || "You", preset: ctx.chatCompletionSettings?.preset_settings_openai || "None" } });
     };
     const api = {
         markReady() { ready = true; },

@@ -1,6 +1,7 @@
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.5.1';
 export function createLibrary({rpc,action,refresh,locked}) {
     const $=id=>document.getElementById(id);
-    let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false;
+    let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001;
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     function field(parent,label,value,update,{type,rows=4}={}){
         const wrapper=node('label',label),input=node(type==='boolean'?'input':type==='number'?'input':'textarea');
@@ -31,22 +32,32 @@ export function createLibrary({rpc,action,refresh,locked}) {
             const extra=node('details');extra.append(node('summary','Other preset parameters and connection settings'));
             for(const [name,value] of Object.entries(data))if(['number','boolean','string'].includes(typeof value))field(Object.hasOwn(labels,name)?body:extra,title(name),value,v=>data[name]=v,{type:typeof value,rows:typeof value==='string'&&value.length>100?4:1});
             body.append(extra);
-            for(const prompt of data.prompts??[]){
-                const section=node('details');section.open=true;section.append(node('summary',prompt.name??prompt.identifier));
-                if(!prompt.marker){field(section,'Prompt text',prompt.content,v=>prompt.content=v,{rows:6});field(section,'Role',prompt.role??'system',v=>prompt.role=v,{rows:1});}
-                if(typeof prompt.injection_depth==='number')field(section,'Injection depth',prompt.injection_depth,v=>prompt.injection_depth=v,{type:'number'});
-                body.append(section);
-            }
-            for(const [index,group] of (data.prompt_order??[]).entries()){
-                const section=node('details');section.append(node('summary',`Prompt toggles · group ${index+1}`));
-                for(const row of group.order??[]){const prompt=data.prompts?.find(p=>p.identifier===row.identifier);field(section,prompt?.name??row.identifier,row.enabled,v=>row.enabled=v,{type:'boolean'});}
+            const groups=data.prompt_order??[];
+            if(!groups.some(g=>String(g.character_id)===String(orderId)))orderId=groups.find(g=>String(g.character_id)==='100001')?.character_id??groups[0]?.character_id??100001;
+            const scope=node('label','Prompt order');const select=node('select');
+            for(const group of groups.length?groups:[{character_id:100001}]){const option=node('option',String(group.character_id)==='100001'?'Active ST chat-completion order':`Other saved order · ${group.character_id}`);option.value=group.character_id;select.append(option);}
+            select.value=String(orderId);select.onchange=()=>{orderId=select.value;renderEditor();};scope.append(select);body.append(scope);
+            body.append(node('p','Each switch controls whether ST includes that entry. Save to apply your changes. Other saved orders keep their own switches.'));
+            const order=presetOrder(data,orderId);
+            const ids=[...order.map(r=>r.identifier),...(data.prompts??[]).map(p=>p.identifier).filter(id=>!order.some(r=>r.identifier===id))];
+            for(const id of ids){
+                const prompt=data.prompts?.find(p=>p.identifier===id);
+                const section=node('details');section.open=true;
+                const enabled=order.find(r=>r.identifier===id)?.enabled===true;
+                const heading=node('summary',`${prompt?.name??id} · ${enabled?'On':'Off'}`);section.append(heading);
+                const label=node('label');label.className='prompt-switch';
+                const toggle=node('input');toggle.type='checkbox';toggle.checked=enabled;toggle.setAttribute('aria-label',`Enable ${prompt?.name??id}`);
+                const state=node('span',enabled?'On · included':'Off · excluded');
+                toggle.onchange=()=>{setPromptEnabled(data,orderId,id,toggle.checked);state.textContent=toggle.checked?'On · included':'Off · excluded';heading.textContent=`${prompt?.name??id} · ${toggle.checked?'On':'Off'}`;syncJSON();};label.append(toggle,state);section.append(label);
+                if(prompt&&!prompt.marker){field(section,'Prompt text',prompt.content,v=>prompt.content=v,{rows:6});field(section,'Role',prompt.role??'system',v=>prompt.role=v,{rows:1});}
+                if(typeof prompt?.injection_depth==='number')field(section,'Injection depth',prompt.injection_depth,v=>prompt.injection_depth=v,{type:'number'});
                 body.append(section);
             }
         }
         $('asset-portrait-label').hidden=kind==='presets';syncJSON();
     }
     async function load(){rows=await rpc('assets',{action:'list',kind});$('asset-list').replaceChildren(...rows.map(row=>{const b=node('button',row.name);b.onclick=()=>run(async()=>{key=row.key;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=kind==='presets'?{name:key,preset:result.draft}:result.draft;openEditor();});return b;}));}
-    function openEditor(){uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
+    function openEditor(){orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
     async function run(fn){if(locked())return;await action(async()=>{try{await fn();}catch(e){$('library-error').textContent=e.message;$('asset-error').textContent=e.message;throw e;}});}
     $('library-button').onclick=()=>run(async()=>{await load();$('library-error').textContent='';$('library-panel').showModal();});
     $('close-library').onclick=()=>$('library-panel').close();$('close-asset').onclick=()=>$('asset-editor').close();

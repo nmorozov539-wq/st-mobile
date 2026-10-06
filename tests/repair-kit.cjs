@@ -4,15 +4,15 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-check-'));
  try{
   const destination=path.join(root,'extracted');fs.mkdirSync(destination);
-  const archive=path.resolve('pocket-tavern-combined-v0.5.0.zip');
+  const archive=path.resolve('pocket-tavern-combined-v0.5.1.zip');
   const bundle=await extractKit(archive,destination,'/tmp/pocket-combined-engine');
   assert.ok(fs.existsSync(path.join(bundle,'prepare.cjs')));
   assert.match(fs.readFileSync(path.join(bundle,'summaryception/index.js'),'utf8'),/pocketExtensions/);
   assert.ok(fs.existsSync(path.join(bundle,'summaryception/LICENSE')));
   assert.match(fs.readFileSync(path.join(bundle,'frontend/index.html'),'utf8'),/setting-endpoint/);
   assert.match(fs.readFileSync(path.join(bundle,'start.cjs'),'utf8'),/--proxy/);
-  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.5.0 (1).zip'));
-  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.5.0 (1).zip'));
+  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.5.1 (1).zip'));
+  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.5.1 (1).zip'));
   fs.mkdirSync(path.join(root,'working/node_modules/wreq-js'),{recursive:true});fs.writeFileSync(path.join(root,'working/node_modules/wreq-js/package.json'),'{}');
   assert.equal(locateProxy([path.join(root,'missing'),path.join(root,'working')]),path.join(root,'working'));
   const malicious=path.join(root,'bad.zip');

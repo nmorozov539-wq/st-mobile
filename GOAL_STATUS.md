@@ -31,3 +31,6 @@ extension, not proof that arbitrary DOM-dependent extensions work. Its pinned
 the coordination patch. Current Pocket memory uses its Default ST connection
 and single-character chats. Other connection modes and advanced memory editors
 still require full ST; their saved configuration is preserved.
+
+### v0.5.1 follow-up
+Active persona and preset are visible in chat; persona bylines and per-entry preset On/Off controls implemented. 71 tests pass; native saved toggle and mobile layout verified on PC. Phone ZIP is pocket-tavern-combined-v0.5.1.zip.

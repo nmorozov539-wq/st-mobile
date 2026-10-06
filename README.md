@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.5.2.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.5.3.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.2
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.3
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -84,3 +84,7 @@ The chat shows the active ST persona and chat-completion preset. User bylines us
 ## v0.5.2 send diagnostics and preset access
 
 Settings has an Edit preset entries · On / Off button; the current preset badge also opens its editor. Send failures remain in a visible error box and the browser console, without logging message text or keys. Mixed frontend/engine builds are rejected before sending. The reported Android send failure has not been reproduced on PC; its cause remains unconfirmed. The phone reported both build IDs as 0.5.0, so the new files were not being loaded. Use the ZIP repair helper to update the actual installation directly.
+
+## v0.5.3 tool calling control
+
+The phone rejection was identified as TOOLS_ENABLED: a preset enabled native tool calling. Settings now exposes Tool calling enabled in ST. Uncheck it to use Pocket’s text chat; the change uses ST’s native control, saves settings, and verifies persisted function_calling. Another preset can re-enable this setting. Full tool calling support remains outside the current text-chat prototype.

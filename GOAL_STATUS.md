@@ -37,3 +37,6 @@ Active persona and preset are visible in chat; persona bylines and per-entry pre
 
 ### v0.5.2 troubleshooting update
 Direct active-preset editing from Settings/chat badge, persistent send errors, and mixed-build detection are available. The reported Android send failure remains unconfirmed; phone reported both build IDs as 0.5.0; ZIP repair avoids a stale extracted folder. Exact rejection remains unconfirmed. 72 tests and ZIP update integration pass.
+
+### v0.5.3
+Reported Android send rejection identified as TOOLS_ENABLED. Native-backed tool calling setting added to Pocket; verified off state and subsequent sending on PC. 73 tests pass. Phone package v0.5.3 is ready.

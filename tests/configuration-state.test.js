@@ -66,3 +66,15 @@ test('Connect sends the entered key and clears the input without requiring Save'
         assert.equal(node('setting-key').value,'');
     }finally{globalThis.document=previous;}
 });
+test('tool calling control reads the preset state and saves an explicit off choice',async()=>{
+ const previous=globalThis.document,nodes=new Map(),calls=[];
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',replaceChildren(){},append(){},querySelectorAll(){return[];},addEventListener(){},showModal(){}});return nodes.get(id);};
+ globalThis.document={getElementById:node,createElement:()=>({})};
+ const config={revision:'r',selected:{source:'custom',toolCalling:true,lorebooks:[]},presets:[],personas:[],models:[],lorebooks:[],onlineStatus:'Valid'};
+ try{
+  createSettingsPanel({rpc:async(method,arg)=>{if(method==='configure'){calls.push(arg);config.selected.toolCalling=arg.value;}return config;},action:fn=>fn(),adoptSnapshot:async()=>{},status(){},locked:()=>false});
+  await node('settings-button').onclick();assert.equal(node('setting-tools').checked,true);
+  node('setting-tools').checked=false;await node('setting-tools').onchange();
+  assert.deepEqual(calls,[{kind:'toolCalling',value:false,revision:'r'}]);assert.equal(node('setting-tools').checked,false);
+ }finally{globalThis.document=previous;}
+});

@@ -1,7 +1,7 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.5.2';
-import { connectThroughST } from './connection-check.js?build=0.5.2';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.5.2';
-import { testConnection } from './connection-test.js?build=0.5.2';
+import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.5.3';
+import { connectThroughST } from './connection-check.js?build=0.5.3';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.5.3';
+import { testConnection } from './connection-test.js?build=0.5.3';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { model_list, getChatCompletionModel, getPresetApplicationPromise, sendOpenAIRequest } from '/scripts/openai.js';
@@ -19,8 +19,8 @@ export function createConfigurationRuntime(getContext) {
         const presets = manager ? Object.keys(manager.getPresetList().preset_names) : [];
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
-            persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts };
-        return { bridgeBuild: '0.5.2', selected, revision: JSON.stringify(selected), presets,
+            persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts, toolCalling: !!settings.function_calling };
+        return { bridgeBuild: '0.5.3', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
@@ -57,6 +57,11 @@ export function createConfigurationRuntime(getContext) {
                 // ST normally copies the selection into this field in its debounced saver.
                 Object.assign(world_info, { globalSelect: [...value] });
                 await verify(saved => JSON.stringify(saved.world_info_settings?.world_info?.globalSelect) === JSON.stringify(value));
+            } else if (kind === 'toolCalling') {
+                if (typeof value !== 'boolean') fail('INVALID_ARGUMENT', 'Tool calling must be on or off.');
+                const element=document.querySelector('#openai_function_calling');
+                element.checked=value; element.dispatchEvent(new Event('input', {bubbles:true}));
+                await verify(saved => saved.oai_settings?.function_calling === value);
             } else if (kind === 'thinking') {
                 if (typeof value !== 'boolean') fail('INVALID_ARGUMENT', 'Thinking visibility must be on or off.');
                 settings.show_thoughts = value;

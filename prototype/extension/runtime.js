@@ -2,8 +2,8 @@ import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteC
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
-import { assertPersisted } from './persistence.js?build=0.5.2';
-import { selectSavedChat } from './chat-selection.js?build=0.5.2';
+import { assertPersisted } from './persistence.js?build=0.5.3';
+import { selectSavedChat } from './chat-selection.js?build=0.5.3';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export function createGenerationRuntime(getContext) {
@@ -66,7 +66,7 @@ export function createGenerationRuntime(getContext) {
             if (hasPendingFileAttachment()) fail('ATTACHMENT_PENDING', 'Remove ST’s pending attachment before using this text-only experiment.');
             if (isExecutingCommandsFromChatInput || ctx.swipe.state() !== SWIPE_STATE.NONE) fail('BUSY', 'Finish the current command or swipe edit first.');
             if (ctx.powerUserSettings.auto_continue.enabled || ctx.powerUserSettings.auto_swipe) fail('AUTOMATIC_GENERATION', 'Disable auto-continue and auto-swipe for this single-reply experiment.');
-            if (ctx.chatCompletionSettings.function_calling) fail('TOOLS_ENABLED', 'Disable tool calling for this text-only experiment.');
+            if (ctx.chatCompletionSettings.function_calling) fail('TOOLS_ENABLED', 'Open Pocket Tavern Settings and turn off “Tool calling enabled in ST”, then send again. Your draft is kept.');
         },
         async edit(messageId, text) {
             const ctx = getContext();

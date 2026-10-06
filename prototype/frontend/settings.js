@@ -16,7 +16,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     };
     function render(value) {
         configuration = value;
-        $('settings-build').textContent = `Pocket Tavern 0.5.2 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
+        $('settings-build').textContent = `Pocket Tavern 0.5.3 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
         const selected = value.selected;
         const custom = selected.source === 'custom';
         $('custom-controls').hidden = !custom;
@@ -30,6 +30,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
         choices('setting-lorebooks', value.lorebooks.map(name => ({ id:name, name })), selected.lorebooks);
         $('setting-model').disabled = !value.models.length;
         $('setting-thinking').checked = selected.thinking;
+        $('setting-tools').checked = selected.toolCalling;
         setLocked(panelLocked);
         $('connection-state').textContent = `${value.onlineStatus === 'no_connection' ? 'Not connected' : 'ST connection: '+value.onlineStatus} · ${custom ? 'Custom endpoint' : 'OpenRouter'} key ${value.hasProviderKey ? 'saved in ST' : (custom ? 'not configured (optional)' : 'not configured')}`;
     }
@@ -59,6 +60,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     for (const [id,kind] of [['setting-source','source'],['setting-preset','preset'],['setting-persona','persona'],['setting-model','model']]) {
         $(id).onchange = () => action(() => change(kind, $(id).value));
     }
+    $('setting-tools').onchange = () => action(() => change('toolCalling', $('setting-tools').checked));
     $('setting-thinking').onchange = () => action(() => change('thinking', $('setting-thinking').checked));
     $('apply-lorebooks').onclick = () => action(() => change('lorebooks', [...$('setting-lorebooks').selectedOptions].map(option => option.value)));
     $('clear-lorebooks').onclick = () => action(() => change('lorebooks', []));

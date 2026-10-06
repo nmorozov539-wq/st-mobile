@@ -105,3 +105,7 @@ Final mobile layout check: at 390×760, body width was 390 px and the library di
 ## v0.5.2 reported phone send failure
 
 The Android failure is not reproduced on PC; The user subsequently reported both phone build IDs as 0.5.0, proving the phone is still loading the older release. This explains the missing new controls; it does not yet establish the send rejection’s exact cause. An ordinary message completed through ST and the mock model on the previous and updated send path. A rejected slash command kept its draft, appended no messages, showed a persistent coded error, and logged the rejection to the browser console. Settings opens the active preset editor directly, with saved On/Off states. Mixed frontend/bridge versions fail during initialization. 72 automated tests pass; the actual ZIP repair/update integration passes and verifies the new entry helper, build check, direct-editor button and engine build stamp are installed while settings are preserved.
+
+## v0.5.3 tool calling rejection resolved
+
+Phone reported TOOLS_ENABLED, identifying the pre-submission guard. Added a native-backed tool calling checkbox in Pocket Settings. PC reproduced the exact rejection with tools on, retained the draft and no extra messages, then turned tools off through Pocket and resent. Native settings.json independently confirms function_calling=false. 73 tests pass, including state display and explicit-off settings RPC. Selecting a preset can re-enable the flag; full tool calling remains unsupported.

@@ -66,3 +66,9 @@ test('transport timeouts preserve uncertainty and generation events extend the d
     current.onmessage({data:{id:current.sent.at(-1).id,result:{state:'completed'}}});
     assert.equal((await pending).state,'completed'); connection.disconnect();
 });
+
+import {checkBridgeBuild,FRONTEND_BUILD} from '../prototype/frontend/build.js';
+test('mixed frontend and engine releases fail before any chat request',()=>{
+ assert.doesNotThrow(()=>checkBridgeBuild({bridgeBuild:FRONTEND_BUILD}));
+ for(const handshake of [{},{bridgeBuild:'0.5.0'}])assert.throws(()=>checkBridgeBuild(handshake),{code:'BUILD_MISMATCH'});
+});

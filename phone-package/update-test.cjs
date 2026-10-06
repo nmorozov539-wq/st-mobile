@@ -35,7 +35,10 @@ function update(target,bundle=__dirname){
         if(localOverlays.length)console.log('Updated recognized user-local extension code; previous code is in the backup. Chat/settings files were retained.');
         if(combined)fs.copyFileSync(path.join(bundle,'start.cjs'),path.join(target,'start.cjs'));
         if(proxyInstalled)fs.copyFileSync(path.join(bundle,'proxy.cjs'),path.join(target,'.pocket-proxy/index.cjs'));
-        return {target,backup,mode:combined?'combined':'test',mock:!!marker.mock};
+        const manifest=path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment/manifest.json');
+        const release=fs.existsSync(manifest)?JSON.parse(fs.readFileSync(manifest)).version:'unknown';
+        console.log(`Installed Pocket Tavern ${release} into ${target}`);
+        return {target,backup,release,mode:combined?'combined':'test',mock:!!marker.mock};
     } finally {fs.rmSync(stage,{recursive:true,force:true});}
 }
 module.exports={update};

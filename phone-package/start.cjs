@@ -18,6 +18,8 @@ const portFree=port=>new Promise((resolve,reject)=>{const server=net.createServe
 async function launch(target,mock,proxy){
     const plan=readLaunch(target,mock,proxy);
     for(const port of plan.ports)await portFree(port);
+    const manifest=path.join(plan.target,'public/scripts/extensions/third-party/st-mobile-experiment/manifest.json');
+    if(fs.existsSync(manifest))console.log(`Installed Pocket Tavern version: ${JSON.parse(fs.readFileSync(manifest)).version} · folder: ${plan.target}`);
     console.log('Starting Pocket Tavern. Open http://127.0.0.1:8123/st-mobile/ after ST finishes starting.');
     console.log('One ST server owns this installation’s data. Ctrl+C stops the session.');
     if(proxy)console.log('Optional OpenRouter proxy enabled. Choose Custom and base URL http://127.0.0.1:8001/api/v1 in Settings.');

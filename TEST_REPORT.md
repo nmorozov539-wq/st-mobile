@@ -101,3 +101,7 @@ Final mobile layout check: at 390×760, body width was 390 px and the library di
 ## v0.5.1 persona and preset visibility
 
 71 automated tests pass. Added checks for live snapshot persona/preset labels, preserving historical message data, independent native prompt orders, unknown row metadata and adding missing entries. PC browser testing disabled Enhance Definitions, saved through ST, read back the native preset file, and reopened the editor to confirm Off. Chat displays Persona: Pocket Tester and Preset: library-preset. At 390×760 body client/scroll widths both equal 390; preview-v0.5.1.jpg captures the labels. Android verification awaits the user’s evening test.
+
+## v0.5.2 reported phone send failure
+
+The Android failure is not reproduced on PC; The user subsequently reported both phone build IDs as 0.5.0, proving the phone is still loading the older release. This explains the missing new controls; it does not yet establish the send rejection’s exact cause. An ordinary message completed through ST and the mock model on the previous and updated send path. A rejected slash command kept its draft, appended no messages, showed a persistent coded error, and logged the rejection to the browser console. Settings opens the active preset editor directly, with saved On/Off states. Mixed frontend/bridge versions fail during initialization. 72 automated tests pass; the actual ZIP repair/update integration passes and verifies the new entry helper, build check, direct-editor button and engine build stamp are installed while settings are preserved.

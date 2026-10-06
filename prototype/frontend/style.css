@@ -21,3 +21,6 @@ header #settings-button{font-size:12px;margin-left:0;padding:7px 10px}@media(max
 .active-config span{overflow-wrap:anywhere;min-width:0}
 .prompt-switch{display:flex!important;align-items:center;gap:.65rem;padding:.5rem 0;font-weight:600}
 .prompt-switch input{width:auto!important;accent-color:#c69c65}
+
+#send-error{padding:.7rem;margin-bottom:.5rem;border:1px solid #d78282;border-radius:.6rem;color:#ffd3d3;background:#45292f;white-space:pre-wrap;overflow-wrap:anywhere}
+.active-config button{padding:.1rem .4rem;font-size:inherit;color:inherit;text-align:left;white-space:normal;overflow-wrap:anywhere;min-width:0}

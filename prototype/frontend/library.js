@@ -1,4 +1,4 @@
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.5.1';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.5.2';
 export function createLibrary({rpc,action,refresh,locked}) {
     const $=id=>document.getElementById(id);
     let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001;
@@ -81,5 +81,8 @@ export function createLibrary({rpc,action,refresh,locked}) {
     });
     $('import-asset').onclick=()=>$('asset-import').click();
     $('asset-import').onchange=()=>{const file=$('asset-import').files[0];$('asset-import').value='';if(file)run(async()=>{const result=await rpc('assets',{action:'import',kind,file},60000);await load();await refresh();$('library-error').textContent=result.note??'Imported into ST.';});};
-    return {setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
+    async function openPreset(){await run(async()=>{kind='presets';$('library-kind').value=kind;const config=await rpc('settings');key=config.selected.preset;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft={name:key,preset:result.draft};$('settings-panel').close();openEditor();});}
+    $('edit-active-preset').onclick=openPreset;
+    $('active-preset').onclick=openPreset;
+    return {openPreset,setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
 }

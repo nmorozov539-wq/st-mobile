@@ -1,10 +1,11 @@
-import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.5.1';
-import { RuntimeConnection } from './transport.js?build=0.5.1';
-import { formatMessage } from './format.js?build=0.5.1';
-import { createSettingsPanel } from './settings.js?build=0.5.1';
-import { probeEngine } from './engine-health.js?build=0.5.1';
-import { createMemoryPanel } from './memory.js?build=0.5.1';
-import { createLibrary } from './library.js?build=0.5.1';
+import { checkBridgeBuild } from './build.js?build=0.5.2';
+import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.5.2';
+import { RuntimeConnection } from './transport.js?build=0.5.2';
+import { formatMessage } from './format.js?build=0.5.2';
+import { createSettingsPanel } from './settings.js?build=0.5.2';
+import { probeEngine } from './engine-health.js?build=0.5.2';
+import { createMemoryPanel } from './memory.js?build=0.5.2';
+import { createLibrary } from './library.js?build=0.5.2';
 const $ = id => document.getElementById(id);
 const state = createLocalState(localStorage);
 let snapshot, characters = [], chats = [], busy = true, connected = false, sessionId;
@@ -25,6 +26,7 @@ function controls() {
     settingsPanel?.setLocked(locked);
     library?.setLocked(locked);
     $('library-button').disabled = locked;
+    $('active-preset').disabled = locked;
     $('send').disabled = locked || !snapshot?.characterKey || !$('draft').value.trim();
     $('draft').disabled = busy || !snapshot?.characterKey;
     $('refresh').disabled = busy || !connected;
@@ -170,20 +172,28 @@ function applyOperation(result, journal) {
     if (result.error?.code === 'ENGINE_UNAVAILABLE') { disconnected(result.error.message); return; }
     status(`${result.state === 'completed' ? 'Reply complete' : result.state === 'cancelled' ? 'Reply stopped' : 'Reply failed'} · saved chat ${result.persistence}${result.error ? ' · '+result.error.message : ''}`);
 }
+function showSendError(error) {
+    const text = `${error.code ? error.code + ': ' : ''}${error.message || 'Could not send the message.'}`;
+    $('send-error').textContent = text; $('send-error').hidden = false;
+    console.error('[Pocket Tavern] Send failed:', error.code || 'ERROR', error.message);
+}
 async function generateReply(mode = 'send') {
     if (busy || reviewRequired || !connected || (mode === 'send' && !$('draft').value.trim())) return;
+    $('send-error').hidden = true;
     await action(async () => {
-        saveDraft(); const nextRequestId = crypto.randomUUID();
-        const argument = { requestId: nextRequestId, text: mode === 'send' ? $('draft').value : '', mode,
-            ...targetOf(snapshot), expectedMessage: mode === 'swipe' ? JSON.stringify(snapshot.messages.at(-1)) : undefined };
-        const journal = { kind: 'send', sessionId, target: targetOf(snapshot), argument, beforeCount: snapshot.messages.length };
-        state.begin(journal); requestId = nextRequestId; controls(); status('Waiting for the model…'); $('stop').disabled = true; streamReasoning = ''; makeStream();
-        try { const result = await rpc('send', argument, 180000); applyOperation(result, journal); await loadHistory(); }
-        catch (error) {
-            if (knownRejection(error)) state.finish();
-            else { reviewRequired = true; recovery('Your request may already be saved. Reconnect, read the conversation, and check it before sending again.'); }
-            throw error;
-        } finally { requestId = null; stream = null; render(); }
+        try {
+            saveDraft(); const nextRequestId = crypto.randomUUID();
+            const argument = { requestId: nextRequestId, text: mode === 'send' ? $('draft').value : '', mode,
+                ...targetOf(snapshot), expectedMessage: mode === 'swipe' ? JSON.stringify(snapshot.messages.at(-1)) : undefined };
+            const journal = { kind: 'send', sessionId, target: targetOf(snapshot), argument, beforeCount: snapshot.messages.length };
+            state.begin(journal); requestId = nextRequestId; controls(); status('Waiting for the model…'); $('stop').disabled = true; streamReasoning = ''; makeStream();
+            try { const result = await rpc('send', argument, 180000); applyOperation(result, journal); if(result.error)showSendError(result.error); await loadHistory(); }
+            catch (error) {
+                if (knownRejection(error)) state.finish();
+                else { reviewRequired = true; recovery('Your request may already be saved. Reconnect, read the conversation, and check it before sending again.'); }
+                throw error;
+            } finally { requestId = null; stream = null; render(); }
+        } catch(error) { showSendError(error); throw error; }
     });
 }
 function disconnected(message) {
@@ -218,7 +228,7 @@ async function initialize() {
     try {
         const channel = new MessageChannel(); connection.connect(channel.port1);
         $('engine').contentWindow.postMessage({ type: 'st-mobile-connect' }, location.origin, [channel.port2]);
-        const handshake = await rpc('handshake', undefined, 5000); await rpc('health', undefined, 7000);
+        const handshake = await rpc('handshake', undefined, 5000); checkBridgeBuild(handshake); await rpc('health', undefined, 7000);
         sessionId = handshake.sessionId; connected = true;
         characters = await rpc('characters'); snapshot = await rpc('snapshot');
         const journal = state.pending(), activity = await rpc('activity');

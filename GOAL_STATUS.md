@@ -34,3 +34,6 @@ still require full ST; their saved configuration is preserved.
 
 ### v0.5.1 follow-up
 Active persona and preset are visible in chat; persona bylines and per-entry preset On/Off controls implemented. 71 tests pass; native saved toggle and mobile layout verified on PC. Phone ZIP is pocket-tavern-combined-v0.5.1.zip.
+
+### v0.5.2 troubleshooting update
+Direct active-preset editing from Settings/chat badge, persistent send errors, and mixed-build detection are available. The reported Android send failure remains unconfirmed; phone reported both build IDs as 0.5.0; ZIP repair avoids a stale extracted folder. Exact rejection remains unconfirmed. 72 tests and ZIP update integration pass.

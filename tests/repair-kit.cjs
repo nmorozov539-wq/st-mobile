@@ -4,15 +4,15 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-check-'));
  try{
   const destination=path.join(root,'extracted');fs.mkdirSync(destination);
-  const archive=path.resolve('pocket-tavern-combined-v0.5.1.zip');
+  const archive=path.resolve('pocket-tavern-combined-v0.5.2.zip');
   const bundle=await extractKit(archive,destination,'/tmp/pocket-combined-engine');
   assert.ok(fs.existsSync(path.join(bundle,'prepare.cjs')));
   assert.match(fs.readFileSync(path.join(bundle,'summaryception/index.js'),'utf8'),/pocketExtensions/);
   assert.ok(fs.existsSync(path.join(bundle,'summaryception/LICENSE')));
   assert.match(fs.readFileSync(path.join(bundle,'frontend/index.html'),'utf8'),/setting-endpoint/);
   assert.match(fs.readFileSync(path.join(bundle,'start.cjs'),'utf8'),/--proxy/);
-  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.5.1 (1).zip'));
-  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.5.1 (1).zip'));
+  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.5.2 (1).zip'));
+  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.5.2 (1).zip'));
   fs.mkdirSync(path.join(root,'working/node_modules/wreq-js'),{recursive:true});fs.writeFileSync(path.join(root,'working/node_modules/wreq-js/package.json'),'{}');
   assert.equal(locateProxy([path.join(root,'missing'),path.join(root,'working')]),path.join(root,'working'));
   const malicious=path.join(root,'bad.zip');
@@ -35,7 +35,10 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   assert.ok(fs.existsSync(path.join(target,'.pocket-proxy/index.cjs')));
   assert.match(fs.readFileSync(path.join(localSummary,'index.js'),'utf8'),/pocketExtensions/);
   assert.ok(fs.readdirSync(path.join(target,'.pocket-backups')).some(dir=>fs.readFileSync(path.join(target,'.pocket-backups',dir,'data/default-user/extensions/Extension-Summaryception/index.js'),'utf8')==='ORIGINAL LOCAL CODE'));
-  assert.match(fs.readFileSync(path.join(target,'public/st-mobile/index.html'),'utf8'),/setting-endpoint/);
+  assert.match(fs.readFileSync(path.join(target,'public/st-mobile/index.html'),'utf8'),/edit-active-preset/);
+  assert.ok(fs.existsSync(path.join(target,'public/st-mobile/preset-order.js')));
+  assert.match(fs.readFileSync(path.join(target,'public/st-mobile/build.js'),'utf8'),/0\.5\.2/);
+  assert.match(fs.readFileSync(path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment/index.js'),'utf8'),/bridgeBuild: '0\.5\.2'/);
   console.log('Repair extracts the real kit, finds duplicate download names, locates dependency folders, and rejects unexpected archive paths.');
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1;});

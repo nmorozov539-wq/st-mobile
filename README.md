@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.5.1.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.5.2.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.2
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -80,3 +80,7 @@ After importing real data, run the kit’s updater before the first launch. It b
 ## v0.5.1 visibility fixes
 
 The chat shows the active ST persona and chat-completion preset. User bylines use the current persona without rewriting stored messages. Preset entries show On/Off switches alongside their text, in native ST prompt order. The editor defaults to ST 1.19’s active global order (100001); other saved orders are selectable and retain independent states. Save in ST applies changes. Entry reordering remains in the full ST editor.
+
+## v0.5.2 send diagnostics and preset access
+
+Settings has an Edit preset entries · On / Off button; the current preset badge also opens its editor. Send failures remain in a visible error box and the browser console, without logging message text or keys. Mixed frontend/engine builds are rejected before sending. The reported Android send failure has not been reproduced on PC; its cause remains unconfirmed. The phone reported both build IDs as 0.5.0, so the new files were not being loaded. Use the ZIP repair helper to update the actual installation directly.

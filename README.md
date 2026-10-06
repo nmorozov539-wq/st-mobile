@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.5.3.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.5.4.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code; the pinned Pocket-adapted Summaryception is supplied separately in the kit. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -88,3 +88,7 @@ Settings has an Edit preset entries · On / Off button; the current preset badge
 ## v0.5.3 tool calling control
 
 The phone rejection was identified as TOOLS_ENABLED: a preset enabled native tool calling. Settings now exposes Tool calling enabled in ST. Uncheck it to use Pocket’s text chat; the change uses ST’s native control, saves settings, and verifies persisted function_calling. Another preset can re-enable this setting. Full tool calling support remains outside the current text-chat prototype.
+
+## v0.5.4 chat HTML
+
+Chat and thinking text use ST’s Showdown parser and DOMPurify sanitizer. Supported HTML includes font color, details/summary, basic text formatting, lists and tables. Scripts, event handlers, custom CSS, embeds, images and forms are excluded. HTTP(S) links open separately. Code blocks remain literal. Explicit font color overrides quoted-dialogue highlighting.

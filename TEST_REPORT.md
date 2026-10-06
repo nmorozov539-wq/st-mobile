@@ -109,3 +109,7 @@ The Android failure is not reproduced on PC; The user subsequently reported both
 ## v0.5.3 tool calling rejection resolved
 
 Phone reported TOOLS_ENABLED, identifying the pre-submission guard. Added a native-backed tool calling checkbox in Pocket Settings. PC reproduced the exact rejection with tools on, retained the draft and no extra messages, then turned tools off through Pocket and resent. Native settings.json independently confirms function_calling=false. 73 tests pass, including state display and explicit-off settings RPC. Selecting a preset can re-enable the flag; full tool calling remains unsupported.
+
+## v0.5.4 HTML message rendering
+
+73 automated tests pass. An additional browser harness (tests/html-render-check.html and .js, copied beside the preview formatter) passes 11 assertions using the actual ST Showdown and DOMPurify exports. It covers supplied font/details examples, separator, literal code, nested and unfinished blocks, safe links, and removal of scripts, event handlers, images, embeds, forms and inline CSS. A saved mock chat independently verifies computed quote color rgb(255, 182, 193), closed details by default and visible body on expansion, with zero active-content elements/attributes. Normal mock generation and saved-chat verification still complete. HTML is supported in streaming and saved messages and thinking text; custom styles and remote images remain excluded.

@@ -24,3 +24,9 @@ header #settings-button{font-size:12px;margin-left:0;padding:7px 10px}@media(max
 
 #send-error{padding:.7rem;margin-bottom:.5rem;border:1px solid #d78282;border-radius:.6rem;color:#ffd3d3;background:#45292f;white-space:pre-wrap;overflow-wrap:anywhere}
 .active-config button{padding:.1rem .4rem;font-size:inherit;color:inherit;text-align:left;white-space:normal;overflow-wrap:anywhere;min-width:0}
+
+.bubble details,.thinking-body details{margin:.7em 0;padding:.6em .8em;border:1px solid #695364;border-radius:8px}
+.bubble summary,.thinking-body summary{cursor:pointer;font-weight:600;overflow-wrap:anywhere}
+.bubble details[open]>summary,.thinking-body details[open]>summary{margin-bottom:.6em}
+.bubble font .dialogue,.thinking-body font .dialogue{color:inherit}
+.bubble table{display:block;max-width:100%;overflow:auto;border-collapse:collapse}.bubble td,.bubble th{padding:.4em;border:1px solid #695364}

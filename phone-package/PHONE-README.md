@@ -1,4 +1,4 @@
-# Pocket Tavern combined prototype v0.5.3
+# Pocket Tavern combined prototype v0.5.4
 
 This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied installed dependencies. It does not include ST or dependencies in the small download: preparation copies your phone's installed code. After preparation, running the combined folder does not depend on the original installation. No Android app yet.
 
@@ -7,7 +7,7 @@ This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied ins
 Extract the ZIP in Downloads. Stop an old Pocket Tavern test session with Ctrl+C; it uses the same port. In Termux:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -24,7 +24,7 @@ Presets use ST’s native chat-completion files. Manage library can import/creat
 Prepare a DIFFERENT fresh folder with explicit mock settings:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock
@@ -83,20 +83,20 @@ One command starts the bundled proxy and ST; Ctrl+C stops both. Use Custom with 
 
 ## Repair a failed extraction/update/proxy setup
 
-Copy repair-pocket.cjs and the v0.5.3 ZIP into phone Downloads. Stop Pocket Tavern and the external proxy first. Run `node ~/storage/downloads/repair-pocket.cjs`. It reads the ZIP directly using ST’s installed yauzl dependency, updates the existing combined folder, installs the bundled proxy from a working same-phone or-proxy dependency folder if absent, then launches explicitly with --proxy. It preserves data and never runs fresh preparation over an existing installation. It accepts duplicate ZIP download names, rejects unexpected archive paths, and reports incomplete files or missing dependencies before launch. If it cannot find the proxy folder, use `node repair-pocket.cjs /path/to/package.zip /path/to/or-proxy`. After startup close the full ST tab, reload /st-mobile/, verify both build IDs are 0.5.3, and select Custom to expose endpoint controls.
+Copy repair-pocket.cjs and the v0.5.4 ZIP into phone Downloads. Stop Pocket Tavern and the external proxy first. Run `node ~/storage/downloads/repair-pocket.cjs`. It reads the ZIP directly using ST’s installed yauzl dependency, updates the existing combined folder, installs the bundled proxy from a working same-phone or-proxy dependency folder if absent, then launches explicitly with --proxy. It preserves data and never runs fresh preparation over an existing installation. It accepts duplicate ZIP download names, rejects unexpected archive paths, and reports incomplete files or missing dependencies before launch. If it cannot find the proxy folder, use `node repair-pocket.cjs /path/to/package.zip /path/to/or-proxy`. After startup close the full ST tab, reload /st-mobile/, verify both build IDs are 0.5.4, and select Custom to expose endpoint controls.
 
-## Update the working phone installation to v0.5.3
+## Update the working phone installation to v0.5.4
 
-Stop Pocket Tavern with Ctrl+C. Extract the complete v0.5.3 ZIP, then run:
+Stop Pocket Tavern with Ctrl+C. Extract the complete v0.5.4 ZIP, then run:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
 node update-test.cjs ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs --proxy
 ```
 
-Use plain `node start.cjs` if you do not use the bundled proxy. This updater keeps existing data, configuration and copied proxy dependencies, backs up old code, and installs the pinned Summaryception integration. Reload the phone browser. Settings should show Pocket Tavern and bridge 0.5.3. No repeat preparation or proxy setup is needed.
+Use plain `node start.cjs` if you do not use the bundled proxy. This updater keeps existing data, configuration and copied proxy dependencies, backs up old code, and installs the pinned Summaryception integration. Reload the phone browser. Settings should show Pocket Tavern and bridge 0.5.4. No repeat preparation or proxy setup is needed.
 
 Test message in Settings sends a tiny real request without adding it to a chat. Your provider may charge for it. Manage library accepts standard character files, persona-backup JSON, and chat-completion preset JSON. Persona JSON backups omit images; choose a portrait manually or keep the default. Presets with an existing name are not overwritten on import. Saving applies the preset, so recheck your model/connection.
 
@@ -109,7 +109,7 @@ Yes: it has the standard ST structure. Copying the whole folder into a **fresh, 
 A safer copy uses the included importer into a new installation:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-personal
 node import-data.cjs ~/SillyTavern/data/default-user ~/pocket-tavern-personal
 node update-test.cjs ~/pocket-tavern-personal
@@ -123,7 +123,10 @@ Skip the proxy setup and flag if not needed. Adjust the source path if your ST s
 After importing, the updater also patches a recognized user-local Extension-Summaryception copy if present: ST gives that code priority over the bundled global copy. Previous extension code is backed up; settings/chat files are retained. Keep this update step when migrating data. Other user-local extensions keep their original code and may require future compatibility work.
 
 ### Preset switches and send errors
-Open Settings → Edit preset entries · On / Off, or tap the preset name above the chat. Save in ST applies entry switches. A failed send now shows a persistent error box above the composer; report its exact code/text if sending fails. Both build IDs must show 0.5.3. An incomplete update produces a build mismatch explanation.
+Open Settings → Edit preset entries · On / Off, or tap the preset name above the chat. Save in ST applies entry switches. A failed send now shows a persistent error box above the composer; report its exact code/text if sending fails. Both build IDs must show 0.5.4. An incomplete update produces a build mismatch explanation.
 
 ### Tool calling rejection
 If sending shows TOOLS_ENABLED, open Settings and uncheck Tool calling enabled in ST. It saves automatically. Return to the chat and send the preserved draft. Presets may enable tool calling again; switch it off after selecting such a preset.
+
+### Chat HTML
+Font color and details/summary blocks render in chat and thinking text alongside Markdown. Custom CSS, scripts, embeds and remote images are excluded. Code blocks display HTML literally.

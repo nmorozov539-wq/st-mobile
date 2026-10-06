@@ -40,3 +40,6 @@ Direct active-preset editing from Settings/chat badge, persistent send errors, a
 
 ### v0.5.3
 Reported Android send rejection identified as TOOLS_ENABLED. Native-backed tool calling setting added to Pocket; verified off state and subsequent sending on PC. 73 tests pass. Phone package v0.5.3 is ready.
+
+### v0.5.4
+HTML font color and native details/summary supported through ST’s Showdown/DOMPurify exports. Actual browser checks: 11 passed; existing automated suite: 73 passed. Phone package ready for user testing.

@@ -1,3 +1,4 @@
+import { hasActiveSecret } from './configuration-state.js';
 import { selectPersonaWithoutCardEdit } from './persona-selection.js';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
@@ -20,7 +21,7 @@ export function createConfigurationRuntime(getContext) {
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
-            onlineStatus: ctx.onlineStatus, hasOpenRouterKey: !!secret_state[SECRET_KEYS.OPENROUTER] };
+            onlineStatus: ctx.onlineStatus, hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]) };
     }
     async function verify(check) {
         await saveSettings();

@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.4.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.4.1.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.1
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -33,7 +33,7 @@ node start.cjs --mock
 
 The combined launcher starts ST and a local OpenAI-compatible mock only in explicit mock mode. `[think]` emits separate reasoning, `[slow]` streams slowly, and `[fail]` returns an intentional provider error. Normal/mock launch modes cannot be mixed against one prepared installation. For repeatable configuration fixtures, stop the mock launcher after its first initialization and run `python3 scripts/seed-settings-fixtures.py /path/to/pocket-test`, then restart. The fixture tool rejects normal installations. The mock health endpoint returns only test summary flags and generation parameters, not prompt text.
 
-Current PC mock sandbox: `/tmp/pocket-combined-engine`. Normal-mode sandbox: `/tmp/pocket-combined-normal`. These are disposable and may disappear after reboot. Existing older PC data is retained. Run `npm test`: **48 passing automated tests**. See [TEST_REPORT.md](TEST_REPORT.md) for live results and their limits. Build the kit with `python3 scripts/build-phone-package.py`; copy the ZIP from dist into the project root for phone transfer.
+Current PC mock sandbox: `/tmp/pocket-combined-engine`. Normal-mode sandbox: `/tmp/pocket-combined-normal`. These are disposable and may disappear after reboot. Existing older PC data is retained. Run `npm test`: **49 passing automated tests**. See [TEST_REPORT.md](TEST_REPORT.md) for live results and their limits. Build the kit with `python3 scripts/build-phone-package.py`; copy the ZIP from dist into the project root for phone transfer.
 
 ## Data ownership and migration
 
@@ -49,7 +49,7 @@ The complete ST browser application remains loaded offscreen. It contains behavi
 
 Prepared-engine patches retain CSRF and path checks: tokenizer requests send explicit CSRF headers, each installation has its own cookie name, startup validates an uncached session token, and exact locally copied codec-WASM aliases handle shared-dependency paths. Original ST code/data are untouched.
 
-PC validation covers mock generation, configuration effects, reasoning, stopping, deletion, persistence, launch/shutdown and update preservation. Earlier isolated v3 phone-kit use was reported smooth by the user, including app switching/locking. New combined v0.4 phone operation and real OpenRouter generation/model-list/key handling still need user verification. No real credentials or external model-generation requests were used in development.
+PC validation covers mock generation, configuration effects, reasoning, stopping, deletion, persistence, launch/shutdown and update preservation. Earlier isolated v3 phone-kit use was reported smooth by the user, including app switching/locking. New combined v0.4.1 phone operation and real OpenRouter generation/model-list/key handling still need user verification. No real credentials or external model-generation requests were used in development.
 
 This is an essential-controls prototype, not a daily-use release. Preset/persona/lorebook editors, connection-profile management, character/chat lorebook selectors, reasoning editing, groups, media, slash commands, tools, auto-continue/auto-swipe and arbitrary extensions remain outside this build. Touch swipe gestures and the full ST Markdown/HTML renderer are not implemented. Only the current dark interface is provided. Long-running Android background execution, battery behavior and WebView lifecycle need broader testing.
 

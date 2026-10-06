@@ -6,3 +6,4 @@ import './phone-package.test.js';
 import './engine-health.test.js';
 import './session-init.test.js';
 import './persona-selection.test.js';
+import './configuration-state.test.js';

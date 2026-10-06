@@ -80,3 +80,7 @@ node start.cjs --proxy
 ```
 
 One command starts the bundled proxy and ST; Ctrl+C stops both. Use Custom with `http://127.0.0.1:8001/api/v1` in Settings, enter your key there, and select your model. Plain `node start.cjs` leaves the proxy off. If port 8001 is busy, stop the old proxy first. Setup leaves its original folder untouched. Updates preserve the bundled dependencies and your data.
+
+## Repair a failed extraction/update/proxy setup
+
+Copy repair-pocket.cjs and the v0.4.5 ZIP into phone Downloads. Stop Pocket Tavern and the external proxy first. Run `node ~/storage/downloads/repair-pocket.cjs`. It reads the ZIP directly using ST’s installed yauzl dependency, updates the existing combined folder, installs the bundled proxy from a working same-phone or-proxy dependency folder if absent, then launches explicitly with --proxy. It preserves data and never runs fresh preparation over an existing installation. It accepts duplicate ZIP download names, rejects unexpected archive paths, and reports incomplete files or missing dependencies before launch. If it cannot find the proxy folder, use `node repair-pocket.cjs /path/to/package.zip /path/to/or-proxy`. After startup close the full ST tab, reload /st-mobile/, verify both build IDs are 0.4.5, and select Custom to expose endpoint controls.

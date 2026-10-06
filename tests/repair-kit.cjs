@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const os=require('node:os');const {execFileSync}=require('node:child_process');
+const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/repair-pocket.cjs');
+(async()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-check-'));
+ try{
+  const destination=path.join(root,'extracted');fs.mkdirSync(destination);
+  const archive=path.resolve('pocket-tavern-combined-v0.4.5.zip');
+  const bundle=await extractKit(archive,destination,'/tmp/pocket-combined-engine');
+  assert.ok(fs.existsSync(path.join(bundle,'prepare.cjs')));
+  assert.match(fs.readFileSync(path.join(bundle,'frontend/index.html'),'utf8'),/setting-endpoint/);
+  assert.match(fs.readFileSync(path.join(bundle,'start.cjs'),'utf8'),/--proxy/);
+  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.4.5 (1).zip'));
+  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.4.5 (1).zip'));
+  fs.mkdirSync(path.join(root,'working/node_modules/wreq-js'),{recursive:true});fs.writeFileSync(path.join(root,'working/node_modules/wreq-js/package.json'),'{}');
+  assert.equal(locateProxy([path.join(root,'missing'),path.join(root,'working')]),path.join(root,'working'));
+  const malicious=path.join(root,'bad.zip');
+  execFileSync('python3',['-c',"import zipfile,sys; z=zipfile.ZipFile(sys.argv[1],'w'); z.writestr('unexpected/file','bad'); z.close()",malicious]);
+  await assert.rejects(extractKit(malicious,path.join(root,'bad-output'),'/tmp/pocket-combined-engine'),/Unexpected ZIP layout/);
+  assert.equal(fs.existsSync(path.join(root,'bad-output')),false);
+  const target=path.join(root,'combined'),source=path.join(root,'proxy-source');
+  for(const folder of ['public/scripts','src','data/default-user'])fs.mkdirSync(path.join(target,folder),{recursive:true});
+  fs.cpSync('/tmp/pocket-combined-engine/.pocket-base',path.join(target,'.pocket-base'),{recursive:true});
+  fs.symlinkSync('/tmp/pocket-combined-engine/node_modules',path.join(target,'node_modules'),'dir');
+  fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.0'}));
+  fs.writeFileSync(path.join(target,'.pocket-tavern.json'),JSON.stringify({version:1,mode:'combined',mock:false,source:'fixture'}));
+  fs.writeFileSync(path.join(target,'data/default-user/settings.json'),'SAVED SETTINGS');
+  fs.mkdirSync(path.join(source,'node_modules/wreq-js'),{recursive:true});
+  fs.writeFileSync(path.join(source,'node_modules/wreq-js/package.json'),JSON.stringify({main:'index.cjs'}));
+  fs.writeFileSync(path.join(source,'node_modules/wreq-js/index.cjs'),'module.exports={fetch(){}}');
+  await repair({archive,source,target,launch:false});
+  assert.equal(fs.readFileSync(path.join(target,'data/default-user/settings.json'),'utf8'),'SAVED SETTINGS');
+  assert.ok(fs.existsSync(path.join(target,'.pocket-proxy/index.cjs')));
+  assert.match(fs.readFileSync(path.join(target,'public/st-mobile/index.html'),'utf8'),/setting-endpoint/);
+  console.log('Repair extracts the real kit, finds duplicate download names, locates dependency folders, and rejects unexpected archive paths.');
+ }finally{fs.rmSync(root,{recursive:true,force:true});}
+})().catch(error=>{console.error(error);process.exitCode=1;});

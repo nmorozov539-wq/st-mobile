@@ -4,7 +4,7 @@ import json, shutil, tempfile, zipfile
 project=Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='pocket-kit-') as temp:
     kit=Path(temp)/'pocket-tavern-combined-v0.4.5';kit.mkdir()
-    for name in ('prepare-test.cjs','start-test.cjs','update-test.cjs','compatibility.cjs','session-init.mjs','PHONE-README.md','prepare.cjs','start.cjs','import-data.cjs','setup-proxy.cjs','proxy.cjs'):
+    for name in ('prepare-test.cjs','start-test.cjs','update-test.cjs','compatibility.cjs','session-init.mjs','PHONE-README.md','prepare.cjs','start.cjs','import-data.cjs','setup-proxy.cjs','proxy.cjs','repair-pocket.cjs'):
         shutil.copy2(project/'phone-package'/name,kit/name)
     shutil.copytree(project/'prototype/frontend',kit/'frontend')
     shutil.copytree(project/'prototype/extension',kit/'extension')

@@ -4,7 +4,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     function setLocked(value) {
         panelLocked=value;
         for(const element of $('settings-panel').querySelectorAll('input,select,button')) if(element.id!=='close-settings') element.disabled=value;
-        $('setting-model').disabled=value || configuration?.selected.source!=='openrouter' || !configuration?.models.length;
+        $('setting-model').disabled=value || !configuration?.models.length;
     }
     const choices = (id, rows, selected) => {
         const select = $(id); select.replaceChildren();
@@ -16,17 +16,22 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     };
     function render(value) {
         configuration = value;
-        $('settings-build').textContent = `Pocket Tavern 0.4.3 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
+        $('settings-build').textContent = `Pocket Tavern 0.4.4 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
         const selected = value.selected;
+        const custom = selected.source === 'custom';
+        $('custom-controls').hidden = !custom;
+        $('setting-endpoint').value = selected.endpoint ?? '';
+        $('setting-custom-model').value = selected.model ?? '';
+        $('provider-key-label').textContent = custom ? 'Custom endpoint API key (optional)' : 'OpenRouter API key';
         $('setting-source').value = selected.source;
         choices('setting-preset', value.presets.map(name => ({ id:name, name })), selected.preset);
         choices('setting-persona', value.personas, selected.persona);
         choices('setting-model', value.models, selected.model);
         choices('setting-lorebooks', value.lorebooks.map(name => ({ id:name, name })), selected.lorebooks);
-        $('setting-model').disabled = selected.source !== 'openrouter' || !value.models.length;
+        $('setting-model').disabled = !value.models.length;
         $('setting-thinking').checked = selected.thinking;
         setLocked(panelLocked);
-        $('connection-state').textContent = `${value.onlineStatus === 'no_connection' ? 'Not connected' : 'ST connection: '+value.onlineStatus} · OpenRouter key ${value.hasOpenRouterKey ? 'saved in ST' : 'not configured'}`;
+        $('connection-state').textContent = `${value.onlineStatus === 'no_connection' ? 'Not connected' : 'ST connection: '+value.onlineStatus} · ${custom ? 'Custom endpoint' : 'OpenRouter'} key ${value.hasProviderKey ? 'saved in ST' : (custom ? 'not configured (optional)' : 'not configured')}`;
     }
     async function change(kind, value) {
         if (locked()) throw new Error('Finish or review the current conversation before changing settings.');
@@ -57,11 +62,20 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     $('clear-lorebooks').onclick = () => action(() => change('lorebooks', []));
     $('connect-model').onclick = () => {
         const value = $('setting-key').value; $('setting-key').value = '';
-        return action(() => change('connect', value));
+        const endpoint = $('setting-endpoint').value, model = $('setting-custom-model').value;
+        return action(async () => {
+            if (configuration.selected.source === 'custom') {
+                if (endpoint !== configuration.selected.endpoint) await change('endpoint', endpoint);
+                if (model && model !== configuration.selected.model) await change('model', model);
+            }
+            await change('connect', value);
+        });
     };
+    $('apply-endpoint').onclick = () => action(() => change('endpoint', $('setting-endpoint').value));
+    $('apply-custom-model').onclick = () => action(() => change('model', $('setting-custom-model').value));
     $('save-key').onclick = () => {
         const value = $('setting-key').value; $('setting-key').value = '';
-        action(() => change('openrouterKey', value));
+        return action(() => change('providerKey', value));
     };
     return {setLocked};
 }

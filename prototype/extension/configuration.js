@@ -1,6 +1,6 @@
-import { hasActiveSecret } from './configuration-state.js?build=0.4.3';
-import { connectThroughST } from './connection-check.js?build=0.4.3';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.4.3';
+import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.4.4';
+import { connectThroughST } from './connection-check.js?build=0.4.4';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.4.4';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { model_list, getChatCompletionModel, getPresetApplicationPromise } from '/scripts/openai.js';
@@ -11,18 +11,19 @@ import { secret_state, writeSecret, SECRET_KEYS } from '/scripts/secrets.js';
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export function createConfigurationRuntime(getContext) {
     function changeSelect(selector, value) { const element=document.querySelector(selector); element.value=value; element.dispatchEvent(new Event('change', {bubbles:true})); }
+    function changeInput(selector, value) { const element=document.querySelector(selector); element.value=value; element.dispatchEvent(new Event('input', {bubbles:true})); }
     function read() {
         const ctx = getContext(), settings = ctx.chatCompletionSettings;
         const manager = getPresetManager('openai');
         const presets = manager ? Object.keys(manager.getPresetList().preset_names) : [];
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
-            model: getChatCompletionModel() ?? '', preset: settings.preset_settings_openai,
+            model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts };
-        return { bridgeBuild: '0.4.3', selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.4.4', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
-            onlineStatus: ctx.onlineStatus, hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]) };
+            onlineStatus: ctx.onlineStatus, keySource: selected.source, hasProviderKey: ['custom','openrouter'].includes(selected.source) && hasActiveSecret(secret_state[providerSecretKey(selected.source)]), hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]) };
     }
     async function verify(check) {
         await saveSettings();
@@ -65,20 +66,34 @@ export function createConfigurationRuntime(getContext) {
                 changeSelect('#chat_completion_source', value);
                 await verify(saved => saved.main_api === 'openai' && saved.oai_settings?.chat_completion_source === value);
             } else if (kind === 'model') {
-                if (settings.chat_completion_source !== 'openrouter' || !model_list.some(model => model.id === value)) fail('INVALID_ARGUMENT', 'Connect OpenRouter and choose a model from its loaded list.');
-                changeSelect('#model_openrouter_select', value);
-                await verify(saved => saved.oai_settings?.openrouter_model === value);
-            } else if (kind === 'openrouterKey') {
-                if (typeof value !== 'string' || !value.trim() || value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a nonempty OpenRouter key.');
-                if (!await writeSecret(SECRET_KEYS.OPENROUTER, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
+                if (typeof value !== 'string' || !value.trim() || value.length > 200 || value !== value.trim()) fail('INVALID_ARGUMENT', 'Enter a nonempty model ID without surrounding spaces.');
+                if (settings.chat_completion_source === 'custom') {
+                    changeInput('#custom_model_id', value);
+                    await verify(saved => saved.oai_settings?.custom_model === value);
+                } else {
+                    if (settings.chat_completion_source !== 'openrouter' || !model_list.some(model => model.id === value)) fail('INVALID_ARGUMENT', 'Connect OpenRouter and choose a model from its loaded list.');
+                    changeSelect('#model_openrouter_select', value);
+                    await verify(saved => saved.oai_settings?.openrouter_model === value);
+                }
+            } else if (kind === 'endpoint') {
+                if (settings.chat_completion_source !== 'custom') fail('INVALID_ARGUMENT', 'Choose Custom before editing its endpoint.');
+                const endpoint = validateEndpoint(value);
+                changeInput('#custom_api_url_text', endpoint);
+                await verify(saved => saved.oai_settings?.custom_url === endpoint);
+            } else if (kind === 'providerKey' || kind === 'openrouterKey') {
+                if (typeof value !== 'string' || !value.trim() || value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a nonempty API key.');
+                const key = kind === 'openrouterKey' ? SECRET_KEYS.OPENROUTER : providerSecretKey(settings.chat_completion_source);
+                if (!await writeSecret(key, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
             } else if (kind === 'connect') {
                 if (ctx.mainApi !== 'openai') fail('INVALID_ARGUMENT', 'Choose a chat-completion connection first.');
-                if (settings.chat_completion_source === 'openrouter') {
+                if (settings.chat_completion_source === 'custom') validateEndpoint(settings.custom_url);
+                const key = providerSecretKey(settings.chat_completion_source);
+                {
                     if (typeof value === 'string' && value.trim()) {
                         if (value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a valid OpenRouter key.');
-                        if (!await writeSecret(SECRET_KEYS.OPENROUTER, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
+                        if (!await writeSecret(key, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
                     }
-                    if (!hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER])) fail('INVALID_ARGUMENT', 'Enter an OpenRouter API key, then press Connect.');
+                    if (settings.chat_completion_source === 'openrouter' && !hasActiveSecret(secret_state[key])) fail('INVALID_ARGUMENT', 'Enter an OpenRouter API key, then press Connect.');
                 }
                 const button = document.querySelector('#api_button_openai');
                 if (button.classList.contains('disabled')) fail('BUSY', 'ST is already connecting. Refresh connection and models to check the result.');

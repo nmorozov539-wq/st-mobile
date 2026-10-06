@@ -12,7 +12,7 @@ The phone test exposed a connection usability failure; a corrective build is und
 | Presets/personas/global lorebooks | Live selections persisted; mock saw temperature 0.25 and both distinctive prompt fixtures | PC verified |
 | Thinking display and chat deletion | Live collapsible reasoning during streaming/reload; confirmed deletion removed a disposable file and loaded a saved replacement | PC verified |
 | Android/Termux combined operation | Earlier separate v3 kit was user-validated; combined v0.4 feedback requested | Pending; earlier kit is not proof of this build |
-| Working preview/tests/documented limits | Local preview running; 53 tests pass; README and TEST_REPORT record scope | Verified |
+| Working preview/tests/documented limits | Local preview running; 55 tests pass; README and TEST_REPORT record scope | Verified |
 | Move to real data | Offline copy tool refuses merges/overwrites; synthetic tests pass | Tool ready; personal migration intentionally deferred |
 
 Phone checklist: prepare a fresh combined folder, start it with one command, connect OpenRouter using a key entered only in the app, load/select the intended model, send and stop a reply, inspect any exposed thinking, and reload to check saved content. Check preset/persona/lorebook selections using disposable imported fixtures. Report errors without pasting credentials. The outstanding phone/provider evidence cannot be produced by rerunning PC mock tests.
@@ -24,3 +24,5 @@ The user wants general SillyTavern extension support in later stages. Summarycep
 ## Usability requirements exposed by phone testing
 
 The user requires character import/create/edit with all relevant card fields, persona import/create/edit, and preset import/create/edit including prompt toggles and manual fields such as requested word count/message length. Selectors alone do not satisfy these requirements. Full ST editors are an interim route, not completed native mobile editing support. Connection must save a pasted key when Connect is pressed, visibly show progress, automatically refresh models, and report failures in Pocket Tavern. No real-provider success is claimed until phone verification.
+
+Phone diagnosis: user depends on a custom OpenAI-compatible localhost proxy, whereas Pocket Tavern direct OpenRouter mode bypassed that route. v0.4.4 adds Custom base URL/model/key controls and source-specific secret readiness; local PC persistence/connect checks pass. Phone proxy/provider generation remains unverified. Supplied proxy is not automatically started by the launcher.

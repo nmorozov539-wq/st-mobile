@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.4.3.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.4.4.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -49,8 +49,12 @@ The complete ST browser application remains loaded offscreen. It contains behavi
 
 Prepared-engine patches retain CSRF and path checks: tokenizer requests send explicit CSRF headers, each installation has its own cookie name, startup validates an uncached session token, and exact locally copied codec-WASM aliases handle shared-dependency paths. Original ST code/data are untouched.
 
-PC validation covers mock generation, configuration effects, reasoning, stopping, deletion, persistence, launch/shutdown and update preservation. Earlier isolated v3 phone-kit use was reported smooth by the user, including app switching/locking. New combined v0.4.3 phone operation and real OpenRouter generation/model-list/key handling still need user verification. No real credentials or external model-generation requests were used in development.
+PC validation covers mock generation, configuration effects, reasoning, stopping, deletion, persistence, launch/shutdown and update preservation. Earlier isolated v3 phone-kit use was reported smooth by the user, including app switching/locking. New combined v0.4.4 phone operation and real OpenRouter generation/model-list/key handling still need user verification. No real credentials or external model-generation requests were used in development.
 
 This is an essential-controls prototype, not a daily-use release. Preset/persona/lorebook editors, connection-profile management, character/chat lorebook selectors, reasoning editing, groups, media, slash commands, tools, auto-continue/auto-swipe and arbitrary extensions remain outside this build. Touch swipe gestures and the full ST Markdown/HTML renderer are not implemented. Only the current dark interface is provided. Long-running Android background execution, battery behavior and WebView lifecycle need broader testing.
 
 Original design/audit references: [concept](SillyTavern_Mobile_Frontend_Concept_v0.1.md), [architecture](Working_Architecture_v0.2.md), [source audit](ST_Source_Audit.md). Historical test-kit ZIPs remain local and ignored by Git.
+
+### Custom connection through the existing OpenRouter proxy
+
+Choose Custom (OpenAI-compatible / proxy), enter the base URL `http://127.0.0.1:8001/api/v1` for the supplied or-proxy code, and paste the OpenRouter token into the Custom endpoint key field. Connect saves it in ST’s distinct Custom secret slot, then loads models through that endpoint. Select a returned model or enter its exact ID manually. ST adds `/models` and `/chat/completions` automatically. Keep the existing proxy running separately; this kit does not install or start it. The proxy forwards requests to OpenRouter using wreq-js Chrome TLS impersonation. Direct OpenRouter mode bypasses this proxy. A saved key is storage confirmation, not authentication verification; successful models loading does not prove a paid generation succeeds. Connection profiles and secrets are separate ST features.

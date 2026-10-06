@@ -1,4 +1,4 @@
-# Pocket Tavern combined prototype v0.4.3
+# Pocket Tavern combined prototype v0.4.4
 
 This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied installed dependencies. It does not include ST or dependencies in the small download: preparation copies your phone's installed code. After preparation, running the combined folder does not depend on the original installation. No Android app yet.
 
@@ -7,7 +7,7 @@ This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied ins
 Extract the ZIP in Downloads. Stop an old Pocket Tavern test session with Ctrl+C; it uses the same port. In Termux:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -24,7 +24,7 @@ Presets are existing chat-completion presets. Personas and global lorebooks are 
 Prepare a DIFFERENT fresh folder with explicit mock settings:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock
@@ -59,3 +59,7 @@ ST handles prompts/generation/saving. The complete ST browser runtime remains lo
 Compatibility changes are applied only to the prepared engine: explicit tokenizer CSRF headers, a separate session cookie, uncached startup-token validation, and exact local codec-WASM aliases. Security checks remain enabled. An old regular-ST tab may need closing/reopening after the original kit's cookie collision; your usual installation is not patched.
 
 Android background lifetime and real-provider reasoning behavior still require phone testing. Selecting a preset/persona/lorebook needs saved-state and prompt validation; a successful mock run alone does not establish compatibility with all presets, extensions or providers. Chat deletion asks for confirmation; Pocket Tavern provides no undo.
+
+## Existing OpenRouter TLS proxy
+
+If direct OpenRouter requests fail and your normal ST uses the supplied or-proxy, keep that proxy running as usual. In Pocket Tavern select Custom (OpenAI-compatible / proxy), use `http://127.0.0.1:8001/api/v1`, and paste your token into the Custom endpoint key field. Press Connect. Choose an available model, or enter the exact provider model ID manually. This proxy route uses the Custom key slot, separate from ST’s OpenRouter key slot. The kit does not install/start the proxy. A key is not shown in plaintext after saving, and a saved key does not mean the provider accepted it.

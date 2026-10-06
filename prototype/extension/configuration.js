@@ -1,4 +1,4 @@
-import { hasActiveSecret } from './configuration-state.js';
+import { hasActiveSecret, waitForConnection } from './configuration-state.js';
 import { selectPersonaWithoutCardEdit } from './persona-selection.js';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
@@ -72,7 +72,17 @@ export function createConfigurationRuntime(getContext) {
                 if (!await writeSecret(SECRET_KEYS.OPENROUTER, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
             } else if (kind === 'connect') {
                 if (ctx.mainApi !== 'openai') fail('INVALID_ARGUMENT', 'Choose a chat-completion connection first.');
-                document.querySelector('#api_button_openai').click();
+                if (settings.chat_completion_source === 'openrouter') {
+                    if (typeof value === 'string' && value.trim()) {
+                        if (value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a valid OpenRouter key.');
+                        if (!await writeSecret(SECRET_KEYS.OPENROUTER, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
+                    }
+                    if (!hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER])) fail('INVALID_ARGUMENT', 'Enter an OpenRouter API key, then press Connect.');
+                }
+                const button = document.querySelector('#api_button_openai');
+                if (button.classList.contains('disabled')) fail('BUSY', 'ST is already connecting. Refresh connection and models to check the result.');
+                button.click();
+                return await waitForConnection({ isLoading: () => button.classList.contains('disabled'), read });
             } else fail('INVALID_ARGUMENT', 'Unknown settings control.');
             return read();
         },

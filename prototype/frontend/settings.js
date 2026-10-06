@@ -30,10 +30,11 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     async function change(kind, value) {
         if (locked()) throw new Error('Finish or review the current conversation before changing settings.');
         $('settings-error').textContent = '';
+        if (kind === 'connect') $('connection-state').textContent = 'Connecting to ST’s selected provider…';
         try {
             render(await rpc('configure', { kind, value, revision: configuration.revision }, 45000));
             await adoptSnapshot();
-            status(kind === 'connect' ? 'Connection requested · refresh settings to see the result' : 'Settings change saved by ST');
+            status(kind === 'connect' ? 'ST connection checked' : 'Settings change saved by ST');
         } catch (error) {
             $('settings-error').textContent = error.message;
             // A failed response may follow a completed write. Read again, never replay it.
@@ -51,7 +52,10 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     $('setting-thinking').onchange = () => action(() => change('thinking', $('setting-thinking').checked));
     $('apply-lorebooks').onclick = () => action(() => change('lorebooks', [...$('setting-lorebooks').selectedOptions].map(option => option.value)));
     $('clear-lorebooks').onclick = () => action(() => change('lorebooks', []));
-    $('connect-model').onclick = () => action(() => change('connect'));
+    $('connect-model').onclick = () => {
+        const value = $('setting-key').value; $('setting-key').value = '';
+        action(() => change('connect', value));
+    };
     $('save-key').onclick = () => {
         const value = $('setting-key').value; $('setting-key').value = '';
         action(() => change('openrouterKey', value));

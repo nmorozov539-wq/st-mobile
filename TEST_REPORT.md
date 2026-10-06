@@ -57,3 +57,9 @@ The new v0.4 kit still needs phone execution and real OpenRouter verification. A
 ## Connection indicator v0.4.1
 
 49 automated tests pass. Source audit confirmed that ST's browser secret state is an array of masked key metadata with an active flag. The connection indicator now requires an active key, rather than a truthy collection of stored keys. A regression check covers missing/empty/inactive metadata and proves that the helper never reads key values. This changes the indicator only; it does not rotate, delete or expose credentials. The earlier v0.4 archive remains available unchanged. Phone/provider validation is still pending.
+
+## v0.4.2 connection correction
+
+Phone feedback: pasting a key then Connect had no useful result. Connect now saves a nonempty entered key through ST before connecting, rejects a missing active key visibly, waits for ST loading to finish, refreshes model choices, and displays failed/timeout outcomes. The settings panel shows connecting progress. 51 automated tests pass, including entered-key forwarding/clearing and connection wait/success/failure/timeout cases. Real OpenRouter verification remains pending; these tests do not prove a provider accepts credentials. Full ST editing access is labelled as an interim route for character/persona/preset authoring.
+
+Live isolated PC check for v0.4.2: custom mock Connect settled to Valid; switching to OpenRouter and pressing Connect without a saved key visibly displayed “Enter an OpenRouter API key, then press Connect.” Restored the mock source afterward. No real credential was entered or provider generation performed.

@@ -30,6 +30,7 @@ test('phone preparation isolates data and config, preserves source, and refuses 
         for(const dir of ['frontend','extension']) {fs.mkdirSync(path.join(bundle,dir),{recursive:true});fs.writeFileSync(path.join(bundle,dir,'index.js'),'// fixture');}
         fs.writeFileSync(path.join(bundle,'mock-model.mjs'),'// fixture');
         fs.writeFileSync(path.join(bundle,'start.cjs'),'// fixture launcher');
+        fs.writeFileSync(path.join(bundle,'proxy.cjs'),'// updated proxy fixture');
         fs.writeFileSync(path.join(bundle,'frontend/index.html'),'fixture page');
         const alias=path.join(root,'source-alias');fs.symlinkSync(source,alias,'dir');
         assert.throws(()=>prepare(source,path.join(alias,'nested-copy'),bundle),/outside your regular ST/);
@@ -71,9 +72,15 @@ test('phone preparation isolates data and config, preserves source, and refuses 
         assert.throws(()=>readLaunch(combined,true),/separate --mock/);
         fs.mkdirSync(path.join(combined,'data/default-user'),{recursive:true});
         fs.writeFileSync(path.join(combined,'data/default-user/settings.json'),'USER SETTINGS');
+        fs.mkdirSync(path.join(combined,'.pocket-proxy/node_modules'),{recursive:true});
+        fs.writeFileSync(path.join(combined,'.pocket-proxy/index.cjs'),'// old proxy');
+        fs.writeFileSync(path.join(combined,'.pocket-proxy/node_modules/keep'),'DEPENDENCIES');
         const combinedResult=update(combined,bundle);
         assert.equal(fs.readFileSync(path.join(combined,'data/default-user/settings.json'),'utf8'),'USER SETTINGS');
         assert.ok(fs.existsSync(path.join(combinedResult.backup,'start.cjs')));
+        assert.equal(fs.readFileSync(path.join(combined,'.pocket-proxy/index.cjs'),'utf8'),'// updated proxy fixture');
+        assert.equal(fs.readFileSync(path.join(combined,'.pocket-proxy/node_modules/keep'),'utf8'),'DEPENDENCIES');
+        assert.equal(fs.readFileSync(path.join(combinedResult.backup,'.pocket-proxy/index.cjs'),'utf8'),'// old proxy');
         // A combined update uses its retained unpatched source and own dependencies.
         fs.writeFileSync(path.join(source,'public/script.js'),'changed source');
         update(combined,bundle);

@@ -4,12 +4,12 @@ Pocket Tavern is a mobile browser interface for SillyTavern 1.19.0. One prepared
 
 ## Current build
 
-`pocket-tavern-combined-v0.4.4.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
+`pocket-tavern-combined-v0.4.5.zip` is generated in the project folder for phone transfer. It contains preparation/update tools and our frontend/bridge, not a redistributed ST installation. Preparation copies your installed ST code/defaults/dependencies into a new folder, excluding regular data/settings/configuration and third-party extension code. The resulting folder can run independently of the original installation. Native dependencies must come from the same phone/runtime on which it will run.
 
 Follow [the phone instructions](phone-package/PHONE-README.md). After extracting into Downloads:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.4
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.5
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -49,7 +49,7 @@ The complete ST browser application remains loaded offscreen. It contains behavi
 
 Prepared-engine patches retain CSRF and path checks: tokenizer requests send explicit CSRF headers, each installation has its own cookie name, startup validates an uncached session token, and exact locally copied codec-WASM aliases handle shared-dependency paths. Original ST code/data are untouched.
 
-PC validation covers mock generation, configuration effects, reasoning, stopping, deletion, persistence, launch/shutdown and update preservation. Earlier isolated v3 phone-kit use was reported smooth by the user, including app switching/locking. New combined v0.4.4 phone operation and real OpenRouter generation/model-list/key handling still need user verification. No real credentials or external model-generation requests were used in development.
+PC validation covers mock generation, configuration effects, reasoning, stopping, deletion, persistence, launch/shutdown and update preservation. Earlier isolated v3 phone-kit use was reported smooth by the user, including app switching/locking. New combined v0.4.5 phone operation and real OpenRouter generation/model-list/key handling still need user verification. No real credentials or external model-generation requests were used in development.
 
 This is an essential-controls prototype, not a daily-use release. Preset/persona/lorebook editors, connection-profile management, character/chat lorebook selectors, reasoning editing, groups, media, slash commands, tools, auto-continue/auto-swipe and arbitrary extensions remain outside this build. Touch swipe gestures and the full ST Markdown/HTML renderer are not implemented. Only the current dark interface is provided. Long-running Android background execution, battery behavior and WebView lifecycle need broader testing.
 
@@ -57,4 +57,10 @@ Original design/audit references: [concept](SillyTavern_Mobile_Frontend_Concept_
 
 ### Custom connection through the existing OpenRouter proxy
 
-Choose Custom (OpenAI-compatible / proxy), enter the base URL `http://127.0.0.1:8001/api/v1` for the supplied or-proxy code, and paste the OpenRouter token into the Custom endpoint key field. Connect saves it in ST’s distinct Custom secret slot, then loads models through that endpoint. Select a returned model or enter its exact ID manually. ST adds `/models` and `/chat/completions` automatically. Keep the existing proxy running separately; this kit does not install or start it. The proxy forwards requests to OpenRouter using wreq-js Chrome TLS impersonation. Direct OpenRouter mode bypasses this proxy. A saved key is storage confirmation, not authentication verification; successful models loading does not prove a paid generation succeeds. Connection profiles and secrets are separate ST features.
+Choose Custom (OpenAI-compatible / proxy), enter the base URL `http://127.0.0.1:8001/api/v1` for the supplied or-proxy code, and paste the OpenRouter token into the Custom endpoint key field. Connect saves it in ST’s distinct Custom secret slot, then loads models through that endpoint. Select a returned model or enter its exact ID manually. ST adds `/models` and `/chat/completions` automatically. The proxy is optional: see the bundled setup below. The proxy forwards requests to OpenRouter using wreq-js Chrome TLS impersonation. Direct OpenRouter mode bypasses this proxy. A saved key is storage confirmation, not authentication verification; successful models loading does not prove a paid generation succeeds. Connection profiles and secrets are separate ST features.
+
+### Optional bundled OpenRouter proxy
+
+The kit includes proxy code based on the supplied or-proxy, with the same wreq-js Chrome transport and OpenRouter target. On the phone, run `node setup-proxy.cjs ~/or-proxy ~/pocket-tavern` from the extracted kit once. This copies only installed dependencies from your working proxy folder, checks they load under the current Node runtime, and installs the bundled code into Pocket Tavern’s `.pocket-proxy` folder. It copies no logs, PID files, secrets, or settings, and refuses overwriting an installed proxy. Use a working dependency folder on the same phone, not the Android dependencies on your PC.
+
+Stop the previous external proxy and launch `node start.cjs --proxy` from `~/pocket-tavern`. This waits for the loopback proxy on port 8001 before starting ST; Ctrl+C stops both, and either child exiting stops the session. A busy port prevents startup. Choose Custom with base URL `http://127.0.0.1:8001/api/v1` and save the key in the Custom slot. Plain `node start.cjs` leaves the proxy off. The proxy option is refused for mock fixtures. Frontend updates also update bundled proxy code, back up the old code, and preserve its copied dependencies and ST data.

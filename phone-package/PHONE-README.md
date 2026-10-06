@@ -1,4 +1,4 @@
-# Pocket Tavern combined prototype v0.4.4
+# Pocket Tavern combined prototype v0.4.5
 
 This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied installed dependencies. It does not include ST or dependencies in the small download: preparation copies your phone's installed code. After preparation, running the combined folder does not depend on the original installation. No Android app yet.
 
@@ -7,7 +7,7 @@ This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied ins
 Extract the ZIP in Downloads. Stop an old Pocket Tavern test session with Ctrl+C; it uses the same port. In Termux:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.4
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.5
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -24,7 +24,7 @@ Presets are existing chat-completion presets. Personas and global lorebooks are 
 Prepare a DIFFERENT fresh folder with explicit mock settings:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.4
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.5
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock
@@ -62,4 +62,21 @@ Android background lifetime and real-provider reasoning behavior still require p
 
 ## Existing OpenRouter TLS proxy
 
-If direct OpenRouter requests fail and your normal ST uses the supplied or-proxy, keep that proxy running as usual. In Pocket Tavern select Custom (OpenAI-compatible / proxy), use `http://127.0.0.1:8001/api/v1`, and paste your token into the Custom endpoint key field. Press Connect. Choose an available model, or enter the exact provider model ID manually. This proxy route uses the Custom key slot, separate from ST’s OpenRouter key slot. The kit does not install/start the proxy. A key is not shown in plaintext after saving, and a saved key does not mean the provider accepted it.
+If direct OpenRouter requests fail and your normal ST uses the supplied or-proxy, keep that proxy running as usual. In Pocket Tavern select Custom (OpenAI-compatible / proxy), use `http://127.0.0.1:8001/api/v1`, and paste your token into the Custom endpoint key field. Press Connect. Choose an available model, or enter the exact provider model ID manually. This proxy route uses the Custom key slot, separate from ST’s OpenRouter key slot. You can use your existing proxy or install the optional bundled copy below. A key is not shown in plaintext after saving, and a saved key does not mean the provider accepted it.
+
+## Install the optional bundled proxy
+
+After updating/preparing Pocket Tavern, run once from this extracted kit on your phone:
+
+```sh
+node setup-proxy.cjs ~/or-proxy ~/pocket-tavern
+```
+
+If your working proxy folder has a different location, use that instead of `~/or-proxy`. It must contain its installed `node_modules` on this same phone. No key needs to be entered into Termux. Stop your previously running proxy, then:
+
+```sh
+cd ~/pocket-tavern
+node start.cjs --proxy
+```
+
+One command starts the bundled proxy and ST; Ctrl+C stops both. Use Custom with `http://127.0.0.1:8001/api/v1` in Settings, enter your key there, and select your model. Plain `node start.cjs` leaves the proxy off. If port 8001 is busy, stop the old proxy first. Setup leaves its original folder untouched. Updates preserve the bundled dependencies and your data.

@@ -8,3 +8,4 @@ import './session-init.test.js';
 import './persona-selection.test.js';
 import './configuration-state.test.js';
 import './connection-check.test.js';
+import './proxy.test.js';

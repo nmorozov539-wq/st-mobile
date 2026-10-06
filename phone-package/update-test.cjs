@@ -21,7 +21,8 @@ function update(target,bundle=__dirname){
         // Validate every source fragment before touching installed test assets.
         patchEngine(stage,source,{cookieRoot:target});
         const backup=path.join(target,'.pocket-backups',path.basename(stage));fs.mkdirSync(backup,{recursive:true});
-        const updates=[...code,'public/scripts/pocket-session-init.js','public/st-mobile','public/scripts/extensions/third-party/st-mobile-experiment','mock-model.mjs', ...(combined?['start.cjs']:[])];
+        const proxyInstalled=combined&&fs.existsSync(path.join(target,'.pocket-proxy/index.cjs'));
+        const updates=[...code,'public/scripts/pocket-session-init.js','public/st-mobile','public/scripts/extensions/third-party/st-mobile-experiment','mock-model.mjs', ...(combined?['start.cjs']:[]),...(proxyInstalled?['.pocket-proxy/index.cjs']:[])];
         for(const name of updates){const old=path.join(target,name);if(fs.existsSync(old)){const dest=path.join(backup,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.cpSync(old,dest,{recursive:true});}}
         for(const name of [...code,'public/scripts/pocket-session-init.js'])fs.copyFileSync(path.join(stage,name),path.join(target,name));
         if(fs.existsSync(path.join(stage,'.pocket-wasm')))fs.cpSync(path.join(stage,'.pocket-wasm'),path.join(target,'.pocket-wasm'),{recursive:true});
@@ -29,6 +30,7 @@ function update(target,bundle=__dirname){
         fs.cpSync(path.join(bundle,'extension'),path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment'),{recursive:true});
         fs.copyFileSync(path.join(bundle,'mock-model.mjs'),path.join(target,'mock-model.mjs'));
         if(combined)fs.copyFileSync(path.join(bundle,'start.cjs'),path.join(target,'start.cjs'));
+        if(proxyInstalled)fs.copyFileSync(path.join(bundle,'proxy.cjs'),path.join(target,'.pocket-proxy/index.cjs'));
         return {target,backup,mode:combined?'combined':'test',mock:!!marker.mock};
     } finally {fs.rmSync(stage,{recursive:true,force:true});}
 }

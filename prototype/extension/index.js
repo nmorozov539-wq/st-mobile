@@ -1,8 +1,8 @@
-import { createAdapter } from './adapter.js?build=0.4.4';
-import { createGenerationRuntime } from './runtime.js?build=0.4.4';
+import { createAdapter } from './adapter.js?build=0.4.5';
+import { createGenerationRuntime } from './runtime.js?build=0.4.5';
 import { isGenerating, isChatSaving } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.4.4';
+import { createConfigurationRuntime } from './configuration.js?build=0.4.5';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();

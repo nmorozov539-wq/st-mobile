@@ -16,6 +16,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     };
     function render(value) {
         configuration = value;
+        $('settings-build').textContent = `Pocket Tavern 0.4.3 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
         const selected = value.selected;
         $('setting-source').value = selected.source;
         choices('setting-preset', value.presets.map(name => ({ id:name, name })), selected.preset);
@@ -25,14 +26,16 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
         $('setting-model').disabled = selected.source !== 'openrouter' || !value.models.length;
         $('setting-thinking').checked = selected.thinking;
         setLocked(panelLocked);
-        $('connection-state').textContent = `ST connection: ${value.onlineStatus} · OpenRouter key ${value.hasOpenRouterKey ? 'saved in ST' : 'not configured'}`;
+        $('connection-state').textContent = `${value.onlineStatus === 'no_connection' ? 'Not connected' : 'ST connection: '+value.onlineStatus} · OpenRouter key ${value.hasOpenRouterKey ? 'saved in ST' : 'not configured'}`;
     }
     async function change(kind, value) {
         if (locked()) throw new Error('Finish or review the current conversation before changing settings.');
         $('settings-error').textContent = '';
+        if (kind === 'connect') $('settings-error').textContent = 'Starting connection check…';
         if (kind === 'connect') $('connection-state').textContent = 'Connecting to ST’s selected provider…';
         try {
             render(await rpc('configure', { kind, value, revision: configuration.revision }, 45000));
+            if (kind === 'connect') $('settings-error').textContent = `Connection check finished: ${configuration.onlineStatus}. ${configuration.models.length} models loaded.`;
             await adoptSnapshot();
             status(kind === 'connect' ? 'ST connection checked' : 'Settings change saved by ST');
         } catch (error) {
@@ -42,7 +45,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
             throw error;
         }
     }
-    $('settings-button').onclick = () => action(async () => { render(await rpc('settings')); $('settings-error').textContent = ''; $('settings-panel').showModal(); });
+    $('settings-button').onclick = () => action(async () => { render(await rpc('settings')); $('settings-error').textContent = ''; $('settings-panel').showModal(); $('settings-panel').scrollTop = 0; });
     $('close-settings').onclick = () => { $('setting-key').value = ''; $('settings-panel').close(); };
     $('settings-panel').addEventListener('close', () => { $('setting-key').value = ''; });
     $('refresh-settings').onclick = () => action(async () => render(await rpc('settings')));
@@ -54,7 +57,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     $('clear-lorebooks').onclick = () => action(() => change('lorebooks', []));
     $('connect-model').onclick = () => {
         const value = $('setting-key').value; $('setting-key').value = '';
-        action(() => change('connect', value));
+        return action(() => change('connect', value));
     };
     $('save-key').onclick = () => {
         const value = $('setting-key').value; $('setting-key').value = '';

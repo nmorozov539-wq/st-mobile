@@ -1,8 +1,8 @@
-import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js';
-import { RuntimeConnection } from './transport.js';
-import { formatMessage } from './format.js';
-import { createSettingsPanel } from './settings.js';
-import { probeEngine } from './engine-health.js';
+import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.4.3';
+import { RuntimeConnection } from './transport.js?build=0.4.3';
+import { formatMessage } from './format.js?build=0.4.3';
+import { createSettingsPanel } from './settings.js?build=0.4.3';
+import { probeEngine } from './engine-health.js?build=0.4.3';
 const $ = id => document.getElementById(id);
 const state = createLocalState(localStorage);
 let snapshot, characters = [], chats = [], busy = true, connected = false, sessionId;

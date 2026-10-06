@@ -1,4 +1,4 @@
-# Pocket Tavern combined prototype v0.4.2
+# Pocket Tavern combined prototype v0.4.3
 
 This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied installed dependencies. It does not include ST or dependencies in the small download: preparation copies your phone's installed code. After preparation, running the combined folder does not depend on the original installation. No Android app yet.
 
@@ -7,7 +7,7 @@ This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied ins
 Extract the ZIP in Downloads. Stop an old Pocket Tavern test session with Ctrl+C; it uses the same port. In Termux:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.2
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.3
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -24,7 +24,7 @@ Presets are existing chat-completion presets. Personas and global lorebooks are 
 Prepare a DIFFERENT fresh folder with explicit mock settings:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.4.2
+cd ~/storage/downloads/pocket-tavern-combined-v0.4.3
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock

@@ -1,5 +1,6 @@
-import { hasActiveSecret, waitForConnection } from './configuration-state.js';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js';
+import { hasActiveSecret } from './configuration-state.js?build=0.4.3';
+import { connectThroughST } from './connection-check.js?build=0.4.3';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.4.3';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { model_list, getChatCompletionModel, getPresetApplicationPromise } from '/scripts/openai.js';
@@ -17,7 +18,7 @@ export function createConfigurationRuntime(getContext) {
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
             model: getChatCompletionModel() ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts };
-        return { selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.4.3', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
@@ -81,8 +82,7 @@ export function createConfigurationRuntime(getContext) {
                 }
                 const button = document.querySelector('#api_button_openai');
                 if (button.classList.contains('disabled')) fail('BUSY', 'ST is already connecting. Refresh connection and models to check the result.');
-                button.click();
-                return await waitForConnection({ isLoading: () => button.classList.contains('disabled'), read });
+                return await connectThroughST({ host: window, click: () => button.click(), origin: location.origin, read });
             } else fail('INVALID_ARGUMENT', 'Unknown settings control.');
             return read();
         },

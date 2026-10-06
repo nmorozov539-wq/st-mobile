@@ -8,3 +8,5 @@ header>div:nth-child(2){flex:1}header button{flex-shrink:0}@media(max-width:650p
 .dialogue{color:#d4b9ff}
 
 header #settings-button{font-size:12px;margin-left:0;padding:7px 10px}@media(max-width:650px){header{gap:8px}header #history-button{padding:7px 10px}.dialog-actions{flex-wrap:wrap}}
+
+#settings-panel{max-height:calc(100dvh - 32px);margin:auto;padding:18px;overscroll-behavior:contain}#settings-panel .dialog-heading{position:sticky;top:0;background:#29212b;padding:12px 0;z-index:1}#settings-error:empty{display:none}#settings-error:not(:empty){padding:12px;border:1px solid #b47d80;border-radius:8px;background:#392a33;overflow-wrap:anywhere}#settings-build{overflow-wrap:anywhere}

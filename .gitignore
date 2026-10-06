@@ -1,0 +1,21 @@
+# Dependencies and generated packages
+node_modules/
+dist/
+/pocket-tavern-phone*.zip
+__pycache__/
+*.py[cod]
+
+# Local runtime data and credentials
+/data/
+/config.yaml
+.env
+.env.*
+!.env.example
+*.log
+/Log.md
+
+# Local editor/agent state
+.agents/
+.aws/
+.codex/
+.DS_Store

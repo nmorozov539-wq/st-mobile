@@ -1,0 +1,6 @@
+{
+  "name": "st-mobile-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node tests/run.js" }
+}

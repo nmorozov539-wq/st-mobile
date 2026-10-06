@@ -1,0 +1,7 @@
+import './adapter.test.js';
+import './persistence.test.js';
+import './frontend.test.js';
+import './chat-selection.test.js';
+import './phone-package.test.js';
+import './engine-health.test.js';
+import './session-init.test.js';

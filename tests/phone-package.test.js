@@ -1,0 +1,71 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const {prepare}=require('../phone-package/prepare-test.cjs');
+const {update}=require('../phone-package/update-test.cjs');
+const {patchEngine}=require('../phone-package/compatibility.cjs');
+test('phone preparation isolates data and config, preserves source, and refuses repeat or wrong-version installation',()=>{
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-installer-test-'));
+    try {
+        const source=path.join(root,'engine'),target=path.join(root,'test'),bundle=path.join(root,'bundle');
+        for(const dir of ['public','src','default/content','node_modules','data']) fs.mkdirSync(path.join(source,dir),{recursive:true});
+        fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.19.0'}));
+        fs.writeFileSync(path.join(source,'server.js'),'// fixture');
+        fs.mkdirSync(path.join(source,'public/scripts'),{recursive:true});
+        fs.writeFileSync(path.join(source,'public/scripts/tokenizers.js'),"import { characters, event_types, other } from \"/script.js\";\nconst data = await jQuery.ajax({\n                async: true,\n                type: 'POST', //\n                url: tokenizerEndpoint,\n                data: JSON.stringify([message]),\n                dataType: 'json',\n                contentType: 'application/json',\n            });");
+        const sourceServer="name: getCookieSessionName(),\napp.get('/csrf-token', (req, res) => {\n        res.json({\n            'token': csrfSyncProtection.generateToken(req),\n        });\n    });";
+        fs.writeFileSync(path.join(source,'src/server-main.js'),sourceServer);
+        fs.writeFileSync(path.join(source,'public/script.js'),"async function firstLoadInit() {\nconst tokenResponse = await fetch('/csrf-token');\n        const tokenData = await tokenResponse.json();\n        token = tokenData.token;\n}");
+        fs.writeFileSync(path.join(source,'src/fetch-patch.js'),"const filePath = path.resolve(fileURLToPath(url));\n    const isUnderServerDirectory = isPathUnderParent(serverDirectory, filePath);\nif (!isUnderServerDirectory) throw new Error(\"Requested file path is outside of the server directory.\");");
+        fs.mkdirSync(path.join(source,'node_modules/@jsquash/png/codec'),{recursive:true});
+        fs.writeFileSync(path.join(source,'node_modules/@jsquash/png/codec/test.wasm'),'WASM FIXTURE');
+        fs.writeFileSync(path.join(source,'default/config.yaml'),'fixture: default');
+        fs.writeFileSync(path.join(source,'default/content/settings.json'),'{}');
+        fs.writeFileSync(path.join(source,'config.yaml'),'PRIVATE CONFIG');
+        fs.writeFileSync(path.join(source,'data/secret.json'),'PRIVATE DATA');
+        for(const dir of ['frontend','extension']) {fs.mkdirSync(path.join(bundle,dir),{recursive:true});fs.writeFileSync(path.join(bundle,dir,'index.js'),'// fixture');}
+        fs.writeFileSync(path.join(bundle,'mock-model.mjs'),'// fixture');
+        fs.writeFileSync(path.join(bundle,'frontend/index.html'),'fixture page');
+        prepare(source,target,bundle);
+        assert.equal(fs.existsSync(path.join(target,'data')),false);
+        assert.equal(fs.readFileSync(path.join(target,'config.yaml'),'utf8'),'fixture: default');
+        assert.equal(fs.readFileSync(path.join(source,'data/secret.json'),'utf8'),'PRIVATE DATA');
+        assert.equal(fs.readFileSync(path.join(source,'config.yaml'),'utf8'),'PRIVATE CONFIG');
+        assert.equal(fs.existsSync(path.join(source,'public/st-mobile')),false);
+        assert.equal(fs.realpathSync(path.join(target,'node_modules')),path.join(source,'node_modules'));
+        const settings=JSON.parse(fs.readFileSync(path.join(target,'default/content/settings.json')));
+        assert.equal(settings.oai_settings.custom_url,'http://127.0.0.1:8124/v1');
+        fs.writeFileSync(path.join(target,'keep.txt'),'keep');
+        fs.mkdirSync(path.join(target,'data'),{recursive:true});fs.writeFileSync(path.join(target,'data/chat.jsonl'),'SAVED CHAT');
+        fs.writeFileSync(path.join(target,'config.yaml'),'USER TEST CONFIG');
+        const serverBefore=fs.readFileSync(path.join(target,'src/server-main.js'),'utf8');
+        assert.match(serverBefore,/pocket-tavern-test-/);
+        assert.match(serverBefore,/Cache-Control.*no-store/);
+        assert.match(fs.readFileSync(path.join(target,'public/script.js'),'utf8'),/token = await initializePocketSession/);
+        assert.ok(fs.existsSync(path.join(target,'public/scripts/pocket-session-init.js')));
+        assert.match(fs.readFileSync(path.join(target,'public/scripts/tokenizers.js'),'utf8'),/headers: getRequestHeaders/);
+        assert.equal(fs.readFileSync(path.join(target,'.pocket-wasm/png/codec/test.wasm'),'utf8'),'WASM FIXTURE');
+        assert.match(fs.readFileSync(path.join(target,'src/fetch-patch.js'),'utf8'),/if \(!isUnderServerDirectory\) throw/);
+        const result=update(target,bundle);
+        assert.equal(fs.readFileSync(path.join(target,'data/chat.jsonl'),'utf8'),'SAVED CHAT');
+        assert.equal(fs.readFileSync(path.join(target,'config.yaml'),'utf8'),'USER TEST CONFIG');
+        assert.equal(fs.readFileSync(path.join(target,'src/server-main.js'),'utf8'),serverBefore);
+        assert.ok(fs.existsSync(path.join(result.backup,'src/server-main.js')));
+        assert.equal(fs.readFileSync(path.join(source,'src/server-main.js'),'utf8'),sourceServer);
+        // A changed source must fail before updating any existing test code/data.
+        fs.writeFileSync(path.join(source,'public/scripts/tokenizers.js'),'unfamiliar');
+        assert.throws(()=>update(target,bundle),/Refusing to patch/);
+        assert.equal(fs.readFileSync(path.join(target,'data/chat.jsonl'),'utf8'),'SAVED CHAT');
+        assert.equal(fs.readFileSync(path.join(target,'src/server-main.js'),'utf8'),serverBefore);
+
+        assert.throws(()=>prepare(source,target,bundle),/already exists/);
+        assert.equal(fs.readFileSync(path.join(target,'keep.txt'),'utf8'),'keep');
+        fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.18.0'}));
+        const invalid=path.join(root,'invalid');assert.throws(()=>prepare(source,invalid,bundle),/requires ST 1.19.0/);
+        assert.equal(fs.existsSync(invalid),false);
+    } finally {fs.rmSync(root,{recursive:true,force:true});}
+});

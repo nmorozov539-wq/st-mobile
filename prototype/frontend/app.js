@@ -1,13 +1,15 @@
-import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.4.5';
-import { RuntimeConnection } from './transport.js?build=0.4.5';
-import { formatMessage } from './format.js?build=0.4.5';
-import { createSettingsPanel } from './settings.js?build=0.4.5';
-import { probeEngine } from './engine-health.js?build=0.4.5';
+import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.5.0';
+import { RuntimeConnection } from './transport.js?build=0.5.0';
+import { formatMessage } from './format.js?build=0.5.0';
+import { createSettingsPanel } from './settings.js?build=0.5.0';
+import { probeEngine } from './engine-health.js?build=0.5.0';
+import { createMemoryPanel } from './memory.js?build=0.5.0';
+import { createLibrary } from './library.js?build=0.5.0';
 const $ = id => document.getElementById(id);
 const state = createLocalState(localStorage);
 let snapshot, characters = [], chats = [], busy = true, connected = false, sessionId;
 let requestId, stream, editing, naming, reviewRequired = false, initializing = false;
-let settingsPanel;
+let settingsPanel, library, memoryPanel, memoryBusy=false;
 let streamReasoning = '';
 let renderedTarget, streamFrame, streamText = '', observingTimer, healthRunning = false, healthEpoch = 0;
 const connection = new RuntimeConnection(onEvent);
@@ -17,9 +19,12 @@ const status = text => { $('status').textContent = text; };
 const el = (tag, text = '', className) => { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; };
 function saveDraft() { if (!snapshot) return; state.saveDraft(snapshot, $('draft').value); }
 function controls() {
-    const locked = busy || !connected || reviewRequired;
+    const locked = busy || memoryBusy || !connected || reviewRequired;
+    memoryPanel?.setAvailable(connected);memoryPanel?.setLocked(locked);
     $('settings-button').disabled = locked;
     settingsPanel?.setLocked(locked);
+    library?.setLocked(locked);
+    $('library-button').disabled = locked;
     $('send').disabled = locked || !snapshot?.characterKey || !$('draft').value.trim();
     $('draft').disabled = busy || !snapshot?.characterKey;
     $('refresh').disabled = busy || !connected;
@@ -27,7 +32,7 @@ function controls() {
     $('new-chat').disabled = locked || !snapshot?.characterKey;
     $('delete-chat').disabled = locked || !snapshot?.chatId;
     $('rename-chat').disabled = locked || !snapshot?.chatId;
-    document.querySelectorAll('#characters button').forEach(button => button.disabled = busy || !connected);
+    document.querySelectorAll('#characters button').forEach(button => button.disabled = busy || memoryBusy || !connected);
     document.querySelectorAll('.message-tools button').forEach(button => button.disabled = locked);
     $('stop').hidden = !requestId; $('send').hidden = !!requestId;
     $('reconnect').hidden = connected && !reviewRequired; $('reconnect').disabled = initializing;
@@ -296,3 +301,7 @@ window.addEventListener('pageshow', checkHealth);
 setTimeout(() => { if (!connected && !initializing) { busy = false; recovery('The local engine has not started yet. Start the test tavern, then reconnect.', 'Waiting for the engine'); } }, 25000);
 settingsPanel = createSettingsPanel({ rpc, action, adoptSnapshot: async () => adopt(await rpc('snapshot')), status, locked: () => !connected || reviewRequired });
 controls(); recovery('The local engine is starting…', 'Connecting');
+
+library = createLibrary({rpc,action,locked:()=>!connected||reviewRequired,refresh:async()=>{characters=await rpc('characters');adopt(await rpc('snapshot'));await loadHistory();}});
+
+memoryPanel=createMemoryPanel({rpc,action,locked:()=>busy||!connected||reviewRequired,connected:()=>connected,onBusy:value=>{memoryBusy=value;controls();},refresh:async()=>{adopt(await rpc('snapshot'));}});

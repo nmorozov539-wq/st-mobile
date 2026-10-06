@@ -1,0 +1,32 @@
+{
+  "spec": "chara_card_v2",
+  "spec_version": "2.0",
+  "data": {
+    "name": "Pocket Imported Fixture",
+    "description": "Imported card",
+    "personality": "Patient",
+    "scenario": "Library",
+    "first_mes": "Hello",
+    "mes_example": "",
+    "creator_notes": "",
+    "system_prompt": "",
+    "post_history_instructions": "",
+    "alternate_greetings": [
+      "Welcome back"
+    ],
+    "tags": [
+      "fixture"
+    ],
+    "creator": "Test",
+    "character_version": "1",
+    "extensions": {
+      "foreign_extension": {
+        "keep": 7
+      }
+    },
+    "character_book": {
+      "entries": [],
+      "name": "Embedded lore"
+    }
+  }
+}

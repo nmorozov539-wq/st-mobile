@@ -1,0 +1,17 @@
+{
+  "personas": {
+    "pocket-imported-fixture.png": "Pocket Imported Persona"
+  },
+  "persona_descriptions": {
+    "pocket-imported-fixture.png": {
+      "description": "Imported persona",
+      "position": 4,
+      "depth": 2,
+      "role": 0,
+      "connections": [],
+      "foreign": {
+        "keep": 7
+      }
+    }
+  }
+}

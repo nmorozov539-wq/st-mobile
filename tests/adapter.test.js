@@ -263,3 +263,13 @@ test('reasoning streams separately from reply text and survives the completion s
     assert.equal(events.find(event=>event.type==='text.replace').reasoning,'Considering');
     assert.equal(result.reasoning,'Considering');assert.equal(result.snapshot.messages.at(-1).extra.reasoning,'Considering');
 });
+test('library and extension mutations share the engine lock while extension read/stop remain available',async()=>{
+ let release;const extensions=new Map([['memory',{run:async arg=>arg.action==='read'?{busy:true}:arg.action==='stop'?{stopping:true}:{done:true}}]]);
+ const ctx={characters:[],chat:[],chatMetadata:{}};
+ const adapter=createAdapter({getContext:()=>ctx,isBusy:()=>false,supportedVersion:'1.19.0',runtimeVersion:'1.19.0',extensions,assets:{run:async()=>new Promise(resolve=>release=resolve)}});adapter.markReady();
+ const writing=adapter.assets({action:'write'});
+ await assert.rejects(adapter.extensions({id:'memory',action:'settings'}),{code:'BUSY'});
+ assert.deepEqual(await adapter.extensions({id:'memory',action:'read'}),{busy:true});
+ assert.deepEqual(await adapter.extensions({id:'memory',action:'stop'}),{stopping:true});
+ release({saved:true});await writing;assert.deepEqual(await adapter.extensions({id:'memory',action:'settings'}),{done:true});
+});

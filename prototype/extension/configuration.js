@@ -1,9 +1,10 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.4.5';
-import { connectThroughST } from './connection-check.js?build=0.4.5';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.4.5';
+import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.5.0';
+import { connectThroughST } from './connection-check.js?build=0.5.0';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.5.0';
+import { testConnection } from './connection-test.js?build=0.5.0';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { model_list, getChatCompletionModel, getPresetApplicationPromise } from '/scripts/openai.js';
+import { model_list, getChatCompletionModel, getPresetApplicationPromise, sendOpenAIRequest } from '/scripts/openai.js';
 import { user_avatar, setUserAvatar } from '/scripts/personas.js';
 import { world_info, world_names, selected_world_info, updateWorldInfoSettings } from '/scripts/world-info.js';
 import { secret_state, writeSecret, SECRET_KEYS } from '/scripts/secrets.js';
@@ -19,7 +20,7 @@ export function createConfigurationRuntime(getContext) {
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts };
-        return { bridgeBuild: '0.4.5', selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.5.0', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
@@ -84,6 +85,11 @@ export function createConfigurationRuntime(getContext) {
                 if (typeof value !== 'string' || !value.trim() || value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a nonempty API key.');
                 const key = kind === 'openrouterKey' ? SECRET_KEYS.OPENROUTER : providerSecretKey(settings.chat_completion_source);
                 if (!await writeSecret(key, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
+            } else if (kind === 'test') {
+                if (ctx.mainApi !== 'openai' || !getChatCompletionModel()) fail('INVALID_ARGUMENT', 'Choose a chat-completion model first.');
+                if (settings.chat_completion_source === 'custom') validateEndpoint(settings.custom_url);
+                const result = await testConnection({settings, request:sendOpenAIRequest});
+                return {...read(), testResult:result};
             } else if (kind === 'connect') {
                 if (ctx.mainApi !== 'openai') fail('INVALID_ARGUMENT', 'Choose a chat-completion connection first.');
                 if (settings.chat_completion_source === 'custom') validateEndpoint(settings.custom_url);

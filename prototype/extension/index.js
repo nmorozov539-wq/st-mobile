@@ -1,8 +1,10 @@
-import { createAdapter } from './adapter.js?build=0.4.5';
-import { createGenerationRuntime } from './runtime.js?build=0.4.5';
-import { isGenerating, isChatSaving } from '/script.js';
+import { createAdapter } from './adapter.js?build=0.5.0';
+import { createGenerationRuntime } from './runtime.js?build=0.5.0';
+import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.4.5';
+import { createConfigurationRuntime } from './configuration.js?build=0.5.0';
+
+import { createAssetRuntime } from './assets.js?build=0.5.0';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -11,9 +13,19 @@ if (!versionResponse.ok) throw new Error('Cannot read ST version.');
 const versionInfo = await versionResponse.json();
 const sessionId = crypto.randomUUID();
 const runtime = createGenerationRuntime(getContext);
-const adapter = createAdapter({ getContext, isBusy: () => isGenerating() || isChatSaving,
+const adapter = createAdapter({ getContext, isBusy: () => isGenerating() || isChatSaving || [...(window.pocketExtensions?.values()??[])].some(extension=>extension.read().busy),
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
-    generation: runtime, configuration: createConfigurationRuntime(getContext) });
+    generation: runtime, configuration: createConfigurationRuntime(getContext), assets: createAssetRuntime(getContext), extensions: window.pocketExtensions });
+
+window.pocketEngineBusy = () => {try{return adapter.activity().busy;}catch{return true;}};
+window.pocketVerifyMemory = () => runtime.verifyPersistence(adapter.snapshot());
+window.pocketSaveSettings = async expected => {
+    await saveSettings();
+    const response=await fetch('/api/settings/get',{method:'POST',headers:getContext().getRequestHeaders(),cache:'no-store'});
+    if(!response.ok)throw Error('Memory settings save could not be verified.');
+    const saved=JSON.parse((await response.json()).settings).extension_settings?.summaryception;
+    if(!saved || Object.entries(expected).some(([key,value])=>key!=='promptPreset' && saved[key]!==value))throw Error('Memory settings do not match the saved copy.');
+};
 
 if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
     let port;
@@ -22,7 +34,7 @@ if (window.parent !== window && new URLSearchParams(location.search).has('mobile
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),
         chats: () => adapter.listChats(), manage: arg => adapter.manageChat(arg),
-        settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
+        extensions: arg => adapter.extensions(arg), assets: arg => adapter.assets(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
         activity: () => adapter.activity(), reconcile: () => adapter.reconcile(), reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
     window.addEventListener('message', event => {
         if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'st-mobile-connect' || !event.ports[0]) return;

@@ -1,9 +1,9 @@
 {
-  "display_name": "ST Mobile — PC bridge experiment",
+  "display_name": "Pocket Tavern bridge",
   "loading_order": 100,
   "requires": [],
   "optional": [],
   "js": "index.js",
   "author": "ST Mobile",
-  "version": "0.1.0"
+  "version": "0.5.0"
 }

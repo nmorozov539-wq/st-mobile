@@ -1,5 +1,5 @@
 // ST behavior lives in the runtime bindings; this module owns operation tracking.
-export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration }) {
+export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, extensions }) {
     let ready = false;
     let selecting = false;
     let disposed = false;
@@ -36,7 +36,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         handshake() {
             context();
             return { protocolVersion: 1, supportedSTVersion: supportedVersion, runtimeVersion,
-                capabilities: ['characters.list', 'characters.select', 'chat.snapshot', 'chats.list', 'chats.open', 'chats.create', 'chats.rename', 'chats.delete', 'runtime.activity', ...(configuration ? ['settings.read', 'settings.change'] : []),
+                capabilities: ['characters.list', 'characters.select', 'chat.snapshot', 'chats.list', 'chats.open', 'chats.create', 'chats.rename', 'chats.delete', 'runtime.activity', ...(configuration ? ['settings.read', 'settings.change'] : []), ...(assets?['library.read','library.write','library.import']:[]), ...(extensions?.size?['extensions.read','extensions.control']:[]),
                     ...(generation ? ['generation.send', 'generation.stop', 'generation.status', 'message.edit', 'swipes.select', 'swipes.generate'] : [])] };
         },
         listCharacters() {
@@ -88,6 +88,22 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             selecting = true;
             try { return clone(await configuration.change(argument)); }
             finally { selecting = false; }
+        },
+        async extensions(argument) {
+            context();
+            const extension=extensions?.get(argument?.id);
+            if(!extension)fail('UNSUPPORTED','This extension has no Pocket integration installed.');
+            if(['read','stop','choice'].includes(argument.action))return clone(await extension.run(argument));
+            if(selecting||active||isBusy())fail('BUSY','Finish the current engine operation first.');
+            selecting=true;
+            try{return clone(await extension.run(argument));}finally{selecting=false;}
+        },
+        async assets(argument) {
+            context();
+            if (!assets) fail('UNSUPPORTED', 'Library editing is unavailable.');
+            if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation first.');
+            selecting = true;
+            try { return clone(await assets.run(argument)); } finally { selecting = false; }
         },
         activity() { context(); return { busy: !!(selecting || active || isBusy()), operation: active ? clone(active.status) : null }; },
         async listChats() {

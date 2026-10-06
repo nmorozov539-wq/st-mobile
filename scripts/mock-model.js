@@ -1,11 +1,11 @@
 import http from 'node:http';
 import { setTimeout as delay } from 'node:timers/promises';
 
-let requests = 0, lastRequest = null;
+let requests = 0, lastRequest = null;const recentRequests=[];
 const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && req.url === '/health') {
         res.setHeader('Content-Type', 'application/json');
-        return res.end(JSON.stringify({ model: 'st-mobile-mock', requests, lastRequest }));
+        return res.end(JSON.stringify({ model: 'st-mobile-mock', requests, lastRequest, recentRequests }));
     }
     if (req.method === 'GET' && req.url === '/v1/models') {
         res.setHeader('Content-Type', 'application/json');
@@ -26,7 +26,8 @@ const server = http.createServer(async (req, res) => {
         }
         requests++;
         const prompt = JSON.stringify(input.messages);
-        lastRequest = {model:input.model,temperature:input.temperature,stream:!!input.stream,personaFixture:prompt.includes('POCKET_PERSONA_SENTINEL'),loreFixture:prompt.includes('POCKET_LORE_SENTINEL')};
+        lastRequest = {model:input.model,temperature:input.temperature,stream:!!input.stream,maxTokens:input.max_tokens,n:input.n,testMessage:input.messages?.length===1&&text==='Reply with OK.',summaryFixture:prompt.includes('auto_injected_historical_context'),personaFixture:prompt.includes('POCKET_PERSONA_SENTINEL'),loreFixture:prompt.includes('POCKET_LORE_SENTINEL')};
+        recentRequests.push({...lastRequest});if(recentRequests.length>8)recentRequests.shift();
         if (/\[fail\]/i.test(text)) {
             res.writeHead(503, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify({ error: { message: 'Intentional local mock failure.', type: 'test_error' } }));
@@ -38,6 +39,7 @@ const server = http.createServer(async (req, res) => {
             ? 'This is a slow local test reply. You can stop it while it is arriving. '.repeat(6)
             : 'The PC bridge works! This reply came from the local mock model through SillyTavern’s normal generation pipeline.';
         if (!input.stream) {
+            if(slow){const controller=new AbortController();res.on('close',()=>controller.abort());await delay(10000,undefined,{signal:controller.signal});}
             res.setHeader('Content-Type', 'application/json');
             return res.end(JSON.stringify({ id: `mock-${requests}`, object: 'chat.completion', choices: [{ index: 0, message: { role: 'assistant', content: answer, reasoning_content: reasoning }, finish_reason: 'stop' }] }));
         }

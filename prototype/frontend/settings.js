@@ -16,7 +16,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     };
     function render(value) {
         configuration = value;
-        $('settings-build').textContent = `Pocket Tavern 0.4.5 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
+        $('settings-build').textContent = `Pocket Tavern 0.5.0 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
         const selected = value.selected;
         const custom = selected.source === 'custom';
         $('custom-controls').hidden = !custom;
@@ -37,12 +37,14 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
         if (locked()) throw new Error('Finish or review the current conversation before changing settings.');
         $('settings-error').textContent = '';
         if (kind === 'connect') $('settings-error').textContent = 'Starting connection check…';
+        if (kind === 'test') $('settings-error').textContent = 'Sending a tiny test message (up to 16 output tokens)…';
         if (kind === 'connect') $('connection-state').textContent = 'Connecting to ST’s selected provider…';
         try {
             render(await rpc('configure', { kind, value, revision: configuration.revision }, 45000));
             if (kind === 'connect') $('settings-error').textContent = `Connection check finished: ${configuration.onlineStatus}. ${configuration.models.length} models loaded.`;
+            if (kind === 'test') $('settings-error').textContent = `API test succeeded: ${configuration.testResult.reply}`;
             await adoptSnapshot();
-            status(kind === 'connect' ? 'ST connection checked' : 'Settings change saved by ST');
+            status(kind === 'connect' ? 'ST connection checked' : kind === 'test' ? 'API test finished' : 'Settings change saved by ST');
         } catch (error) {
             $('settings-error').textContent = error.message;
             // A failed response may follow a completed write. Read again, never replay it.
@@ -72,6 +74,18 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
         });
     };
     $('apply-endpoint').onclick = () => action(() => change('endpoint', $('setting-endpoint').value));
+    $('test-model').onclick = () => {
+        const key=$('setting-key').value;$('setting-key').value='';
+        const endpoint=$('setting-endpoint').value,model=$('setting-custom-model').value;
+        return action(async()=>{
+            if(configuration.selected.source==='custom'){
+                if(endpoint!==configuration.selected.endpoint)await change('endpoint',endpoint);
+                if(model && model!==configuration.selected.model)await change('model',model);
+            }
+            if(key.trim())await change('providerKey',key);
+            await change('test');
+        });
+    };
     $('apply-custom-model').onclick = () => action(() => change('model', $('setting-custom-model').value));
     $('save-key').onclick = () => {
         const value = $('setting-key').value; $('setting-key').value = '';

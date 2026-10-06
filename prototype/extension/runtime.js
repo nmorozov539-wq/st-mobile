@@ -2,8 +2,8 @@ import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteC
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
-import { assertPersisted } from './persistence.js?build=0.4.5';
-import { selectSavedChat } from './chat-selection.js?build=0.4.5';
+import { assertPersisted } from './persistence.js?build=0.5.0';
+import { selectSavedChat } from './chat-selection.js?build=0.5.0';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export function createGenerationRuntime(getContext) {

@@ -30,6 +30,7 @@ function prepare(source, target, bundle = __dirname, options = {}) {
         Object.assign(settings.oai_settings,{chat_completion_source:'custom',custom_url:'http://127.0.0.1:8124/v1',custom_model:'st-mobile-mock',stream_openai:true,function_calling:false,openai_max_context:32000,openai_max_tokens:1024});
         if (options.combined && !options.mock) Object.assign(settings.oai_settings, {chat_completion_source:'openrouter', custom_url:'', custom_model:'', show_thoughts:true});
         if (options.combined) settings.username='You';
+        settings.extension_settings ??= {};settings.extension_settings.summaryception={enabled:false};
         settings.power_user ??= {};
         Object.assign(settings.power_user,{auto_connect:!options.combined || !!options.mock,auto_swipe:false});
         settings.power_user.auto_continue ??= {};settings.power_user.auto_continue.enabled=false;
@@ -41,6 +42,7 @@ function prepare(source, target, bundle = __dirname, options = {}) {
         // Replace this package's paths so an older bridge cannot leave stale files.
         fs.rmSync(thirdParty,{recursive:true,force:true});fs.rmSync(frontend,{recursive:true,force:true});
         fs.cpSync(path.join(bundle,'extension'),extension,{recursive:true});
+        if(fs.existsSync(path.join(bundle,'summaryception')))fs.cpSync(path.join(bundle,'summaryception'),path.join(thirdParty,'Extension-Summaryception'),{recursive:true});
         fs.cpSync(path.join(bundle,'frontend'),frontend,{recursive:true});
         fs.copyFileSync(path.join(bundle,'mock-model.mjs'),path.join(target,'mock-model.mjs'));
         patchEngine(target,source);

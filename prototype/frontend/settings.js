@@ -16,7 +16,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     };
     function render(value) {
         configuration = value;
-        $('settings-build').textContent = `Pocket Tavern 0.5.4 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
+        $('settings-build').textContent = `Pocket Tavern 0.6.0 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
         const selected = value.selected;
         const custom = selected.source === 'custom';
         $('custom-controls').hidden = !custom;
@@ -32,7 +32,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
         $('setting-thinking').checked = selected.thinking;
         $('setting-tools').checked = selected.toolCalling;
         setLocked(panelLocked);
-        $('connection-state').textContent = `${value.onlineStatus === 'no_connection' ? 'Not connected' : 'ST connection: '+value.onlineStatus} · ${custom ? 'Custom endpoint' : 'OpenRouter'} key ${value.hasProviderKey ? 'saved in ST' : (custom ? 'not configured (optional)' : 'not configured')}`;
+        $('connection-state').textContent = `${value.onlineStatus === 'no_connection' ? 'Not connected' : 'ST connection: '+value.onlineStatus} · Test model: ${selected.model || 'choose in Home or chat'} · ${custom ? 'Custom endpoint' : 'OpenRouter'} key ${value.hasProviderKey ? 'saved in ST' : (custom ? 'not configured (optional)' : 'not configured')}`;
     }
     async function change(kind, value) {
         if (locked()) throw new Error('Finish or review the current conversation before changing settings.');
@@ -93,5 +93,5 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
         const value = $('setting-key').value; $('setting-key').value = '';
         return action(() => change('providerKey', value));
     };
-    return {setLocked};
+    return {setLocked, async open(){render(await rpc('settings'));$('settings-error').textContent='';$('settings-panel').showModal();$('settings-panel').scrollTop=0;}};
 }

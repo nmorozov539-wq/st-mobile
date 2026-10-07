@@ -280,3 +280,13 @@ test('snapshot reports current persona and preset without rewriting historical m
  assert.deepEqual(adapter.snapshot().presentation,{personaName:'Alex',preset:'Creative'});
  assert.equal(ctx.chat[0].name,'You');ctx.name1='Morgan';assert.equal(adapter.snapshot().presentation.personaName,'Morgan');
 });
+
+test('generation can verify its save while Memory is waiting, but another send stays blocked',async()=>{
+ const ctx={characters:[{avatar:'a.png',name:'A'}],characterId:0,groupId:null,chatId:'fixture',chat:[],chatMetadata:{}};
+ let waiting=false;
+ const adapter=createAdapter({getContext:()=>ctx,isBusy:({owner}={})=>waiting&&owner!=='generation',supportedVersion:'1.19.0',runtimeVersion:'1.19.0',generation:{validate(){},subscribeText(){return()=>{};},async submit(text){ctx.chat.push({mes:text,is_user:true},{mes:'reply',is_user:false});waiting=true;},async verifyPersistence(){},stop(){return true;}}});
+ adapter.markReady();const request={requestId:'memory-wait',text:'hello',characterKey:'a.png',chatId:'fixture'};
+ const result=await adapter.sendMessage(request);assert.equal(result.state,'completed');assert.equal(result.persistence,'verified');
+ assert.equal(adapter.activity().busy,true);assert.equal(adapter.activity({ignoreExternal:true}).busy,false);
+ await assert.rejects(adapter.sendMessage({...request,requestId:'next'}),{code:'BUSY'});
+});

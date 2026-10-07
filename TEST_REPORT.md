@@ -1,3 +1,15 @@
+# Pocket Tavern 0.6.0 validation
+
+- 87 automated regression/foundation tests pass, including scope precedence, full-copy independence, conflict guards, batch deletion, fork Memory validity, no-op alternative selection, pending-field coalescing, bounded render windows and invalid-memory injection/API suppression, deferred Memory ownership and protection against running on a different chat.
+- 22 real isolated ST 1.19.0 browser integration assertions pass: independent chat reads; character scope persistence, sampler independence, Reset and disabled-copy retention; chat scope/settings; preset/model separation; original-preserving forks and deterministic destination-collision protection; message deletion and Memory invalidation; Undo restoring memory/history; stale-edit rejection; reads during generation; engine activation lock; early Stop with native save/readback; chat deletion and chat Undo.
+- Prior v0.5.* phone/provider confirmations remain evidence for the underlying engine and optional proxy, not proof of the new Android UX. No real keys, personal data or paid model requests were used in these checks.
+- 11 sanitized HTML browser checks pass. The actual ZIP/update flow also passes, including duplicate download names, required modules, backups and preservation of existing settings/local extension data.
+- Manual UI checks: browsing a different chat during a slow reply, an independent unsent draft, two queued sampler fields saved to that other chat, original generation target retained, and a visible disabled/offline state after engine shutdown.
+- Reasoning checked live: initial Thinking closed, previous reply opened, next reply and its saved result inherited the expanded state.
+- New UI checked at a 390 × 844 browser viewport; phone gesture/keyboard/background/performance comfort remains a user/device test.
+
+The release uses the root v0.6.0 ZIP and matching repair script. Detailed behavior and deliberate limitations: [UI_OVERHAUL.md](UI_OVERHAUL.md). Historical reports below describe earlier releases.
+
 # Steps 1–3 verification — 6 October 2026
 
 Test environment: copied SillyTavern package 1.19.0, disposable data at `/tmp/st-mobile-pc-zqw10qi4`, local mock on 8124, frontend/engine on 8123. Installed ST source/data were not changed. No real provider requests or credentials were used.

@@ -102,11 +102,12 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         async assets(argument) {
             context();
             if (!assets) fail('UNSUPPORTED', 'Library editing is unavailable.');
+            if (['read','list'].includes(argument?.action)) return clone(await assets.run(argument));
             if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation first.');
             selecting = true;
             try { return clone(await assets.run(argument)); } finally { selecting = false; }
         },
-        activity() { context(); return { busy: !!(selecting || active || isBusy()), operation: active ? clone(active.status) : null }; },
+        activity({ignoreExternal=false} = {}) { context(); return { busy: !!(selecting || active || (!ignoreExternal && isBusy())), operation: active ? clone(active.status) : null }; },
         async listChats() {
             const before = snapshot();
             if (before.groupId || !before.characterKey) fail('NO_CHAT', 'Choose a character first.');
@@ -208,7 +209,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                     const cancelled = operation.status.state === 'stopping';
                     operation.status.state = 'verifying';
                     emit({ type: 'operation.verifying', ...operation.status });
-                    if (isBusy()) fail('RUNTIME_BUSY', 'ST is still busy after submission. Completion is unverified.');
+                    if (isBusy({owner:'generation'})) fail('RUNTIME_BUSY', 'ST is still busy after submission. Completion is unverified.');
                     const after = snapshot();
                     if (after.characterKey !== characterKey || after.chatId !== chatId || after.groupId) {
                         fail('TARGET_CHANGED', 'The active chat changed during generation.');

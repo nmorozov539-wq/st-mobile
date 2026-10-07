@@ -15,3 +15,5 @@ import './summaryception.test.js';
 import './asset-store.test.js';
 
 import './preset-order.test.js';
+
+import "./workspace.test.js";

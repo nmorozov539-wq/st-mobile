@@ -1,3 +1,13 @@
+# Pocket Tavern 0.6.0 interface implementation
+
+The agreed browser/Termux interface skeleton is implemented: five-tab navigation, separate browsing/generation ownership, model/preset sheets, independent chat/character/global settings, serialized durable pending changes, message/multi-message/chat deletion with brief Undo, forks, Memory validity guards, sanitized HTML and bounded message/library rendering.
+
+The original ST installation and personal data were not modified. Validation uses the isolated ST 1.19.0 fixture and mock model. Current evidence and remaining device limitations are in TEST_REPORT.md and UI_OVERHAUL.md. The phone update package is in the project root.
+
+Android packaging, general extension support, groups, archives, profiles, full native library UX parity and paid Memory rebuilding remain deferred as agreed. Browser recovery requires review rather than automatically resending requests.
+
+## Previous checkpoint
+
 # Pocket Tavern implementation checkpoint — v0.5.0
 
 The current implementation goal is completed for the PC-testable prototype.

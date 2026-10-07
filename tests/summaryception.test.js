@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
-function fixture(request=async()=> 'The traveller reached the forest.') {
+function fixture(request=async()=> 'The traveller reached the forest.', {pocket=true}={}) {
  let source=fs.readFileSync(new URL('../vendor/Extension-Summaryception/index.js',import.meta.url),'utf8');
  source=source.slice(source.indexOf('const MODULE_NAME'));
  const start=source.indexOf('(async function init()');const end=source.indexOf('})();',start)+5;source=source.slice(0,start)+source.slice(end);
@@ -10,6 +10,7 @@ function fixture(request=async()=> 'The traveller reached the forest.') {
  const ctx={extensionSettings:{summaryception:{enabled:true,verbatimTurns:1,turnsPerSummary:1}},chatMetadata:{},chat:[{is_user:false,mes:'Greeting'},{is_user:true,mes:'I travelled.'},{is_user:false,mes:'You reached the forest.'},{is_user:true,mes:'I rest.'},{is_user:false,mes:'Night falls.'}],name1:'Traveller',eventTypes:{GENERATION_STOPPED:'stop'},event_types:{GENERATION_STOPPED:'stop'},eventSource:{emit:async()=>{}},promptManager:{getPromptCollection:()=>({collection:structuredClone(toggles)}),getPromptOrderEntries:()=>toggles},saveMetadata:async()=>{},saveChat:async()=>{},setExtensionPrompt:(_,text)=>ctx.injection=text,executeSlashCommandsWithOptions:async command=>{const range=command.match(/(\d+)(?:-(\d+))?/);for(let i=Number(range[1]);i<=Number(range[2]??range[1]);i++)ctx.chat[i].is_system=command.startsWith('/hide');}};
  const chain=new Proxy(()=>{}, {get:()=>chain,apply:()=>chain});let hostBusy=false,verified=0;
  const window={parent:{},pocketExtensions:new Map(),pocketEngineBusy:()=>hostBusy,pocketSaveSettings:async()=>{},pocketVerifyMemory:async()=>{verified++;}};
+ if(!pocket)window.parent=window;
  const sandbox=vm.createContext({window,location:{search:'?mobileRuntime=1'},URLSearchParams,AbortController,structuredClone,setTimeout,clearTimeout,console:{log(){},error(){}},SillyTavern:{getContext:()=>ctx},sendSummarizerRequest:request,$:()=>chain,toastr:{info:()=>chain,error(){},warning(){},success(){},clear(){}},document:{querySelector:()=>null}});
  new vm.Script(source).runInContext(sandbox);
  return {api:window.pocketExtensions.get('summaryception'),ctx,toggles,sandbox,verified:()=>verified,hostBusy:value=>hostBusy=value};
@@ -33,4 +34,37 @@ test('Summaryception exposes backlog choices in Pocket rather than creating a hi
  const running=vm.runInContext('maybeSummarizeTurns()',f.sandbox);await new Promise(resolve=>setImmediate(resolve));
  assert.ok(f.api.read().backlog.calls>1);assert.equal(f.api.read().busy,true);
  await f.api.run({action:'stop'});await running;assert.equal(f.api.read().backlog,null);assert.equal(f.api.read().busy,false);
+});
+test('invalidated memory remains readable but cannot inject or run automatic/manual paid summaries',async()=>{
+ let calls=0;const f=fixture(async()=>{calls++;return 'unused';});
+ f.ctx.chatMetadata.summaryception={layers:[[{text:'Written memory'}]],summarizedUpTo:0,ghostedIndices:[]};
+ vm.runInContext('updateInjection()',f.sandbox);assert.match(f.ctx.injection,/Written memory/);
+ f.ctx.chatMetadata.pocket_tavern={memoryInvalid:{reason:'changed history'}};
+ vm.runInContext('updateInjection()',f.sandbox);assert.equal(f.ctx.injection,'');
+ await vm.runInContext('maybeSummarizeTurns()',f.sandbox);assert.equal(calls,0);
+ await assert.rejects(f.api.run({action:'summarize'}),/needs rebuilding/);assert.equal(calls,0);
+ assert.equal(f.api.read().needsRebuild,true);assert.equal(f.api.read().memory.layers[0][0].text,'Written memory');
+});
+
+test('invalid-memory automatic guard also applies when the combined native ST frontend is opened',async()=>{
+ let calls=0;const f=fixture(async()=>{calls++;return 'unused';},{pocket:false});
+ f.ctx.chatMetadata.pocket_tavern={memoryInvalid:{reason:'changed history'}};
+ await vm.runInContext('maybeSummarizeTurns()',f.sandbox);
+ await vm.runInContext('repairIfBranched()',f.sandbox);
+ assert.equal(calls,0);
+});
+
+test('deferred automatic Memory owns the engine until stopped, without issuing a model request',async()=>{
+ let calls=0;const f=fixture(async()=>{calls++;return 'unused';});f.hostBusy(true);
+ await vm.runInContext('maybeSummarizeTurns()',f.sandbox);
+ assert.equal(f.api.read().waiting,true);assert.equal(f.api.read().busy,true);
+ await f.api.run({action:'stop'});assert.equal(f.api.read().busy,false);
+ await new Promise(resolve=>setTimeout(resolve,550));assert.equal(calls,0);
+});
+test('deferred automatic Memory cannot run against a different chat',async()=>{
+ let calls=0;const f=fixture(async()=>{calls++;return 'unused';});f.ctx.chatId='original';f.hostBusy(true);
+ await vm.runInContext('maybeSummarizeTurns()',f.sandbox);
+ f.ctx.chatId='other';f.hostBusy(false);
+ await new Promise(resolve=>setTimeout(resolve,550));
+ assert.equal(calls,0);assert.equal(f.api.read().busy,false);assert.match(f.api.read().failure,/chat changed/);
 });

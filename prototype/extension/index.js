@@ -1,10 +1,11 @@
-import { createAdapter } from './adapter.js?build=0.5.4';
-import { createGenerationRuntime } from './runtime.js?build=0.5.4';
+import { createWorkspace } from './workspace.js?build=0.6.0';
+import { createAdapter } from './adapter.js?build=0.6.0';
+import { createGenerationRuntime } from './runtime.js?build=0.6.0';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.5.4';
+import { createConfigurationRuntime } from './configuration.js?build=0.6.0';
 
-import { createAssetRuntime } from './assets.js?build=0.5.4';
+import { createAssetRuntime } from './assets.js?build=0.6.0';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -13,11 +14,14 @@ if (!versionResponse.ok) throw new Error('Cannot read ST version.');
 const versionInfo = await versionResponse.json();
 const sessionId = crypto.randomUUID();
 const runtime = createGenerationRuntime(getContext);
-const adapter = createAdapter({ getContext, isBusy: () => isGenerating() || isChatSaving || [...(window.pocketExtensions?.values()??[])].some(extension=>extension.read().busy),
+const isBusy = ({owner}={}) => isGenerating() || isChatSaving || [...(window.pocketExtensions?.values()??[])].some(extension=>{const state=extension.read();return state.busy && !(owner==='generation' && state.id==='summaryception' && state.waiting);});
+const configuration = createConfigurationRuntime(getContext);
+const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||!!adapter.activity().operation,configuration});
+const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
-    generation: runtime, configuration: createConfigurationRuntime(getContext), assets: createAssetRuntime(getContext), extensions: window.pocketExtensions });
+    generation: runtime, configuration, assets: createAssetRuntime(getContext), extensions: window.pocketExtensions });
 
-window.pocketEngineBusy = () => {try{return adapter.activity().busy;}catch{return true;}};
+window.pocketEngineBusy = () => {try{return isGenerating() || isChatSaving || workspace.busy() || adapter.activity({ignoreExternal:true}).busy || [...(window.pocketExtensions?.entries()??[])].some(([id,extension])=>id!=='summaryception' && extension.read().busy);}catch{return true;}};
 window.pocketVerifyMemory = () => runtime.verifyPersistence(adapter.snapshot());
 window.pocketSaveSettings = async expected => {
     await saveSettings();
@@ -29,7 +33,7 @@ window.pocketSaveSettings = async expected => {
 
 if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
     let port;
-    const methods = { handshake: () => ({ ...adapter.handshake(), sessionId, bridgeBuild: '0.5.4' }), characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='scopes'?workspace.scopes(arg.target):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.6.0'};}, characters: () => adapter.listCharacters(),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),

@@ -1,4 +1,4 @@
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.5.4';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.6.0';
 export function createLibrary({rpc,action,refresh,locked}) {
     const $=id=>document.getElementById(id);
     let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001;
@@ -27,7 +27,7 @@ export function createLibrary({rpc,action,refresh,locked}) {
             body.append(node('p','Position: 0 in prompt, 2 above author note, 3 below author note, 4 at depth, 9 disabled. Role: 0 system, 1 user, 2 assistant. Use ST’s advanced editor for persona connections.'));
         }else{
             field(body,'Preset name (a new name saves a copy)',draft.name,v=>draft.name=v,{rows:1});
-            body.append(node('p','Saving applies this preset in ST. Check your connection afterward. Prompt text can contain message-length and word-count instructions.'));
+            body.append(node('p','Save the native preset file here. Pocket configuration copies stay independent; selecting the preset reloads its saved contents. Prompt text can contain message-length and word-count instructions.'));
             const data=draft.preset;
             const extra=node('details');extra.append(node('summary','Other preset parameters and connection settings'));
             for(const [name,value] of Object.entries(data))if(['number','boolean','string'].includes(typeof value))field(Object.hasOwn(labels,name)?body:extra,title(name),value,v=>data[name]=v,{type:typeof value,rows:typeof value==='string'&&value.length>100?4:1});
@@ -42,7 +42,7 @@ export function createLibrary({rpc,action,refresh,locked}) {
             const ids=[...order.map(r=>r.identifier),...(data.prompts??[]).map(p=>p.identifier).filter(id=>!order.some(r=>r.identifier===id))];
             for(const id of ids){
                 const prompt=data.prompts?.find(p=>p.identifier===id);
-                const section=node('details');section.open=true;
+                const section=node('details');section.open=false;
                 const enabled=order.find(r=>r.identifier===id)?.enabled===true;
                 const heading=node('summary',`${prompt?.name??id} · ${enabled?'On':'Off'}`);section.append(heading);
                 const label=node('label');label.className='prompt-switch';
@@ -84,5 +84,5 @@ export function createLibrary({rpc,action,refresh,locked}) {
     async function openPreset(){await run(async()=>{kind='presets';$('library-kind').value=kind;const config=await rpc('settings');key=config.selected.preset;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft={name:key,preset:result.draft};$('settings-panel').close();openEditor();});}
     $('edit-active-preset').onclick=openPreset;
     $('active-preset').onclick=openPreset;
-    return {openPreset,setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
+    return {openPreset,async open(value){kind=value;$('library-kind').value=value;await load();$('library-panel').showModal();},async edit(value){key=value;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=result.draft;openEditor();},setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
 }

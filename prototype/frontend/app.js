@@ -1,321 +1,144 @@
-import { checkBridgeBuild } from './build.js?build=0.5.4';
-import { createLocalState, recoveryDecision, isNearBottom, submittedUserMessage } from './state.js?build=0.5.4';
-import { RuntimeConnection } from './transport.js?build=0.5.4';
-import { DOMPurify, showdown } from '/lib.js';
-import { createHTMLFormatter } from './html-format.js?build=0.5.4';
-const formatMessage = createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
-import { createSettingsPanel } from './settings.js?build=0.5.4';
-import { probeEngine } from './engine-health.js?build=0.5.4';
-import { createMemoryPanel } from './memory.js?build=0.5.4';
-import { createLibrary } from './library.js?build=0.5.4';
-const $ = id => document.getElementById(id);
-const state = createLocalState(localStorage);
-let snapshot, characters = [], chats = [], busy = true, connected = false, sessionId;
-let requestId, stream, editing, naming, reviewRequired = false, initializing = false;
-let settingsPanel, library, memoryPanel, memoryBusy=false;
-let streamReasoning = '';
-let renderedTarget, streamFrame, streamText = '', observingTimer, healthRunning = false, healthEpoch = 0;
-const connection = new RuntimeConnection(onEvent);
-const rpc = (method, argument, timeout) => connection.request(method, argument, timeout);
-const targetOf = value => value?.characterKey ? { characterKey: value.characterKey, chatId: value.chatId } : null;
-const status = text => { $('status').textContent = text; };
-const el = (tag, text = '', className) => { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; };
-function saveDraft() { if (!snapshot) return; state.saveDraft(snapshot, $('draft').value); }
-function controls() {
-    const locked = busy || memoryBusy || !connected || reviewRequired;
-    memoryPanel?.setAvailable(connected);memoryPanel?.setLocked(locked);
-    $('settings-button').disabled = locked;
-    settingsPanel?.setLocked(locked);
-    library?.setLocked(locked);
-    $('library-button').disabled = locked;
-    $('active-preset').disabled = locked;
-    $('send').disabled = locked || !snapshot?.characterKey || !$('draft').value.trim();
-    $('draft').disabled = busy || !snapshot?.characterKey;
-    $('refresh').disabled = busy || !connected;
-    $('history-button').disabled = busy || !connected || !snapshot?.characterKey;
-    $('new-chat').disabled = locked || !snapshot?.characterKey;
-    $('delete-chat').disabled = locked || !snapshot?.chatId;
-    $('rename-chat').disabled = locked || !snapshot?.chatId;
-    document.querySelectorAll('#characters button').forEach(button => button.disabled = busy || memoryBusy || !connected);
-    document.querySelectorAll('.message-tools button').forEach(button => button.disabled = locked);
-    $('stop').hidden = !requestId; $('send').hidden = !!requestId;
-    $('reconnect').hidden = connected && !reviewRequired; $('reconnect').disabled = initializing;
-    $('reconnect').textContent = connected ? 'Reload engine' : 'Reconnect';
-    $('review').hidden = !reviewRequired || !connected; $('review').disabled = busy || !snapshot?.characterKey;
-    $('recovery').hidden = connected && !reviewRequired;
+import {checkBridgeBuild} from './build.js?build=0.6.0';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.6.0';
+import {createJournal,revision,renderRange} from './journal.js?build=0.6.0';
+import {RuntimeConnection} from './transport.js?build=0.6.0';
+import {DOMPurify,showdown} from '/lib.js';
+import {createHTMLFormatter} from './html-format.js?build=0.6.0';
+import {createSettingsPanel} from './settings.js?build=0.6.0';
+import {createLibrary} from './library.js?build=0.6.0';
+import {createMemoryPanel} from './memory.js?build=0.6.0';
+import {probeEngine} from './engine-health.js?build=0.6.0';
+import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.6.0';
+const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
+const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
+const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
+const raw=(method,arg,timeout)=>connection.request(method,arg,timeout);
+const workspace=(action,arg={},timeout=45000)=>raw('workspace',{action,...arg},timeout);
+const target=value=>value?.characterKey&&value?.chatId?{characterKey:value.characterKey,chatId:value.chatId}:null;
+const key=value=>state.draftKey(value),same=(a,b)=>key(a)===key(b);
+let snapshot,characters=[],recents=[],configuration,scopes,sessionId,connected=false,initializing=false,engineBusy=false,working=false,memoryBusy=false,review=false,draining=false;
+let page='home',entryPage='home',operation=null,streamText='',streamReasoning='',streamFrame,streamNode,renderedKey,menuIndex,editorTarget,entryIndex,selected=new Set(),selecting=false,undoRecord,undoTimer,draftTimer,healthRunning=false;
+let settingsPanel,library,memoryPanel,presetCopy;
+const pagePositions=new Map();let listRenderer;
+const positions=new Map(),heights=new Map(),detailsState=new Map();
+const status=text=>{$('status').textContent=text;$('pending-status').textContent=text;};
+const toast=(text,undo,duration=undo?12000:5000)=>{clearTimeout(undoTimer);undoRecord=undo;if(undo)localStorage.setItem('pocket-tavern.undo.v1',JSON.stringify({value:undo,expires:Date.now()+duration}));$('toast-text').textContent=text;$('undo').hidden=!undo;$('toast').hidden=false;undoTimer=setTimeout(()=>{$('toast').hidden=true;undoRecord=null;localStorage.removeItem('pocket-tavern.undo.v1');},duration);};
+function error(value){status(value.message);toast(value.message);if(['DISCONNECTED','TIMEOUT','ENGINE_UNAVAILABLE'].includes(value.code))disconnected(value.message);}
+async function action(fn){try{return await fn();}catch(e){error(e);}}
+function saveDraft(){clearTimeout(draftTimer);if(snapshot&&$('draft').value!==state.draft(snapshot))state.saveDraft(snapshot,$('draft').value);}
+function controls(){const unavailable=!connected||review;const busy=engineBusy||working||memoryBusy;
+    $('draft').disabled=!snapshot||unavailable;
+    $('send').disabled=unavailable||busy||!snapshot||!$('draft').value.trim();$('send').hidden=!!operation;
+    $('stop').hidden=!operation;$('stop').disabled=unavailable||operation?.state!=='running';
+    $('settings-button').disabled=!connected;$('model-chip').disabled=!connected;
+    $('reconnect').disabled=initializing;$('review').hidden=!review;
+    settingsPanel?.setLocked(unavailable);library?.setLocked(unavailable||busy);memoryPanel?.setAvailable(connected);memoryPanel?.setLocked(unavailable||busy);
+    $('selection-bar').hidden=!selecting;$('selection-count').textContent=`${selected.size} selected`;$('delete-selected').disabled=!selected.size||unavailable;
 }
-function recovery(text, title = 'Review the saved conversation') {
-    $('recovery-title').textContent = title; $('recovery-detail').textContent = text; controls();
+function portrait(c){const span=el('span',c?.name?.slice(0,1)??'✦','avatar');if(c){const img=el('img');img.src=`/characters/${encodeURIComponent(c.key)}`;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();span.append(img);}return span;}
+async function refresh(){characters=await raw('characters');recents=await workspace('recent');configuration=await raw('settings');if(snapshot){try{scopes=await workspace('scopes',{target:target(snapshot)});}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;snapshot=null;scopes=await workspace('scopes');}}else scopes=await workspace('scopes');renderPage();renderHeader();}
+function button(text,fn){const b=el('button',text);b.onclick=()=>action(fn);return b;}
+function chatRow(row){const c=characters.find(c=>c.key===row.characterKey),outer=el('div','','chat-row');const open=button('',()=>openChat(row));open.className='chat-open';open.append(portrait(c),el('strong',c?.name??row.characterKey),el('span',row.chatId,'muted'),el('p',row.preview?.slice(0,180)||'No messages yet','preview'));const del=button('Delete',()=>deleteChat(row));del.className='row-delete';del.hidden=true;outer.append(open,del);let x,y;outer.onpointerdown=e=>{x=e.clientX;y=e.clientY;};outer.onpointerup=e=>{if(x-e.clientX>55&&Math.abs(y-e.clientY)<35){del.hidden=false;}};const more=button('⋯',()=>{del.hidden=!del.hidden;});more.setAttribute('aria-label','Conversation actions');outer.append(more);return outer;}
+function windowList(parent,rows,makeRow,estimate=100,scroller=$('landing')){
+    const list=el('div','','window-list');parent.append(list);
+    const render=()=>{const offset=list.getBoundingClientRect().top-scroller.getBoundingClientRect().top+scroller.scrollTop,top=Math.max(0,scroller.scrollTop-offset),range=renderRange(rows.length,top,scroller.clientHeight||700,{},estimate,5),before=el('div'),after=el('div');before.style.height=`${range.before}px`;after.style.height=`${range.after}px`;list.replaceChildren(before,...rows.slice(range.start,range.end).map(makeRow),after);};
+    if(scroller===$('landing'))listRenderer=render;else{let frame;scroller.onscroll=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=null;render();});};}
+    render();return render;
 }
-async function action(fn) {
-    if (busy) return;
-    busy = true; controls();
-    try { await fn(); }
-    catch (error) { status(error.message); if (['DISCONNECTED', 'TIMEOUT', 'ENGINE_UNAVAILABLE'].includes(error.code)) disconnected(error.message); }
-    finally { busy = !!observingTimer; controls(); }
+function renderPage(){listRenderer=null;if(page==='chat')return;const content=$('page-content');content.replaceChildren();const titles={home:'Pocket Tavern',chats:'Chats',characters:'Characters',personas:'Personas',wi:'World Info'};$('page-title').textContent=titles[page];for(const b of $('bottom-nav').querySelectorAll('button'))b.classList.toggle('current',b.dataset.page===page);
+    if(page==='home'){
+        const card=el('section','','status-card');card.append(el('small',connected?'ENGINE ONLINE':'ENGINE OFFLINE'),el('h2',configuration?.onlineStatus==='no_connection'?'API not connected':configuration?.onlineStatus??'Connecting…'));
+        if(operation)card.append(button('Stop current reply',()=>$('stop').click()));const global=scopes?.global;card.append(button(`Model · ${global?.model??configuration?.selected.model??'Choose'}`,()=>openModels(true)),button(`Preset · ${global?.preset??configuration?.selected.preset??'Choose'}`,()=>openPreset(true)));content.append(card);
+        const last=state.target(),continueRow=recents.find(r=>same(r,last))??recents[0];if(continueRow)content.append(el('h2','Continue'),chatRow(continueRow));
+        content.append(el('h2','Recent conversations'));for(const row of recents.slice(0,5))content.append(chatRow(row));if(!recents.length)content.append(el('p','Choose a character to start your first conversation.'));
+    }else if(page==='chats'){content.append(button('+ New conversation',()=>showCharacters()));windowList(content,recents,chatRow,135);}
+    else if(page==='characters'){content.append(button('Create / import / edit characters',()=>openLibrary('characters')));windowList(content,characters,c=>{const row=el('section','','library-row');const open=button('',()=>openCharacter(c));open.append(portrait(c),el('strong',c.name));row.append(open,button('Fields',()=>editCharacter(c)));return row;},90);}
+    else if(page==='personas'){content.append(el('p','Native ST personas and their chat/character associations.'),button('Create / import / edit personas',()=>openLibrary('personas')));windowList(content,configuration?.personas??[],persona=>button(`${persona.name}${configuration.selected.persona===persona.id?' · active':''}`,()=>changeConnection('persona',persona.id)),60);}
+    else {content.append(el('p','Native World Info activation remains global. Character and chat books keep their ST rules.'),button('Select global lorebooks',()=>openConnection()));for(const name of configuration?.lorebooks??[])content.append(el('div',`${configuration.selected.lorebooks.includes(name)?'●':'○'} ${name}`,'library-row'));content.append(el('a','Open the native World Info editor','native-link'));content.lastChild.href='/';content.lastChild.target='_blank';}
 }
-function portrait(character, large = false) {
-    const node = el('span', character?.name?.slice(0,1) ?? '✦', `avatar ${large ? 'large' : ''}`);
-    if (character) {
-        const image = document.createElement('img'); image.src = `/characters/${encodeURIComponent(character.key)}`;
-        image.alt = `${character.name} portrait`; image.loading = 'lazy';
-        image.onerror = () => image.remove(); node.append(image);
-    }
-    return node;
+function showCharacters(){navigate('characters');}
+function navigate(next){if(page!=='chat')pagePositions.set(page,$('landing').scrollTop);if(page==='chat'){rememberDetails();saveDraft();positions.set(key(snapshot),$('messages').scrollTop);}page=next;$('landing').hidden=next==='chat';$('chat-screen').hidden=next!=='chat';$('bottom-nav').hidden=next==='chat';if(next!=='chat'){renderPage();$('landing').scrollTop=pagePositions.get(next)??0;listRenderer?.();}}
+async function openChat(value){saveDraft();if(page==='chat'){rememberDetails();}if(page==='chat')positions.set(key(snapshot),$('messages').scrollTop);else entryPage=page;const saved=await workspace('read',{target:target(value)});snapshot=saved;state.saveTarget(saved);selected.clear();selecting=false;$('draft').value=state.draft(saved);scopes=await workspace('scopes',{target:target(saved)});navigate('chat');render(true);if(operation&&same(operation.target,snapshot))showStream();}
+async function openCharacter(c){const rows=recents.filter(r=>r.characterKey===c.key);if(rows.length)return openChat(rows[0]);if(engineBusy||memoryBusy){toast('Wait for the engine to finish before creating a conversation.');return;}working=true;controls();try{await raw('select',c.key,45000);const current=await raw('snapshot');await refresh();await openChat(current);}finally{working=false;controls();}}
+function renderHeader(){if(!snapshot)return;const c=characters.find(c=>c.key===snapshot.characterKey),copy=scopes?.effective.copy;$('avatar').replaceChildren(portrait(c));$('name').textContent=c?.name??'Chat';$('subtitle').textContent=`${copy?.model??configuration?.selected.model??'Model'} · ${copy?.preset??'Preset'}`;$('model-chip').textContent=copy?.model??'Model';$('active-preset').textContent=copy?.preset??'Preset';$('active-persona').textContent=snapshot.presentation?.personaName??'Persona';$('scope-chip').textContent=scopes?.effective.scope??'global';}
+function rememberDetails(){for(const a of $('messages').querySelectorAll('article[data-index]')){detailsState.set(a.dataset.detailKey,Array.from(a.querySelectorAll('details')).map(d=>d.open));}}
+const detailKey=(message,index,origin=snapshot)=>`${key(origin)}:${message.send_date??index}:${message.name??''}`;
+function priorThinkingOpen(before=snapshot.messages.length){for(let i=before-1;i>=0;i--){const m=snapshot.messages[i];if(!m.is_user&&(!m.is_system||m.extra?.sc_ghosted))return detailsState.get(detailKey(m,i))?.[0]??false;}return false;}
+function restoreDetails(a,index){const choices=detailsState.get(a.dataset.detailKey);if(choices)Array.from(a.querySelectorAll('details')).forEach((d,i)=>d.open=!!choices[i]);else if(index===snapshot.messages.length-1&&!snapshot.messages[index].is_user){if(priorThinkingOpen(index))a.querySelector('details.thinking')?.setAttribute('open','');}}
+function reasoning(text){const d=el('details','','thinking');d.hidden=!text;d.append(el('summary','Thinking'));const body=el('div','','thinking-body');body.innerHTML=format(text);d.append(body);return d;}
+function messageArticle(message,index){const a=el('article','',`message ${message.is_user?'user':''}`);a.dataset.index=index;a.dataset.detailKey=detailKey(message,index);a.addEventListener('toggle',()=>{if(a.isConnected)detailsState.set(a.dataset.detailKey,Array.from(a.querySelectorAll('details')).map(d=>d.open));},true);const label=el('div','','byline');if(selecting){const checkbox=el('input');checkbox.type='checkbox';checkbox.checked=selected.has(index);checkbox.setAttribute('aria-label',`Select message ${index+1}`);checkbox.onchange=()=>{checkbox.checked?selected.add(index):selected.delete(index);controls();};label.append(checkbox);}label.append(el('span',message.is_user?message.name??snapshot.presentation?.personaName??'You':message.name??'Character'));const menu=button('⋯',()=>openMenu(index));menu.setAttribute('aria-label',`Message ${index+1} actions`);label.append(menu);const bubble=el('div','','bubble');bubble.innerHTML=format(message.mes);a.append(label,reasoning(message.extra?.reasoning??''),bubble);
+    if(index===snapshot.messages.length-1&&!message.is_user&&!message.is_system){const count=message.swipes?.length??1,current=message.swipe_id??0,tools=el('div','','message-tools');tools.append(button('←',()=>chooseSwipe(index,(current-1+count)%count)),el('span',`${current+1} / ${count}`),button('→',()=>chooseSwipe(index,(current+1)%count)),button('+ New reply',()=>generate('swipe')));a.append(tools);}
+    let start,timer;const excluded=e=>e.target.closest('a,button,input,summary,pre,code,table')||getSelection()?.toString();a.onpointerdown=e=>{if(excluded(e)||e.clientX<24||e.clientX>innerWidth-24)return;start={x:e.clientX,y:e.clientY};timer=setTimeout(()=>{openMenu(index);start=null;},550);};a.onpointermove=e=>{if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>12)clearTimeout(timer);};a.onpointercancel=()=>{clearTimeout(timer);start=null;};a.onpointerup=e=>{clearTimeout(timer);if(start&&Math.abs(e.clientX-start.x)>65&&Math.abs(e.clientY-start.y)<35&&index===snapshot.messages.length-1&&!message.is_user){const count=message.swipes?.length??1;action(()=>chooseSwipe(index,((message.swipe_id??0)+(e.clientX<start.x?1:-1)+count)%count));}start=null;};restoreDetails(a,index);return a;
 }
-function target(messageId) { return { ...targetOf(snapshot), messageId, expectedMessage: JSON.stringify(snapshot.messages[messageId]) }; }
-function follow(force = false) {
-    if (force) { $('messages').scrollTop = $('messages').scrollHeight; $('jump').hidden = true; }
-    else $('jump').hidden = isNearBottom($('messages'));
-}
-function thinking(text, duration) {
-    const details = el('details', '', 'thinking'); details.hidden = !text;
-    details.append(el('summary', `Thinking${Number.isFinite(duration) ? ' · '+(duration/1000).toFixed(1)+'s' : ''}`));
-    const body = el('div', '', 'thinking-body'); body.innerHTML = formatMessage(text); details.append(body); return details;
-}
-function render({ forceBottom = false } = {}) {
-    const previousTop = $('messages').scrollTop, nearBottom = isNearBottom($('messages'));
-    const currentTarget = state.draftKey(snapshot), changed = renderedTarget !== currentTarget;
-    const character = characters.find(c => c.key === snapshot?.characterKey);
-    $('name').textContent = character?.name ?? 'Welcome to the tavern';
-    $('avatar').replaceChildren(portrait(character, true));
-    $('active-persona').textContent = `Persona: ${snapshot?.presentation?.personaName ?? 'You'}`;
-    $('active-preset').textContent = `Preset: ${snapshot?.presentation?.preset ?? 'None'}`;
-    $('subtitle').textContent = snapshot?.chatId ?? 'Choose a character to begin'; $('subtitle').title = snapshot?.chatId ?? '';
-    $('characters').replaceChildren(...characters.map(c => {
-        const button = el('button', '', c.key === snapshot?.characterKey ? 'selected' : '');
-        button.append(portrait(c), el('span', c.name));
-        button.onclick = () => action(async () => { saveDraft(); status(`Opening ${c.name}…`); adopt(await rpc('select', c.key, 45000)); await loadHistory(); status('Conversation loaded'); }); return button;
-    }));
-    if (!snapshot?.characterKey) { controls(); return; }
-    $('messages').replaceChildren();
-    snapshot.messages.forEach((message, index) => {
-        const article = el('article', '', `message ${message.is_user ? 'user' : ''}`);
-        const bubble = el('div', '', 'bubble'); bubble.innerHTML = formatMessage(message.mes);
-        article.append(el('div', message.is_user ? (snapshot?.presentation?.personaName || message.name || 'You') : (message.name ?? character?.name), 'byline'), thinking(message.extra?.reasoning ?? '', message.extra?.reasoning_duration), bubble);
-        const tools = el('div', '', 'message-tools');
-        const edit = el('button', 'Edit'); edit.onclick = () => { editing = target(index); $('edit-text').value = message.mes; $('editor').returnValue = ''; $('editor').showModal(); }; tools.append(edit);
-        if (index === snapshot.messages.length - 1 && !message.is_user && !message.is_system) {
-            const count = message.swipes?.length ?? 1, current = message.swipe_id ?? 0;
-            const previous = el('button', '←'); previous.setAttribute('aria-label', 'Previous alternative');
-            const next = el('button', '→'); next.setAttribute('aria-label', 'Next alternative');
-            const choose = offset => action(() => mutate('edit', () => rpc('change', { ...target(index), swipeId: (current+offset+count)%count }), 'Alternative selected · saved chat verified'));
-            previous.onclick = () => choose(-1); next.onclick = () => choose(1);
-            const generate = el('button', '+ New reply'); generate.onclick = () => generateReply('swipe');
-            tools.append(previous, el('span', `${current+1} / ${count}`), next, generate);
-        }
-        article.append(tools); $('messages').append(article);
-    });
-    renderedTarget = currentTarget; controls();
-    if (changed || forceBottom || nearBottom) follow(true); else { $('messages').scrollTop = previousTop; follow(); }
-}
-function adopt(value) {
-    const changed = state.draftKey(snapshot) !== state.draftKey(value);
-    snapshot = value; state.saveTarget(value);
-    if (changed) $('draft').value = state.draft(value);
-    render();
-}
-async function loadHistory() {
-    chats = snapshot?.characterKey ? await rpc('chats') : []; renderHistory();
-}
-function renderHistory() {
-    $('chat-list').replaceChildren(...chats.map(chat => {
-        const button = el('button', '', chat.id === snapshot.chatId ? 'current' : '');
-        button.append(el('strong', chat.id), el('span', `${chat.messages} message${chat.messages === 1 ? '' : 's'} · ${chat.preview.slice(0,120)}`, 'muted'));
-        button.onclick = () => action(async () => {
-            saveDraft(); status('Opening conversation…');
-            adopt(await rpc('manage', { action: 'open', ...targetOf(snapshot), name: chat.id }, 45000));
-            await loadHistory(); $('history').close(); status(reviewRequired ? 'Saved conversation loaded. Check it before resuming.' : 'Conversation loaded · saved chat verified');
-        }); return button;
-    }));
-    if (!chats.length) $('chat-list').append(el('p', 'No saved conversations yet.'));
-    controls();
-}
-function knownRejection(error) { return ['INVALID_NAME','NAME_EXISTS','STALE_TARGET','STALE_MESSAGE','BUSY','CHAT_NOT_FOUND','INVALID_ARGUMENT','INVALID_SWIPE','NO_CONNECTION','UNSUPPORTED_COMMAND','ATTACHMENT_PENDING','AUTOMATIC_GENERATION','TOOLS_ENABLED','COMPOSER_BUSY','SESSION_LIMIT'].includes(error.code); }
-async function mutate(kind, operation, success, options = {}) {
-    if (reviewRequired || !connected) throw new Error('Review the saved conversation before changing it.');
-    const before = targetOf(snapshot); saveDraft();
-    state.begin({ kind, sessionId, target: before });
-    try {
-        const result = await operation();
-        if (options.rename) state.moveDraft(before, targetOf(result));
-        adopt(result); state.finish(); await loadHistory(); status(success);
-    } catch (error) {
-        if (knownRejection(error)) state.finish();
-        else { reviewRequired = true; recovery('The change may already be saved. Refresh or open history and inspect the conversation before trying again.'); }
-        throw error;
-    }
-}
-function makeStream(text = '') {
-    stream = el('article', '', 'message stream'); const bubble = el('div', '', 'bubble'); bubble.innerHTML = formatMessage(text);
-    stream.append(el('div', 'Reply arriving…', 'byline'), thinking(streamReasoning), bubble); $('messages').append(stream); follow(true);
-}
-function onEvent(event) {
-    if (event.requestId !== requestId) return;
-    if (event.type === 'text.replace' && stream) {
-        streamText = event.text; streamReasoning = event.reasoning ?? ''; $('stop').disabled = event.state !== 'running';
-        if (!streamFrame) streamFrame = requestAnimationFrame(() => {
-            streamFrame = null; if (!stream) return;
-            const near = isNearBottom($('messages')); stream.querySelector('.bubble').innerHTML = formatMessage(streamText);
-            const details = stream.querySelector('.thinking'); details.hidden = !streamReasoning; details.querySelector('.thinking-body').innerHTML = formatMessage(streamReasoning);
-            near ? follow(true) : follow();
-        });
-    }
-    if (event.type === 'operation.verifying') { $('stop').disabled = true; status('Checking the saved conversation…'); }
-}
-function applyOperation(result, journal) {
-    if (result.snapshot) adopt(result.snapshot);
-    if (result.persistence === 'verified') {
-        if (journal?.argument?.mode === 'send' && state.draft(journal.target) === journal.argument.text) {
-            state.saveDraft(journal.target, ''); if (state.draftKey(snapshot) === state.draftKey(journal.target)) $('draft').value = '';
-        }
-        state.finish(); reviewRequired = false;
-    } else { reviewRequired = true; recovery('The reply may not be saved completely. Inspect the conversation before sending again.'); }
-    if (result.error?.code === 'ENGINE_UNAVAILABLE') { disconnected(result.error.message); return; }
-    status(`${result.state === 'completed' ? 'Reply complete' : result.state === 'cancelled' ? 'Reply stopped' : 'Reply failed'} · saved chat ${result.persistence}${result.error ? ' · '+result.error.message : ''}`);
-}
-function showSendError(error) {
-    const text = `${error.code ? error.code + ': ' : ''}${error.message || 'Could not send the message.'}`;
-    $('send-error').textContent = text; $('send-error').hidden = false;
-    console.error('[Pocket Tavern] Send failed:', error.code || 'ERROR', error.message);
-}
-async function generateReply(mode = 'send') {
-    if (busy || reviewRequired || !connected || (mode === 'send' && !$('draft').value.trim())) return;
-    $('send-error').hidden = true;
-    await action(async () => {
-        try {
-            saveDraft(); const nextRequestId = crypto.randomUUID();
-            const argument = { requestId: nextRequestId, text: mode === 'send' ? $('draft').value : '', mode,
-                ...targetOf(snapshot), expectedMessage: mode === 'swipe' ? JSON.stringify(snapshot.messages.at(-1)) : undefined };
-            const journal = { kind: 'send', sessionId, target: targetOf(snapshot), argument, beforeCount: snapshot.messages.length };
-            state.begin(journal); requestId = nextRequestId; controls(); status('Waiting for the model…'); $('stop').disabled = true; streamReasoning = ''; makeStream();
-            try { const result = await rpc('send', argument, 180000); applyOperation(result, journal); if(result.error)showSendError(result.error); await loadHistory(); }
-            catch (error) {
-                if (knownRejection(error)) state.finish();
-                else { reviewRequired = true; recovery('Your request may already be saved. Reconnect, read the conversation, and check it before sending again.'); }
-                throw error;
-            } finally { requestId = null; stream = null; render(); }
-        } catch(error) { showSendError(error); throw error; }
-    });
-}
-function disconnected(message) {
-    healthEpoch++; connected = false; busy = false; clearTimeout(observingTimer); observingTimer = null;
-    connection.disconnect(message); requestId = null; stream = null;
-    reviewRequired = !!state.pending(); recovery(message, 'Engine disconnected'); status('Engine disconnected · your local drafts are kept'); controls();
-}
-async function restoreTarget(desired) {
-    if (!desired || !characters.some(c => c.key === desired.characterKey)) return;
-    if (snapshot?.characterKey !== desired.characterKey) adopt(await rpc('select', desired.characterKey, 45000));
-    await loadHistory();
-    if (snapshot.chatId !== desired.chatId && chats.some(chat => chat.id === desired.chatId)) adopt(await rpc('manage', { action: 'open', ...targetOf(snapshot), name: desired.chatId }, 45000));
-}
-async function observe(journal, operation) {
-    busy = true; requestId = journal.argument.requestId;
-    if (!stream) { streamReasoning = operation.reasoning ?? ''; makeStream(operation.text); }
-    else onEvent({ type: 'text.replace', ...operation });
-    controls();
-    $('stop').disabled = operation.state !== 'running' || !(operation.text || operation.reasoning);
-    observingTimer = setTimeout(async () => {
-        observingTimer = null;
-        try {
-            const current = await rpc('status', requestId);
-            if (recoveryDecision(journal, sessionId, current) === 'observe') { await observe(journal, current); }
-            else { requestId = null; stream = null; applyOperation(current, journal); busy = false; render(); await loadHistory(); controls(); }
-        } catch (error) { disconnected(error.message); }
-    }, 1000);
-}
-async function initialize() {
-    if (initializing) return;
-    healthEpoch++; initializing = true; busy = true; controls();
-    try {
-        const channel = new MessageChannel(); connection.connect(channel.port1);
-        $('engine').contentWindow.postMessage({ type: 'st-mobile-connect' }, location.origin, [channel.port2]);
-        const handshake = await rpc('handshake', undefined, 5000); checkBridgeBuild(handshake); await rpc('health', undefined, 7000);
-        sessionId = handshake.sessionId; connected = true;
-        characters = await rpc('characters'); snapshot = await rpc('snapshot');
-        const journal = state.pending(), activity = await rpc('activity');
-        let operation;
-        if (journal?.kind === 'send' && journal.sessionId === sessionId) { try { operation = await rpc('status', journal.argument.requestId); } catch { /* Unknown operations always require review. */ } }
-        const decision = recoveryDecision(journal, sessionId, operation);
-        reviewRequired = decision === 'review';
-        if (reviewRequired && !activity.busy && snapshot?.characterKey) snapshot = await rpc('reloadSaved', undefined, 45000);
-        if (!activity.busy) await restoreTarget(journal?.target ?? state.target());
-        $('draft').value = state.draft(snapshot); render();
-        if (snapshot?.characterKey) await loadHistory();
-        if (decision === 'observe') { reviewRequired = false; await observe(journal, operation); status('Reconnected to the existing reply. Watching its saved result…'); }
-        else if (decision === 'settled') { applyOperation(operation, journal); render(); }
-        else if (decision === 'review') { recovery('The app or engine restarted during a change. Nothing was resent. Open history and read the saved conversation, then confirm below.'); status('Review the saved conversation before resuming'); }
-        else if (activity.busy) { reviewRequired = true; recovery('The engine is still busy. Wait for it to finish, then refresh before resuming.'); }
-        else status(snapshot?.characterKey ? 'Reconnected · saved conversation loaded' : 'Engine ready · choose a character');
-    } catch (error) { disconnected(error.message); throw error; }
-    finally { initializing = false; busy = !!observingTimer; controls(); }
-}
-$('draft').oninput = () => { try { saveDraft(); } catch { status('Local draft storage is full or unavailable. Keep a copy before switching.'); } controls(); };
-$('composer').onsubmit = event => { event.preventDefault(); generateReply(); };
-$('draft').onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); generateReply(); } };
-$('stop').onclick = async () => { try { $('stop').disabled = true; await rpc('stop', requestId); status('Stopping and saving the partial reply…'); } catch (error) { status(error.message); if (connected) $('stop').disabled = false; } };
-$('refresh').onclick = () => action(async () => { adopt(await rpc(reviewRequired ? 'reloadSaved' : 'snapshot', undefined, 45000)); await loadHistory(); status(reviewRequired ? 'Saved state refreshed. Inspect it before resuming.' : 'Conversation refreshed'); });
-$('history-button').onclick = () => action(async () => { await loadHistory(); $('history').showModal(); });
-$('close-history').onclick = () => $('history').close();
-function nameChat(kind) {
-    naming = kind; $('chat-name-title').textContent = kind === 'rename' ? 'Rename conversation' : 'New conversation';
-    $('chat-name-input').value = kind === 'rename' ? snapshot.chatId : `Conversation ${new Date().toLocaleDateString()} ${crypto.randomUUID().slice(0,6)}`.replaceAll('/','-');
-    $('chat-name').returnValue = ''; $('chat-name').showModal(); $('chat-name-input').select();
-}
-let deleting;
-$('delete-chat').onclick = () => { deleting = targetOf(snapshot); $('delete-name').textContent = snapshot.chatId; $('delete-confirm').returnValue = ''; $('delete-confirm').showModal(); };
-$('delete-confirm').addEventListener('close', () => { if ($('delete-confirm').returnValue !== 'delete') return; action(async () => {
-    const old = deleting;
-    await mutate('delete', () => rpc('manage', { action:'delete', ...old, name:old.chatId }, 45000), 'Conversation deleted · replacement saved');
-    state.saveDraft(old, ''); $('history').close();
-}); });
-$('new-chat').onclick = () => nameChat('create'); $('rename-chat').onclick = () => nameChat('rename');
-$('chat-name').addEventListener('close', () => { if ($('chat-name').returnValue !== 'save') return; action(async () => {
-    const name = $('chat-name-input').value.trim();
-    if (naming === 'rename' && state.draft({ ...targetOf(snapshot), chatId: name })) throw new Error('That name already has a local draft. Choose another name.');
-    await mutate(naming, () => rpc('manage', { action: naming, ...targetOf(snapshot), name }, 45000), naming === 'rename' ? 'Conversation renamed · saved chat verified' : 'New conversation created · saved chat verified', { rename: naming === 'rename' });
-    $('history').close();
-}); });
-$('editor').addEventListener('close', () => { if ($('editor').returnValue === 'save') action(() => mutate('edit', () => rpc('change', { ...editing, text: $('edit-text').value }), 'Message edited · saved chat verified')); });
-$('messages').onscroll = () => follow(); $('jump').onclick = () => follow(true);
-$('reconnect').onclick = async () => {
-    if (connected && reviewRequired) {
-        try { saveDraft(); } catch (error) { status(error.message); return; }
-        disconnected('Reloading the engine page. Saved changes will be read before resuming; nothing will be resent.');
-        $('engine').src = `/?mobileRuntime=1&reconnect=${Date.now()}`; return;
-    }
-    try { saveDraft(); await initialize(); }
-    catch { status('Restarting the connection. Your request will not be resent.'); $('engine').src = `/?mobileRuntime=1&reconnect=${Date.now()}`; }
-};
-$('review').onclick = () => action(async () => {
-    const current = await rpc('activity'); if (current.busy) throw new Error('The engine is still busy. Wait before resuming.');
-    adopt(await rpc('reconcile'));
-    const journal = state.pending();
-    if (submittedUserMessage(journal, snapshot) && state.draft(journal.target) === journal.argument.text) { state.saveDraft(journal.target, ''); $('draft').value = ''; }
-    state.finish(); reviewRequired = false; recovery(''); status('Saved conversation checked · ready to continue');
-});
-window.addEventListener('message', event => {
-    if (event.source !== $('engine').contentWindow || event.origin !== location.origin || event.data?.type !== 'st-mobile-ready') return;
-    initialize().catch(() => {});
-});
-window.addEventListener('beforeunload', () => { try { saveDraft(); } catch { /* The UI already reports storage failures. */ } });
-async function checkHealth() {
-    if (!connected || initializing || healthRunning) return;
-    healthRunning = true; const epoch = healthEpoch;
-    try {
-        // A fresh server read does not depend on the iframe remaining alive.
-        await probeEngine();
-        if (epoch === healthEpoch && connected) await rpc('health', undefined, 5000);
-    } catch (error) { if (epoch === healthEpoch && connected) disconnected(error.message); }
-    finally { healthRunning = false; }
-}
-setInterval(checkHealth, 3000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) checkHealth(); });
-window.addEventListener('pageshow', checkHealth);
-setTimeout(() => { if (!connected && !initializing) { busy = false; recovery('The local engine has not started yet. Start the test tavern, then reconnect.', 'Waiting for the engine'); } }, 25000);
-settingsPanel = createSettingsPanel({ rpc, action, adoptSnapshot: async () => adopt(await rpc('snapshot')), status, locked: () => !connected || reviewRequired });
-controls(); recovery('The local engine is starting…', 'Connecting');
+function render(changed=false){renderHeader();if(!snapshot)return;const pane=$('messages'),oldTop=pane.scrollTop,near=isNearBottom(pane),newTarget=renderedKey!==key(snapshot);if(!newTarget)rememberDetails();const cache=heights.get(key(snapshot))??{};heights.set(key(snapshot),cache);const desired=newTarget?(positions.get(key(snapshot))??Math.max(0,snapshot.messages.length*180-pane.clientHeight)):oldTop;const range=renderRange(snapshot.messages.length,desired,pane.clientHeight||650,cache);pane.replaceChildren();const before=el('div'),after=el('div');before.style.height=`${range.before}px`;after.style.height=`${range.after}px`;pane.append(before,...snapshot.messages.slice(range.start,range.end).map((m,i)=>messageArticle(m,range.start+i)),after);for(const article of pane.querySelectorAll('article'))cache[article.dataset.index]=article.getBoundingClientRect().height+24;renderedKey=key(snapshot);pane.scrollTop=newTarget?(positions.get(key(snapshot))??pane.scrollHeight):oldTop;if(!newTarget&&near&&changed)pane.scrollTop=pane.scrollHeight;$('jump').hidden=isNearBottom(pane);controls();}
+function openMenu(index){menuIndex=index;$('menu-edit').disabled=!!operation&&same(operation.target,snapshot)&&(operation.mode==='swipe'?index===snapshot.messages.length-1:index>=operation.beforeCount&&!snapshot.messages[index].is_user);$('message-menu').showModal();}
+async function queueChange(argument,label,coalesce){if(review||!connected)throw Error('Reconnect and review saved changes first.');const item=journal.add({sessionId,argument,label,coalesce:coalesce??(argument.action==='edit'?`edit:${key(argument.target)}:${argument.messageId}`:undefined)});toast(engineBusy||memoryBusy||working?'Changes pending':label);status(engineBusy||memoryBusy||working?'Changes pending':'Applying changes…');await drain();return item;}
+async function drain(){if(draining||review||!connected||engineBusy||memoryBusy||working)return;draining=true;try{for(const item of journal.read()){if(item.state==='conflict'){review=true;break;}if(item.sessionId!==sessionId){review=true;break;}journal.patch(item.id,{state:'applying'});try{if(item.argument.action==='deleteChat'){const before={...item.argument.target,...JSON.parse(item.argument.expected)};localStorage.setItem('pocket-tavern.undo.v1',JSON.stringify({value:{before,after:null},expires:Date.now()+12000}));}const result=await workspace(item.argument.action,item.argument,60000);if(result.undo)toast('Deleted · Undo available',result.undo);journal.remove(item.id);if(item.argument.action==='configure'&&result.revision){for(const next of journal.read())if(next.argument.action==='configure'&&same(next.argument.target,item.argument.target)&&next.argument.expected===item.argument.expected)journal.patch(next.id,{argument:{...next.argument,expected:result.revision}});}if(item.argument.action==='edit'&&result.snapshot){for(const next of journal.read())if(next.argument.action==='edit'&&same(next.argument.target,item.argument.target)&&next.argument.expected===item.argument.expected)journal.patch(next.id,{argument:{...next.argument,expected:revision({messages:result.snapshot.messages,metadata:result.snapshot.metadata}),before:{messages:result.snapshot.messages}}});}if(result.snapshot){if(item.argument.action==='fork')await openChat(result.snapshot);else if(same(result.snapshot,snapshot)){snapshot=result.snapshot;render(true);}}if(result.deleted&&same(item.argument.target,snapshot)){snapshot=null;navigate('chats');}await refresh();if(snapshot){snapshot=await workspace('read',{target:target(snapshot)});render(true);}status('Changes applied');$('preset-status').textContent=journal.read().some(i=>i.argument.action==='configure')?'Changes pending until the engine finishes.':'Changes applied';}catch(e){journal.patch(item.id,{state:e.code==='BUSY'?'pending':'conflict',error:e.message});if(e.code!=='BUSY'){review=true;error(e);}break;}}}finally{draining=false;controls();if(review)showRecovery('Pending changes need review before continuing.');}}
+async function historyChange(arg,label){const before=structuredClone(snapshot);if(arg.action==='fork'){arg.newChatId=`${before.chatId} · fork ${crypto.randomUUID().slice(0,8)}`;arg.integrity=crypto.randomUUID();}return queueChange({...arg,target:target(before),expected:revision({messages:before.messages,metadata:before.metadata}),before:{messages:before.messages}},label);}
+async function deleteChat(row){const before=await workspace('read',{target:target(row)});await queueChange({action:'deleteChat',target:target(before),expected:revision({messages:before.messages,metadata:before.metadata})},'Delete conversation');}
+async function chooseSwipe(index,swipeId){if(swipeId===(snapshot.messages[index].swipe_id??0))return;await historyChange({action:'swipe',messageId:index,swipeId},'Alternative selected');}
 
-library = createLibrary({rpc,action,locked:()=>!connected||reviewRequired,refresh:async()=>{characters=await rpc('characters');adopt(await rpc('snapshot'));await loadHistory();}});
+function projectedScopes(value,origin){
+    const next=structuredClone(value);
+    const effective=()=>next.chat?.enabled?{scope:'chat',copy:next.chat.copy}:next.character?.enabled?{scope:'character',copy:next.character.copy}:{scope:'global',copy:next.global};
+    for(const item of journal.read()){
+        const a=item.argument;if(a.action!=='configure'||(!same(a.target,origin)&&!(a.scope==='global'&&a.kind!=='scope')))continue;
+        if(a.kind==='scope'){
+            const current=structuredClone(effective().copy);
+            next.chat={...next.chat,enabled:a.scope==='chat',copy:next.chat?.copy??current};
+            if(a.scope!=='chat')next.character={...next.character,enabled:a.scope==='character',copy:next.character?.copy??current};
+        }else{
+            if(a.scope!=='global')next[a.scope]={...next[a.scope],enabled:true,copy:next[a.scope]?.copy??structuredClone(effective().copy)};
+            const copy=a.scope==='global'?next.global:next[a.scope].copy;
+            if(a.kind==='reset')Object.assign(copy,structuredClone(next.global));
+            else if(a.kind==='model')copy.model=a.value;
+            else if(a.kind==='preset'){copy.preset=a.value;if(a.previewGeneration)Object.assign(copy.generation,a.previewGeneration);}
+            else if(a.kind==='generation')Object.assign(copy.generation,a.value);
+        }
+    }
+    next.effective=effective();return next;
+}
 
-memoryPanel=createMemoryPanel({rpc,action,locked:()=>busy||!connected||reviewRequired,connected:()=>connected,onBusy:value=>{memoryBusy=value;controls();},refresh:async()=>{adopt(await rpc('snapshot'));}});
+async function configureScope(kind,value,scope=scopes.effective.scope,origin=page==='chat'?target(snapshot):null){const targetValue=scope==='global'&&kind!=='scope'?null:origin;const current=await workspace('scopes',{target:targetValue});let previewGeneration;if(kind==='preset'){const preset=(await raw('assets',{action:'read',kind:'presets',key:value})).draft;previewGeneration=Object.fromEntries(Object.keys(current.effective.copy.generation).filter(k=>Object.hasOwn(preset,k)).map(k=>[k,preset[k]]));}await queueChange({action:'configure',target:targetValue,scope,kind,value,previewGeneration,expected:current.revision},'Settings saved',`settings:${key(targetValue)}:${scope}:${kind}`);const displayedTarget=page==='chat'?target(snapshot):null;scopes=projectedScopes(await workspace('scopes',{target:displayedTarget}),displayedTarget);$('preset-status').textContent=journal.read().some(i=>i.argument.action==='configure')?'Changes pending until the engine finishes.':'Changes applied';renderHeader();}
+async function openPreset(global=false){scopes=projectedScopes(await workspace('scopes',{target:global?null:target(snapshot)}),global?null:target(snapshot));configuration=await raw('settings');renderPreset();$('preset-panel').showModal();}
+function bindSampler(input,name,scope,origin){let timer,last=input.type==='checkbox'?input.checked:input.value;const commit=()=>{clearTimeout(timer);const raw=input.type==='checkbox'?input.checked:input.value;if(raw===last||raw==='')return;const value=input.type==='checkbox'?raw:input.type==='number'?Number(raw):raw;if(typeof value==='number'&&!Number.isFinite(value))return;last=raw;action(()=>configureScope('generation',{[name]:value},scope,origin));};input.oninput=()=>{clearTimeout(timer);timer=setTimeout(commit,600);};input.onchange=commit;input.onblur=commit;}
+function renderPreset(){const effective=scopes.effective;$('preset-status').textContent=journal.read().some(i=>i.argument.action==='configure')?'Changes pending until the engine finishes.':'';presetCopy=structuredClone(effective.copy);$('preset-scope').value=effective.scope;$('preset-scope').disabled=page!=='chat';$('reset-scope').hidden=effective.scope==='global';$('scope-note').textContent=effective.scope==='global'?'Edits apply globally.':`${effective.scope==='chat'?'Separate preset for this chat':'Separate preset for this character'} · ${revision(effective.copy)!==revision(scopes.global)?'Different from global':'Matches global'}. Model and preset choices remain separate.`;const select=$('scoped-preset');select.replaceChildren(...configuration.presets.map(name=>{const o=el('option',name);o.value=name;return o;}));select.value=presetCopy.preset;const body=$('preset-fields');body.replaceChildren();for(const [name,label]of [['temperature','Temperature'],['openai_max_tokens','Reply token limit'],['openai_max_context','Context token budget']]){const wrap=el('label',label),input=el('input');input.type='number';input.step=name==='temperature'?'0.05':'1';input.value=presetCopy.generation[name]??'';bindSampler(input,name,effective.scope,page==='chat'?target(snapshot):null);wrap.append(input);body.append(wrap);}const data=presetCopy.generation,order=presetOrder(data),ids=[...order.map(r=>r.identifier),...(data.prompts??[]).map(p=>p.identifier).filter(id=>!order.some(r=>r.identifier===id))];for(const id of ids){const prompt=data.prompts?.find(p=>p.identifier===id),row=el('div','','prompt-row'),label=el('label'),toggle=el('input');toggle.type='checkbox';toggle.checked=order.find(r=>r.identifier===id)?.enabled===true;toggle.onchange=()=>action(async()=>{setPromptEnabled(data,100001,id,toggle.checked);await configureScope('generation',{prompt_order:data.prompt_order});});label.append(toggle,el('span',prompt?.name??id));row.append(label);if(prompt&&!prompt.marker)row.append(button('Edit entry',()=>{entryIndex=data.prompts.indexOf(prompt);$('entry-title').textContent=prompt.name??id;$('entry-text').value=prompt.content??'';$('entry-role').value=prompt.role??'system';$('entry-editor').showModal();}));body.append(row);}const advanced=el('details');advanced.append(el('summary','Advanced generation settings'));for(const [name,value]of Object.entries(data)){if(['temperature','openai_max_tokens','openai_max_context'].includes(name)||!['number','boolean','string'].includes(typeof value))continue;const label=el('label',name.replaceAll('_',' ')),input=el('input');input.type=typeof value==='boolean'?'checkbox':typeof value==='number'?'number':'text';input.step='any';if(input.type==='checkbox')input.checked=value;else input.value=value;bindSampler(input,name,effective.scope,page==='chat'?target(snapshot):null);label.append(input);advanced.append(label);}body.append(advanced);}
+async function openModels(global=false){scopes=projectedScopes(await workspace('scopes',{target:global?null:target(snapshot)}),global?null:target(snapshot));configuration=await raw('settings');$('model-note').textContent=`${scopes.effective.scope} settings · selecting applies immediately or waits for the engine.`;$('model-list').replaceChildren();const modelRender=configuration.models.length?windowList($('model-list'),configuration.models,model=>button(`${model.name}${model.id===scopes.effective.copy.model?' · selected':''}`,async()=>{await configureScope('model',model.id,scopes.effective.scope);$('model-picker').close();}),64,$('model-picker')):null;if(!configuration.models.length)$('model-list').append(button('Connect and load models',()=>{$('model-picker').close();openConnection();}));$('model-picker').showModal();modelRender?.();}
+async function changeConnection(kind,value){if(engineBusy||memoryBusy)throw Error('Wait for the engine before changing global connection or persona settings.');const current=await raw('settings');await raw('configure',{kind,value,revision:current.revision},60000);await refresh();if(snapshot){snapshot=await workspace('read',{target:target(snapshot)});renderHeader();}}
+async function openConnection(){$('chat-settings').close();$('settings-button').dispatchEvent(new Event('open-connection'));await settingsPanel.open();}
+async function openLibrary(kind){$('library-kind').value=kind;await library.open(kind);}
+async function editCharacter(c){await openLibrary('characters');await library.edit(c.key);}
+function showStream(){if(!snapshot||!same(operation?.target,snapshot)||page!=='chat')return;const near=isNearBottom($('messages'));const oldThinking=streamNode?.querySelector('.thinking')?.open;streamNode?.remove();streamNode=el('article','','message stream');streamNode.append(el('div','Reply arriving…','byline'),reasoning(streamReasoning),el('div','','bubble'));streamNode.querySelector('.bubble').innerHTML=format(streamText);if(oldThinking??priorThinkingOpen())streamNode.querySelector('details').open=true;$('messages').append(streamNode);if(near)$('messages').scrollTop=$('messages').scrollHeight;}
+function onEvent(event){if(event.requestId!==operation?.requestId)return;if(event.type==='text.replace'){if(operation.mode==='send'&&event.text&&same(operation.target,snapshot)&&$('draft').value===operation.text){$('draft').value='';state.saveDraft(operation.target,'');}streamText=event.text;streamReasoning=event.reasoning??'';operation.state=event.state;controls();if(!streamFrame)streamFrame=requestAnimationFrame(()=>{streamFrame=null;if(!same(operation?.target,snapshot)||page!=='chat')return;if(!streamNode?.isConnected)showStream();const near=isNearBottom($('messages'));const bubble=streamNode.querySelector('.bubble');const open=Array.from(bubble.querySelectorAll('details')).map(d=>d.open);bubble.innerHTML=format(streamText);Array.from(bubble.querySelectorAll('details')).forEach((d,i)=>d.open=open[i]??false);const thinking=streamNode.querySelector('.thinking');thinking.hidden=!streamReasoning;thinking.querySelector('.thinking-body').innerHTML=format(streamReasoning);if(near)$('messages').scrollTop=$('messages').scrollHeight;$('jump').hidden=near;});}else if(event.type==='operation.verifying'){operation.state='verifying';status('Saving the reply…');controls();}}
+async function finishGeneration(result,pending){if(streamNode&&result.snapshot?.messages?.length){const index=result.snapshot.messages.length-1;detailsState.set(detailKey(result.snapshot.messages[index],index,result.snapshot),Array.from(streamNode.querySelectorAll('details')).map(d=>d.open));}if(same(snapshot,pending.target))saveDraft();if(result.persistence==='verified'){if(pending.argument.mode==='send'&&state.draft(pending.target)===pending.argument.text){state.saveDraft(pending.target,'');if(same(snapshot,pending.target))$('draft').value='';}state.finish();}else{review=true;showRecovery('Read the saved conversation before sending again.');}if(result.snapshot&&same(result.snapshot,snapshot)){snapshot=result.snapshot;render(true);}if(result.error){$('send-error').textContent=result.error.message;$('send-error').hidden=false;}status(result.error?result.error.message:result.state==='cancelled'?'Reply stopped':'Reply saved');await refresh();}
+async function generate(mode='send'){if(engineBusy||memoryBusy||working){toast('Only one generation at a time. Your draft is kept.');return;}if(review||!connected||!snapshot)return;const current=target(snapshot),submittedText=mode==='send'?$('draft').value:'';if(mode==='send'&&!$('draft').value.trim())return;saveDraft();rememberDetails();await drain();if(review||journal.read().length)return;working=true;controls();status('Opening engine chat…');try{await workspace('activate',{target:current});const active=await raw('snapshot');if(!same(active,current))throw Error('Engine selected another chat. Refresh before sending.');const argument={...current,requestId:crypto.randomUUID(),mode,text:submittedText,expectedMessage:mode==='swipe'?JSON.stringify(active.messages.at(-1)):undefined};const pending={kind:'send',sessionId,target:current,argument,beforeCount:active.messages.length};state.begin(pending);operation={...argument,target:current,state:'running',beforeCount:active.messages.length};engineBusy=true;working=false;streamText='';streamReasoning='';showStream();status('Waiting for the model…');controls();$('send-error').hidden=true;const result=await raw('send',argument,180000);await finishGeneration(result,pending);}catch(e){if(['NO_CONNECTION','TOOLS_ENABLED','INVALID_ARGUMENT','BUSY','AUTOMATIC_GENERATION','COMPOSER_BUSY','STALE_TARGET','STALE_MESSAGE'].includes(e.code))state.finish();else if(state.pending()){review=true;showRecovery('The request may have been saved. Read it before continuing. Nothing will be resent.');}$('send-error').textContent=e.message;$('send-error').hidden=false;error(e);}finally{operation=null;engineBusy=false;working=false;streamNode=null;render(true);controls();await drain();}}
+function showRecovery(text){$('recovery').hidden=false;$('recovery-detail').textContent=text;$('recovery-title').textContent=connected?'Review saved work':'Engine disconnected';controls();}
+function disconnected(text){connected=false;review=!!state.pending()||!!journal.read().length;connection.disconnect(text);engineBusy=false;operation=null;showRecovery(text);status('Engine disconnected · drafts kept');renderPage();}
+async function initialize(){if(initializing)return;initializing=true;controls();try{const channel=new MessageChannel();connection.connect(channel.port1);$('engine').contentWindow.postMessage({type:'st-mobile-connect'},location.origin,[channel.port2]);const info=await raw('handshake',undefined,7000);checkBridgeBuild(info);sessionId=info.sessionId;connected=true;const activity=await raw('activity');engineBusy=activity.busy;review=!!journal.read().length;await refresh();scopes=await workspace('scopes');const last=state.target();if(last){try{snapshot=await workspace('read',{target:last});scopes=await workspace('scopes',{target:last});$('draft').value=state.draft(last);}catch{snapshot=null;}}else scopes=await workspace('scopes');
+        const pending=state.pending();if(pending){let result;try{if(pending.sessionId===sessionId)result=await raw('status',pending.argument.requestId);}catch{}const decision=recoveryDecision(pending,sessionId,result);if(decision==='observe'){operation={...pending.argument,target:pending.target,state:result.state,beforeCount:pending.beforeCount};observeOperation(pending);}else if(decision==='settled')await finishGeneration(result,pending);else review=true;}
+        $('recovery').hidden=!review;if(review)showRecovery('The app restarted with saved work pending. Review before resuming.');status('Engine ready');try{const savedUndo=JSON.parse(localStorage.getItem('pocket-tavern.undo.v1'));if(savedUndo?.expires>Date.now())toast('Deletion recovery is available',savedUndo.value,savedUndo.expires-Date.now());}catch{}renderPage();controls();
+    }catch(e){disconnected(e.message);}finally{initializing=false;controls();}}
+async function observeOperation(pending){try{const result=await raw('status',pending.argument.requestId);streamText=result.text??'';streamReasoning=result.reasoning??'';operation.state=result.state;if(['running','stopping','verifying'].includes(result.state)){showStream();setTimeout(()=>observeOperation(pending),1000);}else{operation=null;engineBusy=false;await finishGeneration(result,pending);render(true);controls();await drain();}}catch(e){disconnected(e.message);}}
+async function reviewWork(){const activity=await raw('activity');if(activity.busy)throw Error('Wait for generation or Memory to finish before reviewing changes.');if(state.pending()){const pending=state.pending();const saved=await workspace('read',{target:pending.target});await openChat(saved);if(submittedUserMessage(pending,saved)&&state.draft(pending.target)===pending.argument?.text){state.saveDraft(pending.target,'');$('draft').value='';}state.finish();}const list=$('queue-list');list.replaceChildren();for(const item of journal.read()){const row=el('section');row.append(el('p',`${item.label} · ${item.argument.newChatId??item.argument.target?.chatId??'global'} · ${item.error??item.state}`),button('Discard this change',()=>{journal.remove(item.id);reviewWork();}));if(item.argument.newChatId)row.append(button('Open created fork',()=>openChat({...item.argument.target,chatId:item.argument.newChatId})));if(item.argument.action==='deleteChat')row.append(button('Restore deleted chat',async()=>{const before={...item.argument.target,...JSON.parse(item.argument.expected)};await workspace('undo',{value:{before,after:null}});journal.remove(item.id);await reviewWork();await refresh();}));list.append(row);}if(journal.read().length)$('queue-review').showModal();else{review=false;$('recovery').hidden=true;controls();}}
+const rpc=async(method,arg,timeout)=>{if(method==='configure'&&arg?.kind==='persona'&&snapshot){await workspace('activate',{target:target(snapshot)});}if(method==='extensions'&&arg?.action==='read'){const value=await raw(method,arg,timeout);if(snapshot){value.memory=snapshot.metadata.summaryception??{layers:[]};value.needsRebuild=!!snapshot.metadata.pocket_tavern?.memoryInvalid;}return value;}return raw(method,arg,timeout);};
+settingsPanel=createSettingsPanel({rpc,action,adoptSnapshot:refresh,status,locked:()=>!connected||review||engineBusy||memoryBusy});
+library=createLibrary({rpc,action,locked:()=>!connected||review,refresh});
+memoryPanel=createMemoryPanel({rpc,action,locked:()=>!connected||review||engineBusy||working,connected:()=>connected,onBusy:value=>{memoryBusy=value;controls();if(!value)drain();},refresh:async()=>{await refresh();if(snapshot&&!engineBusy){snapshot=await workspace('read',{target:target(snapshot)});render(true);}}});
+for(const id of ['setting-preset','edit-active-preset','setting-thinking','setting-tools','setting-model','setting-custom-model','apply-custom-model']){const n=$(id);n.hidden=true;const label=document.querySelector(`label[for="${id}"]`);if(label)label.hidden=true;if(n.parentNode.tagName==='LABEL')n.parentNode.hidden=true;}
+// The skeleton exposes global pause and frequency. Existing advanced controls stay in ST.
+for(const name of ['verbatimTurns','snippetsPerLayer','snippetsPerPromotion','summarizerResponseLength','promptPreset','summarizerUserPrompt'])$('memory-'+name).closest('label').hidden=true;$('memory-summarize').hidden=true;
+$('memory-turnsPerSummary').closest('label').firstChild.textContent='Summarize every N assistant turns (global)';$('memory-pauseSummarization').parentNode.append(el('small',' Applies to every chat. Written memory stays injected unless its history changed.'));
+for(const n of document.querySelectorAll('[data-close]'))n.onclick=()=>$(n.dataset.close).close();
+for(const b of $('bottom-nav').querySelectorAll('button'))b.onclick=()=>action(async()=>{if(b.dataset.page==='home'&&page==='home'){const row=recents.find(r=>same(r,state.target()))??recents[0];if(row)await openChat(row);}else navigate(b.dataset.page);});
+$('back').onclick=()=>navigate(entryPage);$('avatar').onclick=$('name').onclick=()=>action(()=>editCharacter(characters.find(c=>c.key===snapshot.characterKey)));$('app-settings').onclick=()=>action(openConnection);
+$('settings-button').onclick=()=>$('chat-settings').showModal();$('open-preset').onclick=()=>action(()=>openPreset());$('open-persona').onclick=$('active-persona').onclick=()=>action(openConnection);$('open-connection').onclick=()=>action(openConnection);$('open-memory').onclick=()=>{$('chat-settings').close();$('memory-badge').click();};$('open-history').onclick=()=>{const rows=recents.filter(r=>r.characterKey===snapshot.characterKey);$('chat-list').replaceChildren(...rows.map(chatRow));$('history').showModal();};$('close-history').onclick=()=>$('history').close();$('new-chat').onclick=()=>action(async()=>{if(engineBusy||memoryBusy)throw Error('Wait for the engine before creating a chat.');await workspace('activate',{target:target(snapshot)});const value=await raw('manage',{action:'create',...target(snapshot),name:`Conversation ${crypto.randomUUID().slice(0,8)}`},45000);$('history').close();await refresh();await openChat(value);});$('rename-chat').hidden=true;$('delete-chat').onclick=()=>action(async()=>{await deleteChat(snapshot);$('history').close();});
+$('model-chip').onclick=()=>action(()=>openModels());$('scope-chip').onclick=$('active-preset').onclick=()=>action(()=>openPreset());$('preset-scope').onchange=()=>action(async()=>{await configureScope('scope',null,$('preset-scope').value);renderPreset();});$('scoped-preset').onchange=()=>action(async()=>{await configureScope('preset',$('scoped-preset').value);renderPreset();});$('reset-scope').onclick=()=>action(async()=>{await configureScope('reset');renderPreset();});$('entry-apply').onclick=()=>action(async()=>{const prompts=structuredClone(presetCopy.generation.prompts);prompts[entryIndex].content=$('entry-text').value;prompts[entryIndex].role=$('entry-role').value;await configureScope('generation',{prompts});$('entry-editor').close();});
+$('menu-copy').onclick=()=>action(async()=>{await navigator.clipboard.writeText(snapshot.messages[menuIndex].mes);$('message-menu').close();toast('Copied');});$('menu-edit').onclick=()=>{editorTarget={target:target(snapshot),expected:revision({messages:snapshot.messages,metadata:snapshot.metadata}),before:{messages:structuredClone(snapshot.messages)},messageId:menuIndex};$('edit-text').value=snapshot.messages[menuIndex].mes;$('editor').returnValue='';$('message-menu').close();$('editor').showModal();};$('editor').onclose=()=>{if($('editor').returnValue==='save')action(()=>queueChange({action:'edit',...editorTarget,text:$('edit-text').value},'Message edit saved'));};$('menu-delete').onclick=()=>action(async()=>{$('message-menu').close();await historyChange({action:'deleteMessages',ids:[menuIndex]},'Message deleted');});$('menu-fork').onclick=()=>action(async()=>{$('message-menu').close();await historyChange({action:'fork',messageId:menuIndex},'Fork created');});$('menu-select').onclick=()=>{selecting=true;selected.add(menuIndex);$('message-menu').close();render();};$('cancel-selection').onclick=()=>{selecting=false;selected.clear();render();};$('delete-selected').onclick=()=>action(async()=>{await historyChange({action:'deleteMessages',ids:[...selected]},'Messages deleted');selecting=false;selected.clear();render();});
+$('undo').onclick=()=>action(async()=>{const copy=undoRecord;if(!copy)return;await queueChange({action:'undo',value:copy},'Deletion undone');undoRecord=null;$('toast').hidden=true;});
+$('draft').oninput=()=>{clearTimeout(draftTimer);draftTimer=setTimeout(()=>action(async()=>saveDraft()),1000);controls();};$('composer').onsubmit=e=>{e.preventDefault();generate();};$('stop').onclick=()=>action(async()=>{operation.state='stopping';controls();try{await raw('stop',operation.requestId);status('Stopping and saving…');}catch(e){if(operation)operation.state='running';controls();throw e;}});
+let listFrame;$('landing').onscroll=()=>{if(!listFrame)listFrame=requestAnimationFrame(()=>{listFrame=null;listRenderer?.();});};
+let scrollFrame;$('messages').onscroll=()=>{if(!snapshot)return;$('jump').hidden=isNearBottom($('messages'));if(!scrollFrame)scrollFrame=requestAnimationFrame(()=>{scrollFrame=null;const pane=$('messages');const first=pane.querySelector('article[data-index]');const last=Array.from(pane.querySelectorAll('article[data-index]')).at(-1);if((first&&first.getBoundingClientRect().top>pane.getBoundingClientRect().top)||(last&&last.getBoundingClientRect().bottom<pane.getBoundingClientRect().bottom)){render();if(operation&&same(operation.target,snapshot))showStream();}});};$('jump').onclick=()=>{positions.delete(key(snapshot));renderedKey=null;render();};
+$('reconnect').onclick=()=>{saveDraft();disconnected('Reloading the engine. Nothing is resent.');$('engine').src=`/?mobileRuntime=1&reconnect=${Date.now()}`;};$('review').onclick=()=>action(reviewWork);$('resume-queue').onclick=()=>action(async()=>{const items=journal.read();if(items.some(i=>i.state==='conflict'))throw Error('Discard conflicted changes before resuming.');for(const item of items)journal.patch(item.id,{sessionId,state:'pending'});review=false;$('queue-review').close();$('recovery').hidden=true;await drain();});$('discard-queue').onclick=()=>{journal.clear();review=false;$('queue-review').close();$('recovery').hidden=true;controls();};
+window.addEventListener('message',e=>{if(e.source===$('engine').contentWindow&&e.origin===location.origin&&e.data?.type==='st-mobile-ready')initialize();});window.addEventListener('beforeunload',()=>saveDraft());document.addEventListener('visibilitychange',()=>{saveDraft();if(!document.hidden)checkHealth();});
+async function checkHealth(){if(!connected||initializing||healthRunning)return;healthRunning=true;try{await probeEngine();await raw('health',undefined,5000);const activity=await raw('activity');engineBusy=activity.busy||!!operation;controls();if(!engineBusy)await drain();}catch(e){disconnected(e.message);}finally{healthRunning=false;}}
+setInterval(checkHealth,3000);setTimeout(()=>{if(!connected)showRecovery('Start the local ST engine, then reconnect.');},20000);controls();renderPage();

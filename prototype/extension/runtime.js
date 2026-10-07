@@ -2,8 +2,8 @@ import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteC
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
-import { assertPersisted } from './persistence.js?build=0.5.4';
-import { selectSavedChat } from './chat-selection.js?build=0.5.4';
+import { assertPersisted } from './persistence.js?build=0.6.0';
+import { selectSavedChat } from './chat-selection.js?build=0.6.0';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export function createGenerationRuntime(getContext) {
@@ -112,6 +112,10 @@ export function createGenerationRuntime(getContext) {
         stop() { return getContext().stopGeneration(); },
         async verifyPersistence(snapshot) {
             const ctx = getContext();
+            if(ctx.characters[ctx.characterId]?.avatar!==snapshot.characterKey || ctx.chatId!==snapshot.chatId) fail('TARGET_CHANGED','The engine selected another chat before saving.');
+            // An early Stop can finish before ST flushes post-generation metadata.
+            // Explicitly finish the native save, then independently read it back.
+            await ctx.saveChat();
             const response = await fetch('/api/chats/get', { method: 'POST', headers: ctx.getRequestHeaders(),
                 body: JSON.stringify({ avatar_url: snapshot.characterKey, file_name: snapshot.chatId }) });
             if (response.status === 403) fail('ENGINE_UNAVAILABLE', 'The engine session expired. Reload the engine page before checking saved changes.');

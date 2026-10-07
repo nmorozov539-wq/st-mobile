@@ -1,132 +1,89 @@
-# Pocket Tavern combined prototype v0.5.4
+# Pocket Tavern combined prototype v0.6.0
 
-This kit prepares one folder containing ST 1.19.0, Pocket Tavern, and copied installed dependencies. It does not include ST or dependencies in the small download: preparation copies your phone's installed code. After preparation, running the combined folder does not depend on the original installation. No Android app yet.
+## Update your existing phone installation
 
-## Fresh normal setup
-
-Extract the ZIP in Downloads. Stop an old Pocket Tavern test session with Ctrl+C; it uses the same port. In Termux:
+Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.6.0.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
+node ~/storage/downloads/repair-pocket.cjs
+```
+
+This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.6.0**.
+
+For manual updating from the complete extracted kit:
+
+```sh
+cd ~/storage/downloads/pocket-tavern-combined-v0.6.0
+node update-test.cjs ~/pocket-tavern
+cd ~/pocket-tavern
+node start.cjs --proxy
+```
+
+Use plain `node start.cjs` if you do not use the bundled proxy. An isolated mock installation uses `node start.cjs --mock`.
+
+## Fresh normal installation
+
+The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
+
+```sh
+cd ~/storage/downloads/pocket-tavern-combined-v0.6.0
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
 ```
 
-Open **http://127.0.0.1:8123/st-mobile/**. The original ST interface is also served at the root address. One ST server owns `~/pocket-tavern/data`; standard user files live in `data/default-user`. Your usual ST data is not copied or changed. Allow space for the full ST code and dependencies; their size depends on your installation. Preparation refuses an existing destination.
+One server serves Pocket at `/st-mobile/` and native ST at `/`. Standard data is `~/pocket-tavern/data/default-user`. Your usual ST data/code are not changed. Ctrl+C stops the launcher and its children.
 
-Use Settings to select OpenRouter, save your API key in ST, connect, refresh the model list, and choose a model. No model ID is hardcoded. Keys are not returned to the frontend or stored in its localStorage. Sending a message uses your provider and may incur its normal charges. Only mock-provider generation has been verified locally; real OpenRouter testing requires you to configure the phone.
+## Optional OpenRouter proxy
 
-Presets use ST’s native chat-completion files. Manage library can import/create/edit characters, personas and chat-completion presets; global lorebooks are still existing selections. Preset prompt text and toggles are editable. Advanced JSON preserves other fields. Character/chat lore remains intact. Presets may change model/source or other generation options; check the connection afterward. Full ST controls remain available. Automatic continuation, automatic swipe, tools, groups and slash commands remain outside the supported prototype scope.
-
-## Isolated mock testing
-
-Prepare a DIFFERENT fresh folder with explicit mock settings:
+If you already have the working `~/or-proxy` dependency folder on this phone, install the bundled optional proxy from the extracted kit once:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
+node setup-proxy.cjs ~/or-proxy ~/pocket-tavern
+cd ~/pocket-tavern
+node start.cjs --proxy
+```
+
+Choose Custom, endpoint **http://127.0.0.1:8001/api/v1**, save your key in ST's Custom slot and Connect. ST adds `/models` and `/chat/completions`. The launcher waits for the proxy before ST and stops both together. A busy port prevents startup. Setup copies dependencies only, no keys/logs/settings, and refuses overwriting an installed proxy. Plain `start.cjs` does not start it. Direct OpenRouter mode bypasses it.
+
+Connect loads model availability; Test message sends a tiny provider request without adding to a chat. Keys stay in ST and never enter Pocket's pending-change journal. A provider may charge for generation/test requests.
+
+## What to test in 0.6.0
+
+- Home/Chats/Characters/Personas/WI navigation; tapping Home again continues the last visited chat. Back returns to the entry screen.
+- Model picker and preset entry switches. Global/Character/Chat copies stay independent; Reset copies Global without disabling the override. Preset and model choices do not change each other.
+- While a reply runs, browse another chat and type a draft. Only one generation is allowed. Commit sampler edits and check Pending → Applied after generation/save/Memory finish. Drafts are never sent automatically.
+- Message edit/delete/multi-delete/fork. Swipe alternatives loops existing replies; New reply is explicit. Swipe a chat row to reveal Delete, or use its ellipsis. Delete has 12-second Undo.
+- Read-only Memory layers, global pause and frequency. Changing summarized history keeps the written memory but marks it invalid and stops its injection/automatic summaries. Undo restores the matching memory/history.
+- Sanitized HTML colours/details, thinking expansion, scrolling older messages and Jump to latest.
+
+This is a browser/Termux skeleton. World Info editing links to native ST; the library reuses the existing field editors. Connection/persona/library writes require an idle engine. No APK, groups, archive, profiles, general extension UI or Memory rebuild editor yet. Native ST remains available for advanced controls. Phone gestures, keyboard resizing, very long chats, battery behavior and background lifetime need device testing.
+
+## Isolated mock installation
+
+Use a different fresh folder so mock testing cannot touch real-provider data:
+
+```sh
+cd ~/storage/downloads/pocket-tavern-combined-v0.6.0
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock
 ```
 
-Try `[think]` for separate reasoning, `[slow]` for a stoppable stream, and `[fail]` for a provider failure. One launcher starts both ST and the local fixture model. Ctrl+C stops both. Normal mode runs ST alone. Mock mode is refused for a normal-data installation to avoid accidentally using real-provider settings during a mock test.
+Try `[think]`, `[slow]` or `[fail]`. One launcher starts ST and the local mock. Normal/mock modes cannot be mixed on one installation.
 
-## Update an existing prototype
+## Optional offline data copy
 
-Stop its launcher first. From the newly extracted kit:
-
-```sh
-node update-test.cjs ~/pocket-tavern
-```
-
-Then return to the combined folder and run `node start.cjs`. For a combined mock fixture use `--mock`. The updater also supports old isolated test folders such as `~/pocket-tavern-phone-test`; those still start with `node start-test.cjs` from the kit. Updates preserve data/settings/config and back up prior code. Combined folders retain the unpatched ST source fragments needed for compatible updates, so updates do not require the original ST folder.
-
-## Optional controlled copy of existing user data — later
-
-This is a copy, not a format conversion or merge. Make a backup first and stop both ST servers before copying. Use matching ST 1.19.0 data. Prepare a NEW normal combined folder, but do not start it yet. From the extracted kit:
+Back up and stop both engines first. Prepare a NEW normal combined folder and do not start it yet. From the extracted kit:
 
 ```sh
 node import-data.cjs ~/SillyTavern/data/default-user ~/pocket-tavern
 ```
 
-The importer refuses any existing destination user folder, mock installations and symlinked user files. Original files remain intact. It copies settings, characters, chats, presets, lorebooks, personas and credentials stored within default-user; treat the new folder as private. Server-level configuration and third-party extension code are not migrated. Custom data roots require the actual source default-user path. This does not provide automatic synchronization between installations or support two servers writing one data folder. Do not use it while either server is active.
+The importer refuses existing destination user data, merges, mock installs and symlinked user files. It copies normal settings/cards/chats/presets/lorebooks/personas/credentials; original files remain intact. Server config and third-party extension code are separate. Use the actual path if your usual data root differs. One engine owns a data folder; sharing it between running servers is unsupported.
 
-## Limits and recovery
+## Recovery
 
-ST handles prompts/generation/saving. The complete ST browser runtime remains loaded offscreen. The app keeps only drafts/navigation and an interrupted-operation journal in browser localStorage. Browser storage is not a chat database. Engine loss disables writes; reconnection rereads saved data and never resubmits an uncertain write automatically.
+Browser storage keeps drafts, committed pending changes and short-lived deletion recovery. Drafts flush roughly one second after typing and on navigation/hiding. Clearing browser storage removes them. An uncertain request is never auto-resent. After a restart, review saved data and pending work before Resume; discard conflicts and reapply explicitly. A same-session generation can be observed. Undo expires after 12 seconds.
 
-Compatibility changes are applied only to the prepared engine: explicit tokenizer CSRF headers, a separate session cookie, uncached startup-token validation, and exact local codec-WASM aliases. Security checks remain enabled. An old regular-ST tab may need closing/reopening after the original kit's cookie collision; your usual installation is not patched.
-
-Android background lifetime and real-provider reasoning behavior still require phone testing. Selecting a preset/persona/lorebook needs saved-state and prompt validation; a successful mock run alone does not establish compatibility with all presets, extensions or providers. Chat deletion asks for confirmation; Pocket Tavern provides no undo.
-
-## Existing OpenRouter TLS proxy
-
-If direct OpenRouter requests fail and your normal ST uses the supplied or-proxy, keep that proxy running as usual. In Pocket Tavern select Custom (OpenAI-compatible / proxy), use `http://127.0.0.1:8001/api/v1`, and paste your token into the Custom endpoint key field. Press Connect. Choose an available model, or enter the exact provider model ID manually. This proxy route uses the Custom key slot, separate from ST’s OpenRouter key slot. You can use your existing proxy or install the optional bundled copy below. A key is not shown in plaintext after saving, and a saved key does not mean the provider accepted it.
-
-## Install the optional bundled proxy
-
-After updating/preparing Pocket Tavern, run once from this extracted kit on your phone:
-
-```sh
-node setup-proxy.cjs ~/or-proxy ~/pocket-tavern
-```
-
-If your working proxy folder has a different location, use that instead of `~/or-proxy`. It must contain its installed `node_modules` on this same phone. No key needs to be entered into Termux. Stop your previously running proxy, then:
-
-```sh
-cd ~/pocket-tavern
-node start.cjs --proxy
-```
-
-One command starts the bundled proxy and ST; Ctrl+C stops both. Use Custom with `http://127.0.0.1:8001/api/v1` in Settings, enter your key there, and select your model. Plain `node start.cjs` leaves the proxy off. If port 8001 is busy, stop the old proxy first. Setup leaves its original folder untouched. Updates preserve the bundled dependencies and your data.
-
-## Repair a failed extraction/update/proxy setup
-
-Copy repair-pocket.cjs and the v0.5.4 ZIP into phone Downloads. Stop Pocket Tavern and the external proxy first. Run `node ~/storage/downloads/repair-pocket.cjs`. It reads the ZIP directly using ST’s installed yauzl dependency, updates the existing combined folder, installs the bundled proxy from a working same-phone or-proxy dependency folder if absent, then launches explicitly with --proxy. It preserves data and never runs fresh preparation over an existing installation. It accepts duplicate ZIP download names, rejects unexpected archive paths, and reports incomplete files or missing dependencies before launch. If it cannot find the proxy folder, use `node repair-pocket.cjs /path/to/package.zip /path/to/or-proxy`. After startup close the full ST tab, reload /st-mobile/, verify both build IDs are 0.5.4, and select Custom to expose endpoint controls.
-
-## Update the working phone installation to v0.5.4
-
-Stop Pocket Tavern with Ctrl+C. Extract the complete v0.5.4 ZIP, then run:
-
-```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
-node update-test.cjs ~/pocket-tavern
-cd ~/pocket-tavern
-node start.cjs --proxy
-```
-
-Use plain `node start.cjs` if you do not use the bundled proxy. This updater keeps existing data, configuration and copied proxy dependencies, backs up old code, and installs the pinned Summaryception integration. Reload the phone browser. Settings should show Pocket Tavern and bridge 0.5.4. No repeat preparation or proxy setup is needed.
-
-Test message in Settings sends a tiny real request without adding it to a chat. Your provider may charge for it. Manage library accepts standard character files, persona-backup JSON, and chat-completion preset JSON. Persona JSON backups omit images; choose a portrait manually or keep the default. Presets with an existing name are not overwritten on import. Saving applies the preset, so recheck your model/connection.
-
-Memory exposes Summaryception settings, saved layers, force summary, stop and backlog choices. Use Summaryception’s Default ST connection for this build; it follows your current Custom/OpenRouter connection and proxy. Fresh setups leave memory off. Imported data preserves the original choices. General extension support and Summaryception’s other connection modes/mobile advanced memory editors are still pending.
-
-## Can I copy my real default-user folder?
-
-Yes: it has the standard ST structure. Copying the whole folder into a **fresh, unstarted** normal installation is supported. Do not merge it with the current test user's files or share one live folder between two servers. Stop both engines and keep a backup. Code for extensions installed outside default-user is not included in that folder; Summaryception is bundled separately here. Other extension data is retained, but its features may not work in Pocket yet.
-
-A safer copy uses the included importer into a new installation:
-
-```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.5.4
-node prepare.cjs ~/SillyTavern ~/pocket-tavern-personal
-node import-data.cjs ~/SillyTavern/data/default-user ~/pocket-tavern-personal
-node update-test.cjs ~/pocket-tavern-personal
-node setup-proxy.cjs ~/or-proxy ~/pocket-tavern-personal
-cd ~/pocket-tavern-personal
-node start.cjs --proxy
-```
-
-Skip the proxy setup and flag if not needed. Adjust the source path if your ST stores data elsewhere. Import runs before the first start and refuses existing destination user data, linked files, merges and overwrites. It copies chats, characters, personas, presets, lorebooks, settings and saved credentials; it leaves the original folder untouched. It does not synchronize later changes. Personal migration has not been performed during development.
-
-After importing, the updater also patches a recognized user-local Extension-Summaryception copy if present: ST gives that code priority over the bundled global copy. Previous extension code is backed up; settings/chat files are retained. Keep this update step when migrating data. Other user-local extensions keep their original code and may require future compatibility work.
-
-### Preset switches and send errors
-Open Settings → Edit preset entries · On / Off, or tap the preset name above the chat. Save in ST applies entry switches. A failed send now shows a persistent error box above the composer; report its exact code/text if sending fails. Both build IDs must show 0.5.4. An incomplete update produces a build mismatch explanation.
-
-### Tool calling rejection
-If sending shows TOOLS_ENABLED, open Settings and uncheck Tool calling enabled in ST. It saves automatically. Return to the chat and send the preserved draft. Presets may enable tool calling again; switch it off after selecting such a preset.
-
-### Chat HTML
-Font color and details/summary blocks render in chat and thinking text alongside Markdown. Custom CSS, scripts, embeds and remote images are excluded. Code blocks display HTML literally.
+ST 1.19.0 compatibility patches keep CSRF/path checks enabled. Each installation has its own cookie; startup validates the token before saving settings. The original ST installation is not patched. Future ST versions and Android lifecycle behavior require separate validation.

@@ -1,6 +1,6 @@
 
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.6.0';
+import {createHTMLFormatter} from './html-format.js?build=0.6.1';
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 let passed=0;
 const assert=(condition,label)=>{if(!condition)throw Error(label);passed++;};

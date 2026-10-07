@@ -68,3 +68,6 @@ test('deferred automatic Memory cannot run against a different chat',async()=>{
  await new Promise(resolve=>setTimeout(resolve,550));
  assert.equal(calls,0);assert.equal(f.api.read().busy,false);assert.match(f.api.read().failure,/chat changed/);
 });
+test('ordinary chat activation never reserves Memory for a no-op branch repair',async()=>{
+ const f=fixture();f.hostBusy(true);f.ctx.chatMetadata.summaryception={summarizedUpTo:1,layers:[]};await vm.runInContext('repairIfBranched()',f.sandbox);assert.equal(f.api.read().busy,false);assert.equal(f.verified(),0);
+});

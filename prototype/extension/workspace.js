@@ -2,8 +2,8 @@ import { saveSettings } from '/script.js';
 import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
 import { user_avatar } from '/scripts/personas.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { selectSavedChat } from './chat-selection.js?build=0.6.0';
-import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope } from './workspace-data.js?build=0.6.0';
+import { selectSavedChat } from './chat-selection.js?build=0.6.1';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope } from './workspace-data.js?build=0.6.1';
 
 export function createWorkspace({getContext,isBusy,configuration}) {
     let mutating=false;
@@ -46,7 +46,7 @@ export function createWorkspace({getContext,isBusy,configuration}) {
         if(arg.action==='deleteChat'){await activate(arg.target);const rows=await recent();const next=rows.find(r=>r.characterKey===arg.target.characterKey&&r.chatId!==arg.target.chatId);await selectSavedChat(getContext,next?.chatId??`Conversation ${crypto.randomUUID().slice(0,8)}`);await post('/api/chats/delete',{avatar_url:arg.target.characterKey,chatfile:arg.target.chatId+'.jsonl'});return {deleted:true,undo:{before,after:null}};}
         const value=alterHistory(before,{...arg,integrity:arg.integrity??crypto.randomUUID()});
         if(arg.action==='fork'){value.chatId=arg.newChatId??`${before.chatId} · fork ${crypto.randomUUID().slice(0,8)}`;valid(value);try{await read(value);fail('CONFLICT','This fork already exists. Open it and discard the pending operation.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}await write(value);return {snapshot:await activate(value)};}
-        await activate(arg.target);const loaded=await read(arg.target);if(revision(loaded.messages)!==revision(before.messages))fail('CONFLICT','Chat changed while being opened. Reload before editing.');await write(value);await ctx().reloadCurrentChat();return {snapshot:await read(arg.target),undo:{before,after:revision({messages:value.messages,metadata:value.metadata})}};
+        await activate(arg.target);const loaded=await read(arg.target);if(revision(loaded.messages)!==revision(before.messages))fail('CONFLICT','Chat changed while being opened. Reload before editing.');await write(value);if(arg.action==='swipe'){const runtime=ctx();runtime.chat[arg.messageId]=clone(value.messages[arg.messageId]);runtime.updateChatMetadata(clone(value.metadata),true);runtime.updateMessageBlock(arg.messageId,runtime.chat[arg.messageId]);}else await ctx().reloadCurrentChat();return {snapshot:await read(arg.target),undo:{before,after:revision({messages:value.messages,metadata:value.metadata})}};
     }
     async function undo({before,after}){if(after){const current=await read(before);assertRevision({messages:current.messages,metadata:current.metadata},after);}else {try{await read(before);fail('CONFLICT','A chat with this name already exists.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}}await write(before);await activate(before);return read(before);}
     return {read,recent,scopes,async initialize(){baseline();ctx().chatCompletionSettings.bind_preset_to_connection=false;await saveGlobal();},async run(arg){if(mutating||isBusy())fail('BUSY','Changes are pending until the engine finishes.');mutating=true;try{if(arg.action==='activate')return await activate(arg.target);if(arg.action==='configure')return await configure(arg);if(arg.action==='undo')return await undo(arg.value);return await mutate(arg);}finally{mutating=false;}},busy:()=>mutating};

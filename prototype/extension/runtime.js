@@ -1,9 +1,10 @@
+import { generateAlternative } from './alternative.js?build=0.6.1';
 import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteCharacterChatByName } from '/script.js';
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
-import { assertPersisted } from './persistence.js?build=0.6.0';
-import { selectSavedChat } from './chat-selection.js?build=0.6.0';
+import { assertPersisted } from './persistence.js?build=0.6.1';
+import { selectSavedChat } from './chat-selection.js?build=0.6.1';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export function createGenerationRuntime(getContext) {
@@ -83,13 +84,7 @@ export function createGenerationRuntime(getContext) {
             await swipe(null, SWIPE_DIRECTION.RIGHT, { forceSwipeId: swipeId, forceDuration: 0 });
             await getContext().saveChat();
         },
-        async generateSwipe() {
-            const ctx = getContext();
-            const message = ctx.chat.at(-1);
-            if (!message || message.is_user || message.is_system || ctx.chat.length < 2) fail('INVALID_SWIPE', 'Send a message before generating an alternative.');
-            await swipe(null, SWIPE_DIRECTION.RIGHT, { forceSwipeId: message.swipes?.length ?? 1, forceDuration: 0 });
-            await getContext().saveChat();
-        },
+        async generateSwipe() { await generateAlternative(getContext(),syncMesToSwipe); },
         async submit(text) {
             const element = composer();
             element.value = text;

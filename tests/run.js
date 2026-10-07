@@ -17,3 +17,5 @@ import './asset-store.test.js';
 import './preset-order.test.js';
 
 import "./workspace.test.js";
+import './alternative.test.js';
+import './engine-monitor.test.js';

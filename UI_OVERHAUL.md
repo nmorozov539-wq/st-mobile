@@ -1,4 +1,4 @@
-# Pocket Tavern 0.6.0: interface skeleton
+# Pocket Tavern 0.6.1: interface skeleton
 
 ## Data ownership
 

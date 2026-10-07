@@ -1564,8 +1564,10 @@ function onMessageReceived(messageIndex) {
         const msg = chat[messageIndex];
         if (msg && !msg.is_user && !msg.is_system) {
             log('New assistant message at index', messageIndex);
+            const target=pocketMode?pocketTarget():undefined;
+            if(pocketMode){void maybeSummarizeTurns(target).then(()=>{updateInjection();updateUI();});return;}
             setTimeout(async () => {
-                await maybeSummarizeTurns();
+                await maybeSummarizeTurns(target);
                 updateInjection();
                 updateUI();
             }, TUNING.messageReceivedDelay);
@@ -1578,6 +1580,7 @@ function onMessageReceived(messageIndex) {
 function onChatChanged() {
     log('Chat changed.');
     catchupDismissed = false;
+    if(pocketMode){void repairIfBranched(pocketTarget()).then(()=>{updateInjection();updateUI();});return;}
     setTimeout(async () => {
         await repairIfBranched();
         updateInjection();
@@ -2803,6 +2806,10 @@ async function maybeSummarizeTurns(target=pocketTarget()) {
 async function repairIfBranched(target=pocketTarget()) {
     if(SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid){clearTimeout(pocketRepairTimer);pocketPendingRepair=null;updateInjection();return;}
     if(!pocketMode)return repairIfBranchedOriginal();
+    const current=SillyTavern.getContext();
+    // Most CHAT_CHANGED events need no repair. Do not reserve the engine or
+    // save unchanged metadata just because Pocket activated/reloaded a chat.
+    if(!current.chat?.length || (current.chatMetadata[MODULE_NAME]?.summarizedUpTo??-1)<current.chat.length){clearTimeout(pocketRepairTimer);pocketPendingRepair=null;updateInjection();return;}
     if(target!==pocketTarget()){clearTimeout(pocketRepairTimer);pocketPendingRepair=null;pocketFailure='Deferred memory repair cancelled because the chat changed.';return;}
     if(pocketWorking || pocketPendingAuto || pocketEngineBusy()){pocketPendingRepair=target;clearTimeout(pocketRepairTimer);pocketRepairTimer=setTimeout(()=>repairIfBranched(target),500);return;}
     clearTimeout(pocketRepairTimer);pocketPendingRepair=null;
@@ -2814,6 +2821,7 @@ async function repairIfBranched(target=pocketTarget()) {
 const pocketRead = () => {
     const s=getSettings();
     return {id:MODULE_NAME,version:'5.5.4-pocket',busy:!!(pocketWorking||isSummarizing||pocketPendingAuto||pocketPendingRepair),waiting:!!(pocketPendingAuto||pocketPendingRepair)&&!pocketWorking&&!isSummarizing,
+        waitingFor:pocketPendingAuto?'summary':pocketPendingRepair?'repair':null,
         settings:{enabled:s.enabled,pauseSummarization:s.pauseSummarization,verbatimTurns:s.verbatimTurns,turnsPerSummary:s.turnsPerSummary,snippetsPerLayer:s.snippetsPerLayer,snippetsPerPromotion:s.snippetsPerPromotion,summarizerResponseLength:s.summarizerResponseLength,promptPreset:s.promptPreset,summarizerUserPrompt:s.summarizerUserPrompt,connectionSource:s.connectionSource},
         memory:structuredClone(SillyTavern.getContext().chatMetadata[MODULE_NAME]??{layers:[],summarizedUpTo:-1,ghostedIndices:[]}),failure:pocketFailure,needsRebuild:!!SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid,
         backlog:pocketBacklog?{turns:pocketBacklog.overflowCount,calls:pocketBacklog.estimatedCalls}:null};

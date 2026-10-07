@@ -16,7 +16,7 @@ export function createSettingsPanel({ rpc, action, adoptSnapshot, status, locked
     };
     function render(value) {
         configuration = value;
-        $('settings-build').textContent = `Pocket Tavern 0.6.0 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
+        $('settings-build').textContent = `Pocket Tavern 0.6.1 · engine bridge ${value.bridgeBuild ?? 'older build — update and restart ST'}`;
         const selected = value.selected;
         const custom = selected.source === 'custom';
         $('custom-controls').hidden = !custom;

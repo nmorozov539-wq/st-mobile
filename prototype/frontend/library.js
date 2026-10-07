@@ -1,4 +1,4 @@
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.6.0';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.6.1';
 export function createLibrary({rpc,action,refresh,locked}) {
     const $=id=>document.getElementById(id);
     let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001;

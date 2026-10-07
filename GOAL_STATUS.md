@@ -1,3 +1,7 @@
+# Current repair: Pocket Tavern 0.6.1
+
+Fixes the real activation/send Memory race, explicit alternative generation independent of native overswipe preference, in-place existing alternative updates, captured message gestures, and stale health responses during Reconnect. See TEST_REPORT.md for validation.
+
 # Pocket Tavern 0.6.0 interface implementation
 
 The agreed browser/Termux interface skeleton is implemented: five-tab navigation, separate browsing/generation ownership, model/preset sheets, independent chat/character/global settings, serialized durable pending changes, message/multi-message/chat deletion with brief Undo, forks, Memory validity guards, sanitized HTML and bounded message/library rendering.

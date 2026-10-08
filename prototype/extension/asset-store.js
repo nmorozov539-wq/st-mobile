@@ -1,5 +1,6 @@
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.3';
-export function createAssetStore({getContext,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
+import {characterAssociations} from './character-associations.js?build=0.7.4';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.4';
+export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
         const multipart = body instanceof FormData;
@@ -112,7 +113,7 @@ export function createAssetStore({getContext,saveSettings,setUserName,getPresetM
         const {action,kind,key}=arg;
         if(kind==='characters'&&['export','duplicate','delete'].includes(action))return characterAction(arg);
         if(action==='list')return list(kind);
-        if(action==='read'){const draft=await read(kind,key);return {draft,revision:JSON.stringify(draft)};}
+        if(action==='read'){const draft=await read(kind,key);const result={draft,revision:JSON.stringify(draft)};if(kind==='characters'&&getAssociationState){try{result.associations=characterAssociations({key,card:draft,power:getContext().powerUserSettings,...getAssociationState(),fileName:characterFileName(key)});}catch(error){result.associationError=error.message;}}return result;}
         if(action==='write')return write(arg);
         if(action==='import'){
             if(kind==='characters')return {key:await importCharacter(arg.file),rows:await list(kind)};

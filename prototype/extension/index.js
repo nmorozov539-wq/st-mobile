@@ -1,11 +1,11 @@
-import { createWorkspace } from './workspace.js?build=0.7.3';
-import { createAdapter } from './adapter.js?build=0.7.3';
-import { createGenerationRuntime } from './runtime.js?build=0.7.3';
+import { createWorkspace } from './workspace.js?build=0.7.4';
+import { createAdapter } from './adapter.js?build=0.7.4';
+import { createGenerationRuntime } from './runtime.js?build=0.7.4';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.7.3';
+import { createConfigurationRuntime } from './configuration.js?build=0.7.4';
 
-import { createAssetRuntime } from './assets.js?build=0.7.3';
+import { createAssetRuntime } from './assets.js?build=0.7.4';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -33,7 +33,7 @@ window.pocketSaveSettings = async expected => {
 
 if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
     let port;
-    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.3'};}, characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.4'};}, characters: () => adapter.listCharacters(),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),

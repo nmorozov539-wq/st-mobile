@@ -1,3 +1,18 @@
+# Verified results — Character association visibility 0.7.4
+
+Verified 9 October 2026 using the isolated ST 1.19.0 mock fixture. No changes to the original ST installation, personal data or local user proxy sources; no paid calls or Android migration.
+
+- Fresh pre-edit baseline: 112 automated tests passed. After this milestone, all 116 pass, covering lossless native association projection, exact character-key matching, multiple/orphaned persona links, primary/additional order, duplicate and unavailable books, embedded-card presence, malformed-storage errors and asset reads with no save/selection side effects.
+- 18 association UI checks pass against the final packaged launcher: actual native links, missing primary/additional names, preserved duplicates, full long persona names, all multiple associations, unchanged Read/Edit line, draft retention, one-layer Escape and outside dismissal, 320/390/430 px sheet placement, unchanged card/settings/native target and zero page errors. Fixture persona/shared-lorebook settings are restored afterward.
+- All 34 Character content and 29 card-action UI checks pass on the packaged 0.7.4 implementation. These ran before the final lorebook-row layout/explanation refinement; the 18 association checks were then repeated on the final package. Existing content, exports, duplication/deletion, generation ownership and busy Save safeguards remain verified.
+- All 65 chat regression checks pass against final installed code, including first-click Send without idle waits, Stop, alternatives/touch overswipe, edit/delete/Undo/multi-select/fork, scoped model changes during work, Memory invalidation/Undo, native text selection, bounded rendering and actual fixture stop/restart/reconnect/review without replay. No frontend page errors.
+- The final updater byte-preserved all 772 fixture data files. Actual ZIP/repair checks pass, including code backups, retained settings/data/proxy dependencies, duplicate download filenames and malicious-path guards. ZIP contains 69 files; new frontend/bridge modules, phone checklist and matching 0.7.4 helper match sources. No test harnesses or private proxy sources are packaged. Frontend/bridge/manifest/helper versions agree; settings schema remains v3. `git diff --check` passes.
+- Opened the offline design viewer and exercised approved persona/unlink-confirmation/lorebook-picker/primary states in Chromium; inspected the approved persona-sheet PNG and actual UI screenshots. The outer viewer and sample values are not product UI.
+
+Scope: association visibility only. Targeted persona editing/unlinking and lorebook attachment/detachment require the next integration milestone with card/shared-settings revision guards and verified native persistence. The two-line persona draft remains pending approval. Android keyboard/system Back/gesture/background behavior and all device-only checklist items remain unverified.
+
+Reproduce: `node tests/run.js`; install the complete 0.7.4 kit into an isolated prepared mock fixture. Once its launcher is listening, run `tests/character-associations-ui.cjs`, `tests/character-ui.cjs` and `tests/character-actions-ui.cjs` sequentially with `POCKET_PLAYWRIGHT_MODULE`/`PLAYWRIGHT_BROWSERS_PATH` set to installed dependencies. For restart coverage, leave engine port 8123 free, start the mock provider with `--many-models`, then run `tests/chat-ui-runner.cjs`. With both ports free, run `POCKET_REPAIR_FIXTURE=/tmp/pocket-release-engine node tests/repair-kit.cjs`.
+
 # Character card actions — 0.7.3
 
 Verified 9 October 2026 against the isolated ST 1.19.0 mock fixture. Original ST, personal data and local user proxy sources remain untouched. No keys, paid requests or Android framework migration.

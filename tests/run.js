@@ -26,3 +26,5 @@ import './preset-phase.test.js';
 import './character-phase.test.js';
 
 import './character-actions.test.js';
+
+import './character-associations.test.js';

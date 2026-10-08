@@ -1,4 +1,4 @@
-# Pocket Tavern — v0.7.3
+# Pocket Tavern — v0.7.4
 
 Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
 
@@ -6,7 +6,7 @@ For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern
 
 ## Current release
 
-`pocket-tavern-combined-v0.7.3.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.7.4.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -14,7 +14,7 @@ For an existing phone installation: stop Pocket Tavern, copy both files to Andro
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-The repair/update flow keeps installed ST data/settings/config, backs up previous code and launches the combined installation with its optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. Connection settings show frontend and bridge **0.7.3**. See [phone instructions](phone-package/PHONE-README.md) for fresh installation and other launch modes.
+The repair/update flow keeps installed ST data/settings/config, backs up previous code and launches the combined installation with its optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. Connection settings show frontend and bridge **0.7.4**. See [phone instructions](phone-package/PHONE-README.md) for fresh installation and other launch modes.
 
 ## Chat phase
 
@@ -30,7 +30,7 @@ The approved full-page preset editor has browsing-only Global/Character/Chat tab
 
 A → B → A restores each preset’s scope-local adjustments after reload. Edits made while generation owns ST are durably pending and preserve the captured request. Reset to Global remains under More generation parameters, confirms its target and retains other remembered presets and model selection. Unavailable saved selections stay visible.
 
-Character 0.7.2 adds the first content subphase: remembered per-card Read/Edit from chat, Edit by default from the library, actual card portraits/tags, Description/Greeting/Advanced, explicit greeting organization, isolated Creator’s Notes and verified native saves. Drafting during generation remains available; saving waits for an idle engine. Native unknown fields, prompt overrides and embedded lorebooks survive. Character 0.7.3 adds the approved inline overflow with native PNG/JSON export, verified duplication and targeted deletion. Delete defaults to keeping chat files; deleting them is an explicit checkbox. Unsaved drafts and stale revisions block actions, and unsaved native temporary conversations block deletion. Exports remain available during generation; mutations wait for settlement. Associations and the redesigned chat selector remain the next subphase.
+Character 0.7.2 adds the first content subphase: remembered per-card Read/Edit from chat, Edit by default from the library, actual card portraits/tags, Description/Greeting/Advanced, explicit greeting organization, isolated Creator’s Notes and verified native saves. Drafting during generation remains available; saving waits for an idle engine. Native unknown fields, prompt overrides and embedded lorebooks survive. Character 0.7.3 adds the approved inline overflow with native PNG/JSON export, verified duplication and targeted deletion. Delete defaults to keeping chat files; deleting them is an explicit checkbox. Unsaved drafts and stale revisions block actions, and unsaved native temporary conversations block deletion. Exports remain available during generation; mutations wait for settlement. Character 0.7.4 shows native persona and lorebook associations, including multiple persona links, unavailable saved books and embedded-card presence. The persona information sheet reveals full names; association editing remains in native ST until the next guarded integration subphase. The redesigned chat selector follows afterward.
 
 Other screens retain their existing layouts and editors. [Implementation review and roadmap](IMPLEMENTATION_REVIEW.md) records the evaluation, reference review and dependencies for later phases. The two-line Chat/Character persona-link draft remains pending approval.
 
@@ -54,9 +54,9 @@ Each installation has one engine and its own standard ST data folder. An offline
 
 Prepared-engine compatibility patches retain CSRF/path checks: explicit tokenizer token headers, separate installation cookies, uncached startup session validation and local codec-WASM aliases. Original ST is untouched. Install/update tools require the known ST 1.19.0 implementation and refuse incompatible source fragments.
 
-The user previously confirmed real OpenRouter streaming inside Pocket on Android with the optional proxy. Chat has been confirmed working on the phone. Preset 0.7.1 and Character 0.7.2/0.7.3 still need real-phone testing; outstanding checks are tracked in [PHONE_TEST_CHECKLIST.md](PHONE_TEST_CHECKLIST.md). Android packaging/background guarantees, general extension support, groups, archives, profiles, full native library UI parity and Memory rebuilding are deferred. World Info editing currently links to native ST. Library authoring/persona/connection mutations require an idle engine. Recent chats are capped at 1,000 rows and list heights are estimated.
+The user previously confirmed real OpenRouter streaming inside Pocket on Android with the optional proxy. Chat has been confirmed working on the phone. Preset 0.7.1 and Character 0.7.2/0.7.3/0.7.4 still need real-phone testing; outstanding checks are tracked in [PHONE_TEST_CHECKLIST.md](PHONE_TEST_CHECKLIST.md). Android packaging/background guarantees, general extension support, groups, archives, profiles, full native library UI parity and Memory rebuilding are deferred. World Info editing currently links to native ST. Library authoring/persona/connection mutations require an idle engine. Recent chats are capped at 1,000 rows and list heights are estimated.
 
-Historical plans, source investigations, reports, screenshots and the early demo are kept locally in ignored `history/`; previously committed material is also recoverable from Git. Current design references remain tracked in `GoalVisuals/`. Generated packages are ignored; the current 0.7.3 package and confirmed-working 0.6.1 fallback remain in the root.
+Historical plans, source investigations, reports, screenshots and the early demo are kept locally in ignored `history/`; previously committed material is also recoverable from Git. Current design references remain tracked in `GoalVisuals/`. Generated packages are ignored; the current 0.7.4 package and confirmed-working 0.6.1 fallback remain in the root.
 
 ## Design reference
 

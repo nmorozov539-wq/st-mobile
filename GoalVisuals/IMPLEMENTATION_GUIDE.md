@@ -49,7 +49,7 @@ Native supported fields and metadata must survive even when a mock editor omits 
 - Proxy toggle eventually starts/stops the process and switches remembered endpoints safely. It requires launcher/bridge changes. Connection tests explicitly identify the global model.
 - Full Summaryception functionality is the intended future target; current bridge limitations are integration gaps. Preserve native import/cancellation/skip semantics.
 
-The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character awaits review of this phase. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
+The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character content/actions/association visibility follow in 0.7.2–0.7.4. The user authorized continuing while phone testing is unavailable and committing each verified milestone. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
 
 
 ## Character content rollout — 0.7.2
@@ -60,3 +60,7 @@ The first Character subphase implements native content, greeting organization an
 ## Character card actions — 0.7.3
 
 Approved inline overflow now exports native PNG/JSON, duplicates through ST’s helper and verifies the distinct saved copy, and deletes through a target-specific confirmation with explicit chat deletion (off by default). Native events remain owned by ST. Unknown card fields, portrait and embedded book are preserved through native copy/export; native export intentionally omits private favourite/current-chat fields. Unsaved drafts and stale revisions block actions. An unverified mutation is never retried automatically. Export is read-only during generation; duplication/deletion share its lock. Native welcome scaffolding can close before deletion, while actual unsaved temporary messages, edits or composer text block it visibly. Existing associations are untouched by this UI work; their explicit management and the conversation selector remain next. The two-line persona draft remains pending.
+
+## Character association visibility — 0.7.4
+
+Shows actual native persona links and primary/additional lorebooks. The approved single dim persona line opens a full-name bottom sheet; multiple links are acknowledged and preserved. Missing book names and embedded-card presence remain visible. No association mutations are implemented in this milestone: native ST remains the management destination. Next implement the approved Edit/Remove and Connect/Detach flows with card/shared-settings conflict and persistence guards. The two-line persona draft remains pending.

@@ -1,19 +1,19 @@
-# Pocket Tavern combined prototype v0.7.3
+# Pocket Tavern combined prototype v0.7.4
 
 ## Update your existing phone installation
 
-Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.7.3.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
+Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.7.4.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
 
 ```sh
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.7.3**.
+This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.7.4**.
 
 For manual updating from the complete extracted kit:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.7.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.7.4
 node update-test.cjs ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs --proxy
@@ -26,7 +26,7 @@ Use plain `node start.cjs` if you do not use the bundled proxy. An isolated mock
 The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.7.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.7.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -48,7 +48,11 @@ Choose Custom, endpoint **http://127.0.0.1:8001/api/v1**, save your key in ST's 
 
 Connect loads model availability; Test message sends a tiny provider request without adding to a chat. Keys stay in ST and never enter Pocket's pending-change journal. A provider may charge for generation/test requests.
 
-## Character actions in 0.7.3
+## Character associations in 0.7.4
+
+Open Character to see its saved persona and lorebook associations. Tap the dim persona line for full names; multiple native links remain separate. Primary lorebook comes first, then additional books, including unavailable saved names. This release adds visibility; edit/remove/connect/detach remains in native ST until the next integration subphase. Back/outside tap closes the sheet and keeps your character draft.
+
+## Character actions retained from 0.7.3
 
 The Character overflow expands below its header. PNG/JSON exports use ST’s native saved-card format; Duplicate creates and verifies a separate card without opening its chat. Delete identifies the card name and filename, defaults to retaining its chat files, and offers an explicit checkbox to delete them. Deletion has no Undo. Retained chats require restoring a card with its original filename. Save or cancel drafts before using actions. Exports work during generation; card mutations wait. A native unsaved temporary conversation blocks deletion with an explanation.
 
@@ -82,7 +86,7 @@ Phone testing is deferred at the user’s request. Keep the outstanding checks i
 Use a different fresh folder so mock testing cannot touch real-provider data:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.7.3
+cd ~/storage/downloads/pocket-tavern-combined-v0.7.4
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock

@@ -5,7 +5,7 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-check-'));
  try{
   const destination=path.join(root,'extracted');fs.mkdirSync(destination);
-  const archive=path.resolve('pocket-tavern-combined-v0.7.3.zip');
+  const archive=path.resolve('pocket-tavern-combined-v0.7.4.zip');
   const bundle=await extractKit(archive,destination,fixture);
   assert.ok(fs.existsSync(path.join(bundle,'prepare.cjs')));
   for(const file of ['extension/workspace.js','extension/workspace-data.js','frontend/journal.js','frontend/engine-monitor.js','extension/alternative.js','frontend/chat-controls.js','frontend/model-panel.js','frontend/scoped-settings.js','frontend/icons.js','frontend/chat.css','frontend/preset.css','frontend/preset-panel.js','frontend/preset-state.js','extension/preset-state.js'])assert.ok(fs.existsSync(path.join(bundle,file)),`Missing foundation module ${file}`);
@@ -13,8 +13,8 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   assert.ok(fs.existsSync(path.join(bundle,'summaryception/LICENSE')));
   assert.match(fs.readFileSync(path.join(bundle,'frontend/index.html'),'utf8'),/setting-endpoint/);
   assert.match(fs.readFileSync(path.join(bundle,'start.cjs'),'utf8'),/--proxy/);
-  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.7.3 (1).zip'));
-  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.7.3 (1).zip'));
+  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.7.4 (1).zip'));
+  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.7.4 (1).zip'));
   fs.mkdirSync(path.join(root,'working/node_modules/wreq-js'),{recursive:true});fs.writeFileSync(path.join(root,'working/node_modules/wreq-js/package.json'),'{}');
   assert.equal(locateProxy([path.join(root,'missing'),path.join(root,'working')]),path.join(root,'working'));
   const malicious=path.join(root,'bad.zip');
@@ -40,8 +40,8 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   assert.match(fs.readFileSync(path.join(target,'public/st-mobile/index.html'),'utf8'),/edit-active-preset/);
   assert.ok(fs.existsSync(path.join(target,'public/st-mobile/preset-order.js')));
   assert.ok(fs.existsSync(path.join(target,'public/st-mobile/html-format.js')));
-  assert.match(fs.readFileSync(path.join(target,'public/st-mobile/build.js'),'utf8'),/0\.7\.3/);
-  assert.match(fs.readFileSync(path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment/index.js'),'utf8'),/bridgeBuild:\s*'0\.7\.3'/);
+  assert.match(fs.readFileSync(path.join(target,'public/st-mobile/build.js'),'utf8'),/0\.7\.4/);
+  assert.match(fs.readFileSync(path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment/index.js'),'utf8'),/bridgeBuild:\s*'0\.7\.4'/);
   console.log('Repair extracts the real kit, finds duplicate download names, locates dependency folders, and rejects unexpected archive paths.');
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1;});

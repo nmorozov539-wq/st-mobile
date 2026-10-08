@@ -1,6 +1,6 @@
 # Pocket Tavern phone test checklist
 
-All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, then further Character subphases. Release numbering does not change the saved-settings schema.
+All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, then further Character subphases. Release numbering does not change the saved-settings schema.
 
 Chat was reported working on the phone. Unchecked items below remain device checks, even when desktop/mock checks pass. Development may continue while phone testing is unavailable; commit each verified milestone. Use a spare/test conversation for destructive checks.
 
@@ -62,3 +62,15 @@ Chat was reported working on the phone. Unchecked items below remain device chec
 
 - [ ] Persona associations preserve multiple links and native precedence; the two-line draft remains pending approval.
 - [ ] Test each newly shipped character action here as its subphase is completed.
+
+## Character association visibility — 0.7.4
+
+- [ ] Existing character-linked persona appears beneath its portrait in both Read and Edit; tap to read its full name.
+- [ ] Multiple native persona links show a count and all full names, without selecting one or changing links.
+- [ ] Primary lorebook appears first, then additional attachments; unavailable saved names remain visible.
+- [ ] A card with only an embedded lorebook says so; no book is silently promoted to primary.
+- [ ] Back/outside tap closes the persona sheet and preserves the character draft; test Android Back with the keyboard open.
+- [ ] Long names and the sheet remain readable with large text, rotation and your phone width.
+- [ ] Reading associations during generation leaves the original generating target and settings unchanged.
+
+Association editing/removal and the redesigned chat selector remain upcoming; this release adds real association visibility only. Continue managing links in native ST for now.

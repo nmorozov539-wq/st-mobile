@@ -1,6 +1,8 @@
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.3';
+import {createCharacterAssociations} from './character-associations.js?build=0.7.4';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.4';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage}) {
+    const links=createCharacterAssociations();
     let mode='read',selected=0,organizing=false,cardKey=null;
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=fn;return b;};
@@ -9,7 +11,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         try{mode=storage.getItem(`pocket-character-mode:${key}`)==='edit'?'edit':'read';}catch{}
         if(!key||fromLibrary)mode='edit';
     }
-    function render({body,draft,key,changed,field,rerender,onActions}) {
+    function render({body,draft,key,associations,associationError,changed,field,rerender,onActions}) {
         const panel=document.getElementById('asset-editor');panel.classList.add('character-editor');
         panel.querySelector('h2').textContent='Character';
         document.getElementById('save-asset').hidden=mode!=='edit';
@@ -21,7 +23,9 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         const tabs=node('div');tabs.className='character-modes';tabs.setAttribute('aria-label','Character view');
         for(const view of ['read','edit']){const b=button(view==='read'?'Read':'Edit',()=>{mode=view;organizing=false;try{if(cardKey)storage.setItem(`pocket-character-mode:${cardKey}`,mode);}catch{}rerender();});b.setAttribute('aria-pressed',String(mode===view));tabs.append(b);}panel.querySelector('.character-modes')?.remove();panel.querySelector('.dialog-heading').append(tabs);panel.querySelector('.character-actions-trigger')?.remove();if(key){const overflow=button('…',onActions);overflow.className='character-actions-trigger';overflow.setAttribute('aria-label','Character actions');overflow.setAttribute('aria-controls','character-actions');overflow.setAttribute('aria-expanded',String(!document.getElementById('character-actions').hidden));panel.querySelector('.dialog-heading').append(overflow);}
         const identity=node('section');identity.className='character-identity';
-        if(key){const image=node('img');image.src=`/thumbnail?type=avatar&file=${encodeURIComponent(key)}`;image.alt='';image.className='character-portrait';identity.append(image);}
+        const portraitColumn=node('div');portraitColumn.className='character-portrait-column';
+        if(key){const image=node('img');image.src=`/thumbnail?type=avatar&file=${encodeURIComponent(key)}`;image.alt='';image.className='character-portrait';portraitColumn.append(image);}
+        links.identity({parent:portraitColumn,key,associations,error:associationError});identity.append(portraitColumn);
         const heading=node('div');if(mode==='edit')field(heading,'Name',draft.name,value=>draft.name=value,{rows:1,type:'text'});else heading.append(node('h3',draft.name||'Unnamed character'));
         const metadata=[draft.creator&&`by ${draft.creator}`,draft.character_version&&`v${draft.character_version}`].filter(Boolean).join(' · ');if(metadata)heading.append(node('small',metadata));
         if(mode==='read'){const tags=node('div');tags.className='character-tags';for(const value of draft.tags??[])tags.append(node('span',String(value)));heading.append(tags);}else field(heading,'Tags (comma separated)',(draft.tags??[]).join(', '),value=>draft.tags=value.split(',').map(x=>x.trim()).filter(Boolean),{rows:1,type:'text'});identity.append(heading);body.append(identity);
@@ -29,6 +33,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
             const notes=node('details');notes.className='character-notes';notes.append(node('summary',"Creator’s Notes"));
             const frame=node('iframe');frame.title=`Creator’s Notes for ${draft.name||'this character'}`;frame.setAttribute('sandbox','');frame.referrerPolicy='no-referrer';frame.srcdoc=creatorNotesDocument(draft.creator_notes,{converter,sanitize,document});notes.append(frame);body.append(notes);
         }
+        links.lorebooks({parent:body,key,associations,error:associationError});
         const textField=(parent,label,name,rows=7)=>{
             if(mode==='edit')field(parent,label,draft[name],value=>draft[name]=value,{rows});
             else {parent.append(node('h4',label));const content=node('div');content.className='character-reading';content.innerHTML=draft[name]?format(draft[name]):'<p class="character-empty">Not provided</p>';parent.append(content);}

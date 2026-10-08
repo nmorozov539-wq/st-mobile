@@ -1,7 +1,7 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.7.3';
-import { connectThroughST } from './connection-check.js?build=0.7.3';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.7.3';
-import { testConnection } from './connection-test.js?build=0.7.3';
+import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.7.4';
+import { connectThroughST } from './connection-check.js?build=0.7.4';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.7.4';
+import { testConnection } from './connection-test.js?build=0.7.4';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { model_list, getChatCompletionModel, getPresetApplicationPromise, sendOpenAIRequest } from '/scripts/openai.js';
@@ -20,7 +20,7 @@ export function createConfigurationRuntime(getContext) {
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts, toolCalling: !!settings.function_calling };
-        return { bridgeBuild: '0.7.3', selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.7.4', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),

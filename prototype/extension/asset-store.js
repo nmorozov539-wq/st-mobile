@@ -1,4 +1,4 @@
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.6.1';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.6.2';
 export function createAssetStore({getContext,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {

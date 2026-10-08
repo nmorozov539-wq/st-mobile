@@ -2,8 +2,8 @@ import { saveSettings } from '/script.js';
 import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
 import { user_avatar } from '/scripts/personas.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { selectSavedChat } from './chat-selection.js?build=0.6.1';
-import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope } from './workspace-data.js?build=0.6.1';
+import { selectSavedChat } from './chat-selection.js?build=0.6.2';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope } from './workspace-data.js?build=0.6.2';
 
 export function createWorkspace({getContext,isBusy,configuration}) {
     let mutating=false;

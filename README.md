@@ -1,10 +1,10 @@
-# Pocket Tavern — v0.6.1
+# Pocket Tavern — v0.6.2
 
 A mobile browser interface for SillyTavern 1.19.0. One prepared Termux folder contains ST, Pocket Tavern and copied installed dependencies; one launcher serves both interfaces. ST owns normal `data/default-user` files and generation. This is a prototype, not an Android APK.
 
 ## Current release
 
-`pocket-tavern-combined-v0.6.1.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.6.2.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -12,13 +12,15 @@ For an existing phone installation: stop Pocket Tavern, copy both files to Andro
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-The repair/update flow keeps installed ST data/settings/config, backs up previous code and launches the combined installation with its optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. Connection settings show frontend and bridge **0.6.1**. See [phone instructions](phone-package/PHONE-README.md) for fresh installation and other launch modes.
+The repair/update flow keeps installed ST data/settings/config, backs up previous code and launches the combined installation with its optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. Connection settings show frontend and bridge **0.6.2**. See [phone instructions](phone-package/PHONE-README.md) for fresh installation and other launch modes.
 
 ## Interface skeleton
 
 Home, Chats, Characters, Personas and World Info tabs; chat header and composer chips; immediate model picker; shared preset component with entry toggles and full-screen text editor. Chat/character settings are independent optional copies with Chat > Character > Global precedence. Model and preset choices do not change one another; connection credentials/source/endpoint remain global.
 
-The 0.6.1 repair removes a no-op Memory activation lock, makes explicit regeneration independent of native overswipe preferences, updates saved alternatives without reloading the whole native chat, and isolates reconnect health checks from the old iframe.
+Long-press now takes one second; auto-follow only engages within one CSS pixel of the bottom (for fractional scroll rounding). [Design handoff](DESIGN_HANDOFF.md) records the next stage.
+
+The previous repair removes a no-op Memory activation lock, makes explicit regeneration independent of native overswipe preferences, updates saved alternatives without reloading the whole native chat, and isolates reconnect health checks from the old iframe.
 
 Browsing and drafting in another chat does not switch the generating ST chat. One generation runs at a time. Committed scoped settings and history edits can wait in a durable queue, with visible Pending/Applied states and explicit restart review. Message actions include editing, copy, deletion, multi-delete and forks. Existing alternatives loop; creating another reply is explicit. Deletion has brief Undo.
 
@@ -40,6 +42,6 @@ Each installation has one engine and its own standard ST data folder. An offline
 
 Prepared-engine compatibility patches retain CSRF/path checks: explicit tokenizer token headers, separate installation cookies, uncached startup session validation and local codec-WASM aliases. Original ST is untouched. Install/update tools require the known ST 1.19.0 implementation and refuse incompatible source fragments.
 
-The user previously confirmed real OpenRouter streaming inside Pocket on Android with the optional proxy. The new 0.6.1 interface still needs real-phone comfort testing. Android packaging/background guarantees, general extension support, groups, archives, profiles, full native library UI parity and Memory rebuilding are deferred. World Info editing currently links to native ST. Library authoring/persona/connection mutations require an idle engine. Recent chats are capped at 1,000 rows and list heights are estimated.
+The user previously confirmed real OpenRouter streaming inside Pocket on Android with the optional proxy. The new 0.6.2 interface still needs real-phone comfort testing. Android packaging/background guarantees, general extension support, groups, archives, profiles, full native library UI parity and Memory rebuilding are deferred. World Info editing currently links to native ST. Library authoring/persona/connection mutations require an idle engine. Recent chats are capped at 1,000 rows and list heights are estimated.
 
 Original design references: [concept](SillyTavern_Mobile_Frontend_Concept_v0.1.md), [architecture](Working_Architecture_v0.2.md), [source audit](ST_Source_Audit.md). Historical test packages stay local and are ignored by Git.

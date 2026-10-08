@@ -1,19 +1,19 @@
-# Pocket Tavern combined prototype v0.6.1
+# Pocket Tavern combined prototype v0.6.2
 
 ## Update your existing phone installation
 
-Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.6.1.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
+Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.6.2.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
 
 ```sh
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.6.1**.
+This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.6.2**.
 
 For manual updating from the complete extracted kit:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.6.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.6.2
 node update-test.cjs ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs --proxy
@@ -26,7 +26,7 @@ Use plain `node start.cjs` if you do not use the bundled proxy. An isolated mock
 The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.6.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.6.2
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -48,9 +48,9 @@ Choose Custom, endpoint **http://127.0.0.1:8001/api/v1**, save your key in ST's 
 
 Connect loads model availability; Test message sends a tiny provider request without adding to a chat. Keys stay in ST and never enter Pocket's pending-change journal. A provider may charge for generation/test requests.
 
-## What to test in 0.6.1
+## What to test in 0.6.2
 
-This repair targets first-click Send/New reply locks, existing-alternative gestures and engine reconnect recovery. Deleting the last assistant reply leaves your user message in place; nothing is generated automatically, and a following Send continues normally.
+This update slows long-press to one second and restricts auto-follow to the actual bottom (one CSS pixel of rounding tolerance). Earlier generation/reconnect repairs are retained. Deleting the last assistant reply leaves your user message in place; nothing is generated automatically, and a following Send continues normally.
 
 - Home/Chats/Characters/Personas/WI navigation; tapping Home again continues the last visited chat. Back returns to the entry screen.
 - Model picker and preset entry switches. Global/Character/Chat copies stay independent; Reset copies Global without disabling the override. Preset and model choices do not change each other.
@@ -66,7 +66,7 @@ This is a browser/Termux skeleton. World Info editing links to native ST; the li
 Use a different fresh folder so mock testing cannot touch real-provider data:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.6.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.6.2
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock

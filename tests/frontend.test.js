@@ -46,7 +46,10 @@ test('Markdown renders useful structure while escaping HTML and unsafe links', (
 });
 test('scroll following distinguishes reading older messages from staying at the bottom', () => {
     assert.equal(isNearBottom({scrollHeight:2000,scrollTop:100,clientHeight:500}),false);
-    assert.equal(isNearBottom({scrollHeight:2000,scrollTop:1470,clientHeight:500}),true);
+    assert.equal(isNearBottom({scrollHeight:2000,scrollTop:1470,clientHeight:500}),false);
+    assert.equal(isNearBottom({scrollHeight:2000,scrollTop:1498,clientHeight:500}),false);
+    assert.equal(isNearBottom({scrollHeight:2000,scrollTop:1499.5,clientHeight:500}),true);
+    assert.equal(isNearBottom({scrollHeight:2000,scrollTop:1500,clientHeight:500}),true);
 });
 function port() { return { sent:[], start(){}, close(){this.closed=true;}, postMessage(data){this.sent.push(data);} }; }
 test('transport rejects interrupted calls and ignores responses from the old connection', async () => {

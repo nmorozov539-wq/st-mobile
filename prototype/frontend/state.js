@@ -30,7 +30,7 @@ export function recoveryDecision(journal, sessionId, operation) {
     if (['running', 'stopping', 'verifying'].includes(operation.state)) return 'observe';
     return operation.persistence === 'verified' ? 'settled' : 'review';
 }
-export function isNearBottom({ scrollHeight, scrollTop, clientHeight }, threshold = 80) {
+export function isNearBottom({ scrollHeight, scrollTop, clientHeight }, threshold = 1) {
     return scrollHeight - scrollTop - clientHeight <= threshold;
 }
 export function submittedUserMessage(journal, snapshot) {

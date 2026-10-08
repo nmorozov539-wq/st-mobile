@@ -1,3 +1,7 @@
+# Pocket Tavern 0.6.2 interaction tweaks
+
+Long-press increased from 550 ms to 1,000 ms. Cancel/lost-pointer-capture and a new press clear the old timer, preventing abandoned presses from opening a later menu. Auto-follow tolerance reduced from 80 to 1 CSS pixel for fractional scroll rounding. Existing regression coverage now checks that 30 and 2 pixels above the bottom do not follow, while the exact bottom and fractional rounding do. Android timing/comfort remains device feedback.
+
 # Pocket Tavern 0.6.1 regression repair
 
 The 0.6.0 native harness waited for an idle engine between operations and missed the actual first-click activation/send race. The real Pocket UI reproduced BUSY before a provider request, with Summaryception reporting a deferred no-op branch repair.

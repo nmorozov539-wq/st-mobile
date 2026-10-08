@@ -1,15 +1,15 @@
-import {createEngineMonitor} from './engine-monitor.js?build=0.6.1';
-import {checkBridgeBuild} from './build.js?build=0.6.1';
-import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.6.1';
-import {createJournal,revision,renderRange} from './journal.js?build=0.6.1';
-import {RuntimeConnection} from './transport.js?build=0.6.1';
+import {createEngineMonitor} from './engine-monitor.js?build=0.6.2';
+import {checkBridgeBuild} from './build.js?build=0.6.2';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.6.2';
+import {createJournal,revision,renderRange} from './journal.js?build=0.6.2';
+import {RuntimeConnection} from './transport.js?build=0.6.2';
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.6.1';
-import {createSettingsPanel} from './settings.js?build=0.6.1';
-import {createLibrary} from './library.js?build=0.6.1';
-import {createMemoryPanel} from './memory.js?build=0.6.1';
-import {probeEngine} from './engine-health.js?build=0.6.1';
-import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.6.1';
+import {createHTMLFormatter} from './html-format.js?build=0.6.2';
+import {createSettingsPanel} from './settings.js?build=0.6.2';
+import {createLibrary} from './library.js?build=0.6.2';
+import {createMemoryPanel} from './memory.js?build=0.6.2';
+import {probeEngine} from './engine-health.js?build=0.6.2';
+import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.6.2';
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
@@ -69,7 +69,7 @@ function restoreDetails(a,index){const choices=detailsState.get(a.dataset.detail
 function reasoning(text){const d=el('details','','thinking');d.hidden=!text;d.append(el('summary','Thinking'));const body=el('div','','thinking-body');body.innerHTML=format(text);d.append(body);return d;}
 function messageArticle(message,index){const a=el('article','',`message ${message.is_user?'user':''}`);a.dataset.index=index;a.dataset.detailKey=detailKey(message,index);a.addEventListener('toggle',()=>{if(a.isConnected)detailsState.set(a.dataset.detailKey,Array.from(a.querySelectorAll('details')).map(d=>d.open));},true);const label=el('div','','byline');if(selecting){const checkbox=el('input');checkbox.type='checkbox';checkbox.checked=selected.has(index);checkbox.setAttribute('aria-label',`Select message ${index+1}`);checkbox.onchange=()=>{checkbox.checked?selected.add(index):selected.delete(index);controls();};label.append(checkbox);}label.append(el('span',message.is_user?message.name??snapshot.presentation?.personaName??'You':message.name??'Character'));const menu=button('⋯',()=>openMenu(index));menu.setAttribute('aria-label',`Message ${index+1} actions`);label.append(menu);const bubble=el('div','','bubble');bubble.innerHTML=format(message.mes);a.append(label,reasoning(message.extra?.reasoning??''),bubble);
     if(!message.is_user&&!message.is_system&&(index===snapshot.messages.length-1||(message.swipes?.length??0)>1)){const count=message.swipes?.length??1,current=message.swipe_id??0,tools=el('div','','message-tools');tools.append(button('←',()=>chooseSwipe(index,(current-1+count)%count)),el('span',`${current+1} / ${count}`),button('→',()=>chooseSwipe(index,(current+1)%count)));if(index===snapshot.messages.length-1)tools.append(button('+ New reply',()=>generate('swipe')));a.append(tools);}
-    let start,timer;const excluded=e=>e.target.closest('a,button,input,summary,pre,code,table')||getSelection()?.toString();a.onpointerdown=e=>{if(excluded(e)||e.clientX<24||e.clientX>innerWidth-24)return;a.setPointerCapture(e.pointerId);start={x:e.clientX,y:e.clientY};timer=setTimeout(()=>{openMenu(index);start=null;},550);};a.onpointermove=e=>{if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>12)clearTimeout(timer);};a.onpointercancel=()=>{clearTimeout(timer);start=null;};a.onpointerup=e=>{clearTimeout(timer);if(start&&Math.abs(e.clientX-start.x)>65&&Math.abs(e.clientY-start.y)<35&&!message.is_user&&!message.is_system){const count=message.swipes?.length??1;if(count>1)action(()=>chooseSwipe(index,((message.swipe_id??0)+(e.clientX<start.x?1:-1)+count)%count));}start=null;};restoreDetails(a,index);return a;
+    let start,timer;const excluded=e=>e.target.closest('a,button,input,summary,pre,code,table')||getSelection()?.toString();a.onpointerdown=e=>{clearTimeout(timer);start=null;if(excluded(e)||e.clientX<24||e.clientX>innerWidth-24)return;a.setPointerCapture(e.pointerId);start={x:e.clientX,y:e.clientY};timer=setTimeout(()=>{openMenu(index);start=null;},1000);};a.onpointermove=e=>{if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>12)clearTimeout(timer);};a.onpointercancel=a.onlostpointercapture=()=>{clearTimeout(timer);start=null;};a.onpointerup=e=>{clearTimeout(timer);if(start&&Math.abs(e.clientX-start.x)>65&&Math.abs(e.clientY-start.y)<35&&!message.is_user&&!message.is_system){const count=message.swipes?.length??1;if(count>1)action(()=>chooseSwipe(index,((message.swipe_id??0)+(e.clientX<start.x?1:-1)+count)%count));}start=null;};restoreDetails(a,index);return a;
 }
 function render(changed=false){renderHeader();if(!snapshot)return;const pane=$('messages'),oldTop=pane.scrollTop,near=isNearBottom(pane),newTarget=renderedKey!==key(snapshot);if(!newTarget)rememberDetails();const cache=heights.get(key(snapshot))??{};heights.set(key(snapshot),cache);const desired=newTarget?(positions.get(key(snapshot))??Math.max(0,snapshot.messages.length*180-pane.clientHeight)):oldTop;const range=renderRange(snapshot.messages.length,desired,pane.clientHeight||650,cache);pane.replaceChildren();const before=el('div'),after=el('div');before.style.height=`${range.before}px`;after.style.height=`${range.after}px`;pane.append(before,...snapshot.messages.slice(range.start,range.end).map((m,i)=>messageArticle(m,range.start+i)),after);for(const article of pane.querySelectorAll('article'))cache[article.dataset.index]=article.getBoundingClientRect().height+24;renderedKey=key(snapshot);pane.scrollTop=newTarget?(positions.get(key(snapshot))??pane.scrollHeight):oldTop;if(!newTarget&&near&&changed)pane.scrollTop=pane.scrollHeight;$('jump').hidden=isNearBottom(pane);controls();}
 function openMenu(index){menuIndex=index;$('menu-edit').disabled=!!operation&&same(operation.target,snapshot)&&(operation.mode==='swipe'?index===snapshot.messages.length-1:index>=operation.beforeCount&&!snapshot.messages[index].is_user);$('message-menu').showModal();}

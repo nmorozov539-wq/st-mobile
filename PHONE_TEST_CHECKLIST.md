@@ -1,6 +1,6 @@
 # Pocket Tavern phone test checklist
 
-All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, then further Character subphases. Release numbering does not change the saved-settings schema.
+All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, association controls 0.7.5, then further Character subphases. Release numbering does not change the saved-settings schema.
 
 Chat was reported working on the phone. Unchecked items below remain device checks, even when desktop/mock checks pass. Development may continue while phone testing is unavailable; commit each verified milestone. Use a spare/test conversation for destructive checks.
 
@@ -73,4 +73,19 @@ Chat was reported working on the phone. Unchecked items below remain device chec
 - [ ] Long names and the sheet remain readable with large text, rotation and your phone width.
 - [ ] Reading associations during generation leaves the original generating target and settings unchanged.
 
-Association editing/removal and the redesigned chat selector remain upcoming; this release adds real association visibility only. Continue managing links in native ST for now.
+Association editing/removal follows in 0.7.5 below; the redesigned chat selector remains upcoming.
+
+## Character association controls — 0.7.5
+
+- [ ] With one linked persona, Edit persona opens its existing editor; Save and Cancel return to the same Character draft, portrait draft and selected greeting.
+- [ ] Start a persona Save, return to the Character draft before it finishes, and verify the delayed result preserves that draft.
+- [ ] Confirming Remove link removes only that character connection; the persona, default persona and unrelated chat/group/character links remain.
+- [ ] Multiple native persona links remain visible without choosing or removing one.
+- [ ] Connect an actual saved lorebook as Additional; the card export does not embed additional books.
+- [ ] Connect/replace Primary; PNG/JSON exports contain the selected book and retain other native card fields.
+- [ ] Unattach Primary with confirmation; the embedded copy is removed and additional books remain separate.
+- [ ] Detach a missing additional book or one duplicate; verify other links survive reopening/restart.
+- [ ] During generation, browse association sheets; mutation controls stay disabled, the original target/request stays intact and Stop settles.
+- [ ] Save an association then immediately open a fresh chat and Send; no stale busy refusal or duplicate request.
+- [ ] Change the same native card/settings elsewhere while its sheet is open; verify conflict feedback and inspect saved work before another attempt.
+- [ ] Check Back/outside dismissal, long lorebook names, large text, picker scrolling and keyboard-sized Save/Cancel on your phone.

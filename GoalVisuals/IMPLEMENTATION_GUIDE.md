@@ -49,7 +49,7 @@ Native supported fields and metadata must survive even when a mock editor omits 
 - Proxy toggle eventually starts/stops the process and switches remembered endpoints safely. It requires launcher/bridge changes. Connection tests explicitly identify the global model.
 - Full Summaryception functionality is the intended future target; current bridge limitations are integration gaps. Preserve native import/cancellation/skip semantics.
 
-The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character content/actions/association visibility follow in 0.7.2–0.7.4. The user authorized continuing while phone testing is unavailable and committing each verified milestone. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
+The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character content/actions/association visibility follow in 0.7.2–0.7.5. The user authorized continuing while phone testing is unavailable and committing each verified milestone. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
 
 
 ## Character content rollout — 0.7.2
@@ -64,3 +64,11 @@ Approved inline overflow now exports native PNG/JSON, duplicates through ST’s 
 ## Character association visibility — 0.7.4
 
 Shows actual native persona links and primary/additional lorebooks. The approved single dim persona line opens a full-name bottom sheet; multiple links are acknowledged and preserved. Missing book names and embedded-card presence remain visible. No association mutations are implemented in this milestone: native ST remains the management destination. Next implement the approved Edit/Remove and Connect/Detach flows with card/shared-settings conflict and persistence guards. The two-line persona draft remains pending.
+
+## Character association controls — 0.7.5
+
+Implements the approved single-link persona sheet Edit/Remove actions and actual lorebook Connect/Unattach sheets. Related persona editing reuses the existing library editor and restores the Character draft/mode/greeting/portrait on Save or Cancel. Multiple native persona associations remain acknowledged and managed in ST; the unapproved two-line draft is unchanged.
+
+The bridge checks card and live/persisted shared-settings revisions, uses the common engine mutation lock, saves through native endpoints/settings and verifies readback. Persona removal targets only the selected character connection. Additional books preserve other rows, duplicates and opaque row fields. Primary connection uses ST 1.19.0's World Info → character-book mapping (or intact native originalData); targeted atomic merge replaces old embedded data. Detachment uses ST's native unset sentinel and never promotes additional books. Unknown card fields and unrelated native associations remain. Failed/uncertain operations require reopening and saved-work review, never automatic replay. No settings migration; schema remains v3.
+
+Next Character subphase: approved current-chat selector and create-new-before-optional-delete workflow. Full Persona, World Info, Memory and library redesigns remain separate roadmap phases.

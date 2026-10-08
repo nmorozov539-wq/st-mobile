@@ -102,7 +102,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         async assets(argument) {
             context();
             if (!assets) fail('UNSUPPORTED', 'Library editing is unavailable.');
-            if (['read','list','export'].includes(argument?.action)) return clone(await assets.run(argument));
+            if (['read','list','export','lorebooks'].includes(argument?.action)) return clone(await assets.run(argument));
             if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation first.');
             selecting = true;
             try { return clone(await assets.run(argument)); } finally { selecting = false; }

@@ -1,8 +1,8 @@
-import {createCharacterAssociations} from './character-associations.js?build=0.7.4';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.4';
+import {createCharacterAssociations} from './character-associations.js?build=0.7.5';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.5';
 
-export function createCharacterEditor({format,converter,sanitize,storage=localStorage}) {
-    const links=createCharacterAssociations();
+export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions}) {
+    const links=createCharacterAssociations(associationOptions);
     let mode='read',selected=0,organizing=false,cardKey=null;
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=fn;return b;};
@@ -57,5 +57,5 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         for(const [name,label]of [['personality','Personality'],['scenario','Scenario'],['mes_example','Example dialogue'],['system_prompt','System prompt override'],['post_history_instructions','Post-history instructions']])textField(advanced,label,name);
         if(mode==='edit'){const metadata=node('details');metadata.append(node('summary',"Creator’s metadata"));for(const [name,label]of [['creator_notes',"Creator’s Notes · raw source"],['creator','Creator'],['character_version','Character version']])field(metadata,label,draft[name],value=>draft[name]=value,{rows:name==='creator_notes'?8:1});advanced.append(metadata);}body.append(advanced);
     }
-    return {begin,render,back(){if(organizing){organizing=false;return true;}return false;}};
+    return {begin,render,updateLinks:links.update,capture:()=>({mode,selected,organizing,cardKey}),restore:value=>{({mode,selected,organizing,cardKey}=value);},back(){if(organizing){organizing=false;return true;}return false;}};
 }

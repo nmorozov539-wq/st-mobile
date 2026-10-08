@@ -1,5 +1,6 @@
-import {characterAssociations} from './character-associations.js?build=0.7.4';
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.4';
+import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.7.5';
+import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.7.5';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.5';
 export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
@@ -109,11 +110,62 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
         }
         throw Error('Unknown character action.');
     }
-    return {async run(arg){
+    async function verifyAssociationSettings(power,worldInfo){
+        const actual=JSON.parse((await saved()).settings);
+        if(associationRevision(actual.power_user??{},actual.world_info_settings?.world_info??{})!==associationRevision(power,worldInfo)||!containsData(actual.power_user,JSON.parse(JSON.stringify(power))))throw Error('Saved association settings could not be verified. Reopen and inspect native settings before another change.');
+    }
+    async function changeAssociation({key,revision,associationGuard,operation,type,name,index,personaKey}) {
+        const before=await read('characters',key);assertUnchanged(before,revision);
+        const power=getContext().powerUserSettings,{worldInfo}=getAssociationState();
+        const live=associationRevision(power,worldInfo);
+        if(!associationGuard||live!==associationGuard)throw Error('Character associations changed. Reopen the character before trying again.');
+        const disk=JSON.parse((await saved()).settings);
+        if(associationRevision(disk.power_user??{},disk.world_info_settings?.world_info??disk.world_info??{})!==live)throw Error('Native association settings have pending or external changes. Save/review them in ST, then reopen this character.');
+        characterAssociations({key,card:before,power,...getAssociationState(),fileName:characterFileName(key)});
+        if(operation==='persona-unlink'){
+            const descriptor=removeCharacterPersona(power,key,personaKey);
+            power.persona_descriptions[personaKey]=descriptor;await saveSettings();
+            await verifyAssociationSettings(power,worldInfo);
+        }else if(['connect','detach'].includes(operation)&&['primary','additional'].includes(type)){
+            if(typeof name!=='string'||!name)throw Error('Choose a lorebook.');
+            let book;
+            if(operation==='connect'){
+                const available=await post('/api/worldinfo/list',{});
+                if(!available.some(row=>row.file_id===name))throw Error('This lorebook is no longer available. Reopen the selector.');
+                book=safeObject(await post('/api/worldinfo/get',{name}));
+            }
+            if(type==='additional'){
+                worldInfo.charLore=changeAdditionalBooks(worldInfo,characterFileName(key),{operation,name,index});await saveSettings();
+                await verifyAssociationSettings(power,worldInfo);
+            }else{
+                if(operation==='detach'&&before.extensions?.world!==name)throw Error('The primary lorebook changed. Reopen the character.');
+                const world=operation==='connect'?name:'';
+                const embedded=world?safeObject(JSON.parse(JSON.stringify(book.originalData??convertWorldInfoToCharacterBook(name,book.entries??{})))):'__@@UNSET@@__';
+                // Replace only the embedded book, removing old book-only keys in one
+                // native atomic merge. Arrays are replaced by ST's deepMerge.
+                const replacement=(old,next)=>{
+                    const patch=structuredClone(next);
+                    for(const field of Object.keys(old??{}))if(!Object.hasOwn(next,field))patch[field]='__@@UNSET@@__';
+                    for(const [field,value]of Object.entries(next))if(value&&typeof value==='object'&&!Array.isArray(value))patch[field]=replacement(old?.[field],value);
+                    return patch;
+                };
+                await post('/api/characters/merge-attributes',{avatar:key,data:{extensions:{world},character_book:world?replacement(before.character_book,embedded):embedded}});
+                const actual=await read('characters',key),expected=structuredClone(before);expected.extensions={...expected.extensions,world};
+                if(world)expected.character_book=embedded;else delete expected.character_book;
+                if(!containsData(actual,expected)||(world&&!containsData(expected.character_book,actual.character_book))||(!world&&Object.hasOwn(actual,'character_book')))throw Error('Saved primary lorebook could not be verified. Reopen and inspect the card before another change.');
+                await getContext().getCharacters();
+            }
+        }else throw Error('Unknown character association action.');
+        return thisRead(key);
+    }
+    async function thisRead(key){return store.run({kind:'characters',action:'read',key});}
+    const store={async run(arg){
         const {action,kind,key}=arg;
+        if(kind==='characters'&&action==='lorebooks')return post('/api/worldinfo/list',{});
+        if(kind==='characters'&&action==='association')return changeAssociation(arg);
         if(kind==='characters'&&['export','duplicate','delete'].includes(action))return characterAction(arg);
         if(action==='list')return list(kind);
-        if(action==='read'){const draft=await read(kind,key);const result={draft,revision:JSON.stringify(draft)};if(kind==='characters'&&getAssociationState){try{result.associations=characterAssociations({key,card:draft,power:getContext().powerUserSettings,...getAssociationState(),fileName:characterFileName(key)});}catch(error){result.associationError=error.message;}}return result;}
+        if(action==='read'){const draft=await read(kind,key);const result={draft,revision:JSON.stringify(draft)};if(kind==='characters'&&getAssociationState){try{result.associationRevision=associationRevision(getContext().powerUserSettings,getAssociationState().worldInfo);result.associations=characterAssociations({key,card:draft,power:getContext().powerUserSettings,...getAssociationState(),fileName:characterFileName(key)});}catch(error){result.associationError=error.message;}}return result;}
         if(action==='write')return write(arg);
         if(action==='import'){
             if(kind==='characters')return {key:await importCharacter(arg.file),rows:await list(kind)};
@@ -137,5 +189,5 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
             }
         }
         throw Error('Unknown library operation.');
-    }};
+    }};return store;
 }

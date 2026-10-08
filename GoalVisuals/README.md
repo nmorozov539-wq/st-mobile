@@ -53,7 +53,7 @@ Agreed behavior:
 - Card export PNG/JSON, Duplicate and Delete live in the top overflow menu. Destructive actions need clear target confirmation.
 - Chat-specific character copies are a separate deferred discussion, not part of this approved design.
 
-Character content is implemented in the 0.7.2 subphase: Read/Edit, greetings, advanced fields and isolated Creator’s Notes. Native card actions are implemented in 0.7.3 using the approved inline overflow. Native association visibility is implemented in 0.7.4, preserving the single-line persona layout, multiple links, primary/additional order and unavailable saved names. Editing/removal controls and the updated chat selector remain upcoming integration subphases. The approved design remains the authority.
+Character content is implemented in the 0.7.2 subphase: Read/Edit, greetings, advanced fields and isolated Creator’s Notes. Native card actions are implemented in 0.7.3 using the approved inline overflow. Native association visibility is implemented in 0.7.4, preserving the single-line persona layout, multiple links, primary/additional order and unavailable saved names. Approved single-link persona editing/removal and actual lorebook Connect/Unattach controls are implemented in 0.7.5. The updated chat selector remains the next integration subphase. Multiple native persona management remains in ST and the two-line draft remains pending. The approved design remains the authority.
 
 ## Preset menu — approved design, 8 October 2026
 

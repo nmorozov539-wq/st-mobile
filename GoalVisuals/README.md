@@ -53,7 +53,7 @@ Agreed behavior:
 - Card export PNG/JSON, Duplicate and Delete live in the top overflow menu. Destructive actions need clear target confirmation.
 - Chat-specific character copies are a separate deferred discussion, not part of this approved design.
 
-Character content is implemented in the 0.7.2 subphase: Read/Edit, greetings, advanced fields and isolated Creator’s Notes. Association controls, card actions and the updated chat selector remain the next integration subphase. The approved design remains the authority.
+Character content is implemented in the 0.7.2 subphase: Read/Edit, greetings, advanced fields and isolated Creator’s Notes. Native card actions are implemented in 0.7.3 using the approved inline overflow. Association controls and the updated chat selector remain the next integration subphase. The approved design remains the authority.
 
 ## Preset menu — approved design, 8 October 2026
 

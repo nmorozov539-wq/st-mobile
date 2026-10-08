@@ -108,3 +108,10 @@ This coherent subphase covers Read/Edit and native content: portrait/name/tags, 
 Next Character subphase: native persona/lorebook associations and targeted detach, export/duplicate/delete, then the approved conversation selector and new-before-delete workflow. Existing Conversations destination remains available. The two-line persona draft remains pending; multiple native associations are not rewritten. The library’s overall redesign remains later work.
 
 Verified phase-3a evidence: 107 automated checks, 34 final shipped-launcher Character UI checks, 65 chat regression checks including restart/review, ZIP/repair validation and 520-file byte-identical updater preservation. Full conditions and device limits are recorded in tests/TEST_REPORT.md.
+
+
+## Character card actions — 0.7.3
+
+Approved inline overflow now exports native PNG/JSON, duplicates through ST’s helper and verifies the distinct saved copy, and deletes through a target-specific confirmation with explicit chat deletion (off by default). Native events remain owned by ST. Unknown card fields, portrait and embedded book are preserved through native copy/export; native export intentionally omits private favourite/current-chat fields. Unsaved drafts and stale revisions block actions. An unverified mutation is never retried automatically. Export is read-only during generation; duplication/deletion share its lock. Native welcome scaffolding can close before deletion, while actual unsaved temporary messages, edits or composer text block it visibly. Existing associations are untouched by this UI work; their explicit management and the conversation selector remain next. The two-line persona draft remains pending.
+
+Final 0.7.3 evidence: 112 automated tests, 29 native card-action UI checks, 34 Character content checks and 65 chat regressions pass. Final updater preserves 713 fixture data files byte-for-byte; ZIP/repair and matching-version checks pass. Phone checks remain outstanding. See tests/TEST_REPORT.md.

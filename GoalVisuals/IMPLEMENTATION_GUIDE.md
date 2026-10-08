@@ -55,3 +55,8 @@ The initial coding request authorized evaluation, complete reference review and 
 ## Character content rollout — 0.7.2
 
 The first Character subphase implements native content, greeting organization and safe notes previews through the existing verified card editor. Library entry defaults to Edit; chat entry remembers Read/Edit per card. Native links, lorebooks, card actions and new-chat/delete workflows require the next integration subphase. Do not treat the awaiting-approval two-line persona-link draft as accepted. Release numbering stays 0.7.*; storage schema remains independently versioned. Outstanding device checks are in PHONE_TEST_CHECKLIST.md.
+
+
+## Character card actions — 0.7.3
+
+Approved inline overflow now exports native PNG/JSON, duplicates through ST’s helper and verifies the distinct saved copy, and deletes through a target-specific confirmation with explicit chat deletion (off by default). Native events remain owned by ST. Unknown card fields, portrait and embedded book are preserved through native copy/export; native export intentionally omits private favourite/current-chat fields. Unsaved drafts and stale revisions block actions. An unverified mutation is never retried automatically. Export is read-only during generation; duplication/deletion share its lock. Native welcome scaffolding can close before deletion, while actual unsaved temporary messages, edits or composer text block it visibly. Existing associations are untouched by this UI work; their explicit management and the conversation selector remain next. The two-line persona draft remains pending.

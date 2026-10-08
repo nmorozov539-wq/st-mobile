@@ -1,6 +1,6 @@
 # Pocket Tavern phone test checklist
 
-All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, then further Character subphases. Release numbering does not change the saved-settings schema.
+All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, then further Character subphases. Release numbering does not change the saved-settings schema.
 
 Chat was reported working on the phone. Unchecked items below remain device checks, even when desktop/mock checks pass. Development may continue while phone testing is unavailable; commit each verified milestone. Use a spare/test conversation for destructive checks.
 
@@ -46,6 +46,18 @@ Chat was reported working on the phone. Unchecked items below remain device chec
 - [ ] Creator notes expand safely; formatting stays inside the notes preview.
 - [ ] Portrait, tags, unknown native fields and embedded lorebook survive editing.
 - [ ] Character drafts remain available during generation; saved writes require an idle engine.
+## Character actions — 0.7.3 onward
+
+- [ ] Open the inline overflow from a long scrolled card; it remains visible, and Back restores your reading position before leaving Character.
+- [ ] Export PNG and JSON on Android; confirm the download completes and can be re-imported by ST.
+- [ ] Duplicate a disposable card; its portrait, greetings, lorebook and unknown native fields survive without switching your chat.
+- [ ] Actions are blocked for an unsaved draft; cancelling the draft restores saved-card actions.
+- [ ] Delete a disposable card with the chat checkbox off; chat files remain, and the confirmation identifies the exact card filename.
+- [ ] Delete another disposable card with the chat checkbox on; only its chats are removed. Card deletion has no Undo.
+- [ ] Cancel the deletion confirmation; the card stays intact.
+- [ ] Export during generation; the generating target and request remain unchanged, while Duplicate/Delete are disabled.
+- [ ] An unsaved temporary conversation in native ST blocks deletion visibly and retains its text.
+
 ## Character integration — upcoming subphase
 
 - [ ] Persona associations preserve multiple links and native precedence; the two-line draft remains pending approval.

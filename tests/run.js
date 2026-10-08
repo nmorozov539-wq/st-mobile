@@ -24,3 +24,5 @@ import './chat-phase.test.js';
 import './preset-phase.test.js';
 
 import './character-phase.test.js';
+
+import './character-actions.test.js';

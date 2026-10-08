@@ -1,5 +1,5 @@
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.2';
-export function createAssetStore({getContext,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,fetch:fetcher=globalThis.fetch}) {
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.3';
+export function createAssetStore({getContext,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
         const multipart = body instanceof FormData;
@@ -79,8 +79,38 @@ export function createAssetStore({getContext,saveSettings,setUserName,getPresetM
         } else throw Error('Unknown library type.');
         return {key,rows:await list(kind)};
     }
+    async function characterAction({action,key,revision,format,deleteChats=false}) {
+        const before=await read('characters',key);assertUnchanged(before,revision);
+        if(action==='export'){
+            if(!['png','json'].includes(format))throw Error('Choose PNG or JSON export.');
+            const response=await fetcher('/api/characters/export',{method:'POST',headers:getContext().getRequestHeaders(),body:JSON.stringify({avatar_url:key,format}),cache:'no-store'});
+            if(!response.ok)throw Error(`ST could not export this card (${response.status}).`);
+            const file=await response.blob();if(!file.size)throw Error('ST returned an empty export.');
+            return {file,name:key.replace(/\.png$/i,'')+'.'+format};
+        }
+        if(action==='duplicate'){
+            if(!duplicateCharacter)throw Error('Native character duplication is unavailable.');
+            const copy=await duplicateCharacter({avatar:key,silent:true});
+            if(!copy||copy===key)throw Error('Character duplication could not be verified. Reopen the library before trying again.');
+            assertUnchanged(await read('characters',copy),JSON.stringify(before));
+            if(!(await list('characters')).some(row=>row.key===copy))throw Error('ST did not list the saved duplicate.');
+            return {key:copy};
+        }
+        if(action==='delete'){
+            if(typeof deleteChats!=='boolean')throw Error('Choose whether to delete chats explicitly.');
+            if(!deleteCharacter)throw Error('Native character deletion is unavailable.');
+            // Use ST’s helper: it closes native work and emits its extension events.
+            if(!await deleteCharacter(key,{deleteChats}))throw Error('ST did not complete character deletion.');
+            const cards=await post('/api/characters/all',{});
+            if(!Array.isArray(cards)||cards.some(card=>card.avatar===key))throw Error('Character deletion could not be verified. Refresh before trying again.');
+            if(deleteChats){const chats=await post('/api/characters/chats',{avatar_url:key,simple:true});if(!chats?.error&&(!Array.isArray(chats)||chats.length))throw Error('Chat deletion could not be verified.');}
+            await saveSettings();return {key,deleted:true,deleteChats};
+        }
+        throw Error('Unknown character action.');
+    }
     return {async run(arg){
         const {action,kind,key}=arg;
+        if(kind==='characters'&&['export','duplicate','delete'].includes(action))return characterAction(arg);
         if(action==='list')return list(kind);
         if(action==='read'){const draft=await read(kind,key);return {draft,revision:JSON.stringify(draft)};}
         if(action==='write')return write(arg);

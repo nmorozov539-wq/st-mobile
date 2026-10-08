@@ -59,3 +59,8 @@ For an authorized release, build a versioned ZIP and place it plus matching `rep
 ## Current rollout — Character content 0.7.2
 
 Chat has been confirmed working on the phone. Preset was renamed 0.7.1; Character content is 0.7.2. The user cannot currently test and has authorized continued development and commits at verified milestones. PHONE_TEST_CHECKLIST.md records outstanding device checks. Continue Character integration next, preserving native multi-associations and keeping the latest two-line persona-link draft pending approval. No Android framework migration or publication is authorized.
+
+
+## Character card actions — 0.7.3
+
+Approved inline overflow now exports native PNG/JSON, duplicates through ST’s helper and verifies the distinct saved copy, and deletes through a target-specific confirmation with explicit chat deletion (off by default). Native events remain owned by ST. Unknown card fields, portrait and embedded book are preserved through native copy/export; native export intentionally omits private favourite/current-chat fields. Unsaved drafts and stale revisions block actions. An unverified mutation is never retried automatically. Export is read-only during generation; duplication/deletion share its lock. Native welcome scaffolding can close before deletion, while actual unsaved temporary messages, edits or composer text block it visibly. Existing associations are untouched by this UI work; their explicit management and the conversation selector remain next. The two-line persona draft remains pending.

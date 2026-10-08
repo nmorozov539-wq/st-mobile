@@ -65,3 +65,8 @@ Deferred Summaryception work keeps the engine occupied while it waits for the re
 ### Character content milestone 0.7.2
 
 `character-editor.js`, `character-data.js` and `character.css` extend the existing native card authoring path. Unknown data and optimistic native revision guards stay intact. View mode uses a separate per-avatar local preference and never changes ST character settings. Greeting edits affect only the draft; Save uses the existing verified native write. Read/Edit and JSON changes retain draft content. Creator notes are sanitized into an inert template before opaque-origin sandbox rendering with a no-network CSP; raw notes remain unmodified. Read/draft controls remain usable while generation runs, but Save/import remain gated. Association/card/conversation integration remains the next subphase.
+
+
+## Character card actions — 0.7.3
+
+Approved inline overflow now exports native PNG/JSON, duplicates through ST’s helper and verifies the distinct saved copy, and deletes through a target-specific confirmation with explicit chat deletion (off by default). Native events remain owned by ST. Unknown card fields, portrait and embedded book are preserved through native copy/export; native export intentionally omits private favourite/current-chat fields. Unsaved drafts and stale revisions block actions. An unverified mutation is never retried automatically. Export is read-only during generation; duplication/deletion share its lock. Native welcome scaffolding can close before deletion, while actual unsaved temporary messages, edits or composer text block it visibly. Existing associations are untouched by this UI work; their explicit management and the conversation selector remain next. The two-line persona draft remains pending.

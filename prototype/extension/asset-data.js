@@ -39,3 +39,11 @@ export function validatePreset(value) {
     if(!data.prompts && !Object.keys(data).some(k=>['temperature','openai_max_tokens','chat_completion_source'].includes(k)))throw Error('This does not look like an ST chat-completion preset.');
     return data;
 }
+
+// Native welcome messages are UI scaffolding; temporary conversations are data.
+export function canCloseEmptyCharacterView(ctx,{welcomeMessageType,composerText=''}={}) {
+    if(ctx.characterId!==undefined||ctx.groupId)return false;
+    const changed=ctx.chatMetadata?.tainted||composerText.trim()||ctx.chat.some(message=>message.is_user||!message.is_system&&!(welcomeMessageType&&message.extra?.type===welcomeMessageType));
+    if(changed)throw Error('ST has an unsaved temporary conversation. Save or close it in the native interface before deleting a character.');
+    return true;
+}

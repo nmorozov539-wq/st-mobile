@@ -1,5 +1,5 @@
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.6.2';
-export function createLibrary({rpc,action,refresh,locked}) {
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.1';
+export function createLibrary({rpc,action,refresh,locked,onEditor=()=>{}}) {
     const $=id=>document.getElementById(id);
     let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001;
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
@@ -57,7 +57,7 @@ export function createLibrary({rpc,action,refresh,locked}) {
         $('asset-portrait-label').hidden=kind==='presets';syncJSON();
     }
     async function load(){rows=await rpc('assets',{action:'list',kind});$('asset-list').replaceChildren(...rows.map(row=>{const b=node('button',row.name);b.onclick=()=>run(async()=>{key=row.key;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=kind==='presets'?{name:key,preset:result.draft}:result.draft;openEditor();});return b;}));}
-    function openEditor(){orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
+    function openEditor(){orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
     async function run(fn){if(locked())return;await action(async()=>{try{await fn();}catch(e){$('library-error').textContent=e.message;$('asset-error').textContent=e.message;throw e;}});}
     $('library-button').onclick=()=>run(async()=>{await load();$('library-error').textContent='';$('library-panel').showModal();});
     $('close-library').onclick=()=>$('library-panel').close();$('close-asset').onclick=()=>$('asset-editor').close();
@@ -84,5 +84,5 @@ export function createLibrary({rpc,action,refresh,locked}) {
     async function openPreset(){await run(async()=>{kind='presets';$('library-kind').value=kind;const config=await rpc('settings');key=config.selected.preset;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft={name:key,preset:result.draft};$('settings-panel').close();openEditor();});}
     $('edit-active-preset').onclick=openPreset;
     $('active-preset').onclick=openPreset;
-    return {openPreset,async open(value){kind=value;$('library-kind').value=value;await load();$('library-panel').showModal();},async edit(value){key=value;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=result.draft;openEditor();},setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
+    return {openPreset,async open(value){kind=value;$('library-kind').value=value;await load();$('library-panel').showModal();},async edit(value){key=value;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=result.draft;openEditor();},setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset','character-chats'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
 }

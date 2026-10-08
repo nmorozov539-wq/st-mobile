@@ -21,7 +21,7 @@ The character menu's new two-line Chat/Character persona association draft is **
 | Models | Model picker | Fixed information above scrolling list; immediate choice; independent scope |
 | Character | Character menu | Read/Edit, greetings, notes, lorebooks, current-chat switcher/actions |
 | Persona associations | Character persona links | Pending two-link draft; unlink with target confirmation |
-| Presets | Preset editor | Scope, preset, collapsed generation parameters, uninterrupted entries |
+| Presets | Preset editor | Implemented in 0.7.1: scope, preset memory, collapsed generation parameters, uninterrupted entries |
 | Persona selection | Persona picker | Blue selected row; explicit link targets; shared editor |
 | Memory | Memory | Global full Summaryception configuration; chat-owned memories |
 | Chats | Chats | Recent-first list; New always fresh; exact resume |
@@ -49,4 +49,4 @@ Native supported fields and metadata must survive even when a mock editor omits 
 - Proxy toggle eventually starts/stops the process and switches remembered endpoints safely. It requires launcher/bridge changes. Connection tests explicitly identify the global model.
 - Full Summaryception functionality is the intended future target; current bridge limitations are integration gaps. Preserve native import/cancellation/skip semantics.
 
-Implementation remains on hold until explicitly authorized. Review the entire set for consistency before starting changes.
+The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character awaits review of this phase. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.

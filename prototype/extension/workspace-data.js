@@ -42,10 +42,34 @@ export function alterHistory(before, change) {
     value.metadata.tainted=true;return value;
 }
 export function effectiveScope(global,character,chat) {
-    if(chat?.enabled&&chat.copy)return {scope:'chat',copy:clone(chat.copy)};
-    if(character?.enabled&&character.copy)return {scope:'character',copy:clone(character.copy)};
-    return {scope:'global',copy:clone(global)};
+    const preset=chat?.enabled&&chat.copy?{scope:'chat',copy:clone(chat.copy)}:
+        character?.enabled&&character.copy?{scope:'character',copy:clone(character.copy)}:{scope:'global',copy:clone(global)};
+    const model=effectiveModel(global,character,chat);
+    preset.copy.model=model.value;
+    return {...preset,modelScope:model.scope};
+}
+// Additive v2 migration: freeze the legacy model choice independently of the
+// preset enabled flag. Disabled copies and all foreign fields remain intact.
+export function withModelSelection(record) {
+    if(!record)return record;
+    const value=clone(record);
+    value.modelSelection??={enabled:!!value.enabled&&!!value.copy?.model,value:value.copy?.model??null};
+    return value;
+}
+export function effectiveModel(global,character,chat) {
+    for(const [scope,record] of [['chat',chat],['character',character]]) {
+        const selection=withModelSelection(record)?.modelSelection;
+        if(selection?.enabled&&selection.value)return {scope,value:selection.value};
+    }
+    return {scope:'global',value:global.model};
+}
+export function settingsGuard(value) {
+    const guard=typeof value==='string'?JSON.parse(value):clone(value);
+    if(guard.char)guard.char=withModelSelection(guard.char);
+    if(guard.chat)guard.chat=withModelSelection(guard.chat);
+    return revision(guard);
 }
 export function switchScope(record,enabled,current) {
-    return { ...(record??{}),enabled,copy:clone(record?.copy??current)};
+    const retained=withModelSelection(record)??{modelSelection:{enabled:false,value:current.model??null}};
+    return { ...retained,enabled,copy:clone(record?.copy??current)};
 }

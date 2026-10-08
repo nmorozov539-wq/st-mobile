@@ -19,3 +19,6 @@ import './preset-order.test.js';
 import "./workspace.test.js";
 import './alternative.test.js';
 import './engine-monitor.test.js';
+import './chat-phase.test.js';
+
+import './preset-phase.test.js';

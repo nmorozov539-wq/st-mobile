@@ -1,19 +1,19 @@
-# Pocket Tavern combined prototype v0.6.2
+# Pocket Tavern combined prototype v0.7.1
 
 ## Update your existing phone installation
 
-Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.6.2.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
+Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.7.1.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
 
 ```sh
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.6.2**.
+This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.7.1**.
 
 For manual updating from the complete extracted kit:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.6.2
+cd ~/storage/downloads/pocket-tavern-combined-v0.7.1
 node update-test.cjs ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs --proxy
@@ -26,7 +26,7 @@ Use plain `node start.cjs` if you do not use the bundled proxy. An isolated mock
 The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.6.2
+cd ~/storage/downloads/pocket-tavern-combined-v0.7.1
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -48,25 +48,33 @@ Choose Custom, endpoint **http://127.0.0.1:8001/api/v1**, save your key in ST's 
 
 Connect loads model availability; Test message sends a tiny provider request without adding to a chat. Keys stay in ST and never enter Pocket's pending-change journal. A provider may charge for generation/test requests.
 
-## What to test in 0.6.2
+## What to test in 0.7.1
 
-This update slows long-press to one second and restricts auto-follow to the actual bottom (one CSS pixel of rounding tolerance). Earlier generation/reconnect repairs are retained. Deleting the last assistant reply leaves your user message in place; nothing is generated automatically, and a following Send continues normally.
+The approved chat and preset phases are implemented. Other libraries/editors keep their current layouts. No Android framework or APK migration is included.
 
-- Home/Chats/Characters/Personas/WI navigation; tapping Home again continues the last visited chat. Back returns to the entry screen.
-- Model picker and preset entry switches. Global/Character/Chat copies stay independent; Reset copies Global without disabling the override. Preset and model choices do not change each other.
-- While a reply runs, browse another chat and type a draft. Only one generation is allowed. Commit sampler edits and check Pending → Applied after generation/save/Memory finish. Drafts are never sent automatically.
-- Message edit/delete/multi-delete/fork. Swipe alternatives loops existing replies; New reply is explicit. Swipe a chat row to reveal Delete, or use its ellipsis. Delete has 12-second Undo.
-- Read-only Memory layers, global pause and frequency. Changing summarized history keeps the written memory but marks it invalid and stops its injection/automatic summaries. Undo restores the matching memory/history.
-- Sanitized HTML colours/details, thinking expansion, scrolling older messages and Jump to latest.
+- Open Preset from gear. Switch scope tabs and return: browsing should not change settings. Choose/edit a preset to apply it at that scope; a stronger chat override is explained. Try explicit inheritance and verify model choice stays the same.
+- Adjust preset A, select B and adjust it, then return to A. Both should remember their settings after reload. Expand Generation parameters and More generation parameters for native settings; Reset to Global identifies the target and keeps other remembered presets.
+- Toggle an entry, then edit its name/text/role. Try placement/depth/order and generation triggers. Main/Post-history prompts expose character-override protection; built-in entries explain their native source. Cancel should discard the draft; Save should persist it without changing the original native preset file.
+- While a reply streams, change presets/parameters and browse another chat. Changes should show Pending, then apply after Stop/completion. The running reply must keep its captured settings and target; nothing should be resent.
+- Read an existing chat: check the static background, nearly full-width text, character header and chat-name subtitle. A character with only one chat should have no subtitle.
+- Tap gear and try Preset, Persona and Memory. Hold an icon for its explanation. Check menus near both ends of the screen and use Android Back/outside taps to dismiss them.
+- Open the model panel, expand it and scroll its list. Scope/target/effective information should stay visible. Selection saves immediately. Model scope and preset scope are independent. Existing choices are retained, including unavailable saved models; no automatic substitute is made.
+- Send immediately after opening a chat. Stop a reply while text arrives. While another reply runs, browse another chat, type an unsent draft and choose a model at Chat/Character/Global scope. Pending changes should apply after settlement; the generating target and request must stay unchanged.
+- Saved-alternative arrows loop without a new request. A deliberate leftward swipe beyond the final saved alternative generates another. The final eligible message's ellipsis also offers Another reply. Native text selection should work without opening a menu.
+- Try inline Edit/Save/Cancel, Copy, targeted Delete/Undo, Select messages/multi-delete/Undo and Fork. Fork must keep the original conversation. Generation duration should appear only where ST saved real timestamps.
+- Editing summarized history should retain written Memory, show that rebuilding is needed and prevent stale injection. Undo restores matching history and Memory. Full Memory redesign/rebuild tools remain later work.
+- Check the actual Android keyboard, text selection handles, clipboard, Back, edge gestures and scrolling. Rotate or resize where supported. Stop/restart the launcher during a reply, then Reconnect and Review saved work. Nothing should be resent automatically; inspect saved history before sending again.
 
-This is a browser/Termux skeleton. World Info editing links to native ST; the library reuses the existing field editors. Connection/persona/library writes require an idle engine. No APK, groups, archive, profiles, general extension UI or Memory rebuild editor yet. Native ST remains available for advanced controls. Phone gestures, keyboard resizing, very long chats, battery behavior and background lifetime need device testing.
+Desktop browser checks cover reduced viewports and touch input, but cannot establish Android keyboard/inset, gesture, clipboard or background-lifetime guarantees. Clearing browser storage loses local drafts/pending work/Undo. World Info editing still links to native ST; the existing library and persona editors require an idle engine. General extension UI, groups, archives, profiles, full Memory functionality and proxy control in the UI remain intended later work. The optional proxy continues to run through the launcher.
+
+Phone testing is deferred at the user’s request. Keep the outstanding checks in the project’s PHONE_TEST_CHECKLIST.md. The latest two-line persona-link draft remains awaiting approval.
 
 ## Isolated mock installation
 
 Use a different fresh folder so mock testing cannot touch real-provider data:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.6.2
+cd ~/storage/downloads/pocket-tavern-combined-v0.7.1
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock

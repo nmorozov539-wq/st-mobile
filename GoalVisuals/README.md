@@ -2,6 +2,8 @@
 
 Visual references for the intended Pocket Tavern Android app. The current web build is a proof of concept for its UI, ST integration and safeguards. These are mockups, not implemented application screens; Android packaging/framework decisions remain a separate future phase.
 
+Implementation status, 8 October 2026: the authorized 0.7.0 chat phase follows these references; other screens remain later phases. Historical “on hold” notes below record design-only approval at the time. The two-line persona-link draft still awaits approval. See [review and rollout](../IMPLEMENTATION_REVIEW.md).
+
 ## Coding-session entry point
 
 Open [interactive-design-reference.html](interactive-design-reference.html) for the single offline collection of all 24 previews. Read [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) for current screen mapping, approval status and integration requirements. The latest character Chat/Character persona-link draft is included but awaits approval. Earlier experiments are archived separately in the viewer. This reference does not authorize application implementation.
@@ -55,7 +57,7 @@ This approval is for the design and saving its reference pictures. App implement
 
 ## Preset menu — approved design, 8 October 2026
 
-Approved reference: `pocket-preset-menu.html` in the thread visualization directory. Application implementation remains on hold. Sample names, parameter values and entry contents are illustrative, not real user presets. Generation controls shown are a layout sample, not an exhaustive supported-field list.
+Approved reference: `pocket-preset-menu.html` in the thread visualization directory. Implemented in the authorized 0.7.1 preset phase after the user confirmed chat on the phone. Sample names, parameter values and entry contents are illustrative, not real user presets. Generation controls shown are a layout sample, not an exhaustive supported-field list.
 
 | Picture | State |
 | --- | --- |

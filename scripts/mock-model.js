@@ -9,7 +9,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && req.url === '/v1/models') {
         res.setHeader('Content-Type', 'application/json');
-        return res.end(JSON.stringify({ object: 'list', data: [{ id: 'st-mobile-mock', object: 'model', owned_by: 'local-test' }] }));
+        return res.end(JSON.stringify({ object: 'list', data: ['st-mobile-mock','st-mobile-mock-alt',...(process.argv.includes('--many-models')?Array.from({length:48},(_,i)=>`st-mobile-mock-${i+1}`):[])].map(id=>({id,object:'model',owned_by:'local-test'})) }));
     }
     if (req.method !== 'POST' || req.url !== '/v1/chat/completions') { res.writeHead(404); return res.end(); }
     let body = '';

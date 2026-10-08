@@ -1,6 +1,6 @@
 # Pocket Tavern design handoff
 
-Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.6.2; 0.6.1 is user-confirmed working and playable on Android.
+Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.7.1 preset phase; 0.7.0 chat is user-confirmed working on Android.
 
 ## Start here
 
@@ -11,7 +11,7 @@ Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 
 5. `prototype/IMPLEMENTATION.md` — implemented storage, operations and deliberate limits, not a specification of the new design.
 6. `tests/TEST_REPORT.md` — current validation evidence and device limitations.
 
-`GoalVisuals/CODING_PROMPT.md` contains the suggested first implementation-session prompt. Saving that prompt does not start implementation in this session. The latest two-line character persona-link draft awaits explicit approval. Other approved screens are future design targets; no broad rewrite is authorized by this handoff alone.
+`GoalVisuals/CODING_PROMPT.md` contains the suggested first implementation-session prompt. The initial coding request authorized chat; after phone confirmation, the user authorized continuing the roadmap with Preset. Evaluation and the complete reference review preceded implementation. See `IMPLEMENTATION_REVIEW.md` for the evidence and phased roadmap. The latest two-line character persona-link draft awaits explicit approval. Other approved screens are future design targets; no broad rewrite is authorized by this handoff alone.
 
 ## Product and architecture
 
@@ -43,13 +43,13 @@ Five tabs remain WI, Characters, Home in the center, Chats, Personas; hidden ins
 - Persist and verify history mutations; preserve conflict protection, deletion Undo, original-preserving forks and Memory invalidation/restoration together with history.
 - Retain no-op Memory ownership fixes, Stop settlement, in-place saved-alternative synchronization and initiating-iframe reconnect health checks. Test real click flows without artificial idle waits that hide races.
 - Keep sanitized HTML/font colours/details and collapsed Thinking with inherited expansion behavior. Preserve reading position, streaming batching and bounded long-message/list rendering.
-- Existing model/preset storage does not yet implement every new scoped-preset requirement. Plan compatibility and migration; preserve unknown native fields and existing settings.
+- Version-3 settings retain independent model/preset scope and remember per-named-preset adjustments. Migration is additive and tested; preserve unknown native fields and existing settings.
 
 ## Validation and delivery
 
 Recorded baseline: 94 automated tests; 28 native ST/mock assertions for the 0.6.1 repairs; 0.6.2 adds interaction-boundary coverage. These are prior results, not evidence that future edits pass. Run checks appropriate to actual changes and update `tests/TEST_REPORT.md`. Android gesture/keyboard/background comfort still requires device feedback.
 
-For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
+For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.7.1, phone-confirmed 0.7.0, previous 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
 
 ## Archives
 

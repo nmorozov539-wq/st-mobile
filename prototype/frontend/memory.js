@@ -1,8 +1,8 @@
-export function createMemoryPanel({rpc,action,connected,onBusy,refresh,locked}) {
+export function createMemoryPanel({rpc,action,connected,onBusy,onState=()=>{},refresh,locked}) {
  const $=id=>document.getElementById(id);let current,loaded=false,wasBusy=false;
  const request=arg=>rpc('extensions',{id:'summaryception',...arg},180000);
  function render(value,edit=false){
-  current=value;
+  current=value;onState(value);
   $('memory-state').textContent=value.needsRebuild?'Memory needs rebuilding after history changes':value.failure || (value.busy?'Summaryception is working…':`Summaryception ${value.version} · ${value.settings.connectionSource} connection`);
   $('memory-preview').textContent=(value.memory.layers??[]).map((layer,i)=>`Layer ${i}\n${layer.map(s=>s.text).join('\n')}`).join('\n\n')||'No summaries in this conversation yet.';
   $('memory-backlog').hidden=!value.backlog;

@@ -19,3 +19,6 @@ __pycache__/
 .aws/
 .codex/
 .DS_Store
+
+# Local historical inputs and archives (not current design references)
+/history/

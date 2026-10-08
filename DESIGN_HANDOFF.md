@@ -1,39 +1,52 @@
-# Pocket Tavern: handoff for visual and UX refinement
+# Pocket Tavern design handoff
 
-Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`.
+Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.6.2; 0.6.1 is user-confirmed working and playable on Android.
 
-## What the user wants next
+## Start here
 
-The user confirms 0.6.1 works on Android and is playable. The interface still looks raw and is not convenient. Treat functional stability as the baseline, not proof of design quality. Refine one area at a time, discussing concrete choices in small blocks before implementation. A fresh chat is preferred for visual design and context clarity. Start with the chat screen, the most-used surface; agree on a visual direction before changing other screens. Do not do another broad redesign or invent library systems.
+1. `README.md` — current product, release and development entry points.
+2. `GoalVisuals/IMPLEMENTATION_GUIDE.md` — screen map, approval status and integration boundaries.
+3. `GoalVisuals/README.md` — current approved visual and behavioral decisions.
+4. `GoalVisuals/interactive-design-reference.html` — all 24 interactive previews in one offline file; current designs first, older experiments separate.
+5. `prototype/IMPLEMENTATION.md` — implemented storage, operations and deliberate limits, not a specification of the new design.
+6. `tests/TEST_REPORT.md` — current validation evidence and device limitations.
 
-0.6.2 addresses the immediate complaints: message long-press is now one second with cancelled/abandoned press cleanup; auto-follow engages only at the real bottom, with one CSS pixel of fractional rounding tolerance. Phone comfort still needs feedback. Root ZIP and repair script are ready; ordinary phone data remains unchanged by updating.
+`GoalVisuals/CODING_PROMPT.md` contains the suggested first implementation-session prompt. Saving that prompt does not start implementation in this session. The latest two-line character persona-link draft awaits explicit approval. Other approved screens are future design targets; no broad rewrite is authorized by this handoff alone.
 
-## Product and data
+## Product and architecture
 
-Pocket Tavern is a mobile browser frontend for ST 1.19.0, served alongside native ST by one Termux launcher. No Android APK yet. It runs a hidden native ST iframe as the engine bridge; ST owns standard `data/default-user` storage, secrets, generation, characters, personas, presets and Summaryception memory. Do not change the original `/home/Riv/SillyTavern` installation or personal data. Development uses an isolated mock fixture, historically `/tmp/pocket-combined-engine`, ports 8123/8124. Check whether it is running rather than assuming temporary files survived.
+Pocket is a mobile browser frontend for SillyTavern 1.19.0 running in Termux, with an eventual app goal. It uses a hidden native ST iframe/bridge; ST owns normal data, provider secrets, generation, characters, personas, presets and Summaryception. Preserve this ownership rather than creating another engine or parallel content store.
 
-Frontend: plain JavaScript modules, HTML and CSS in `prototype/frontend`. Native bridge: `prototype/extension`. Phone tools: `phone-package`; builder: `scripts/build-phone-package.py`. Patched Summaryception is vendored in `vendor/Extension-Summaryception` (AGPL). Read README, UI_OVERHAUL and TEST_REPORT before implementation.
+- Frontend: `prototype/frontend`, plain JavaScript modules and CSS.
+- Native bridge: `prototype/extension`.
+- Phone tools: `phone-package`; package builder: `scripts/build-phone-package.py`.
+- Adapted Summaryception: `vendor/Extension-Summaryception`, with its license and coordination safeguards.
+- Isolated native/mock fixture was `/tmp/pocket-combined-engine`, ports 8123/8124; check availability rather than assuming it survived.
+- Original `/home/Riv/SillyTavern` installation and personal data must remain untouched. No real provider keys or paid calls are required for development.
 
-## Agreements to preserve
+## Current design direction
 
-- Five tabs: WI, Characters, Home in the middle, Chats, Personas. Hidden inside chat. Home shows connection/model/preset, Continue and recent chats. Tapping Home while already there continues the last chat; discoverability work is deferred.
-- Chat: slim header, character fields accessible through avatar/name, model/preset subtitle, settings. Model chip beside composer; model selection applies without Save. Send becomes Stop during generation.
-- Global, optional character copy, optional chat copy; Chat > Character > Global. Turning an override off retains its copy. Reset copies Global without disabling it. Model and preset remain independent; connection credentials/source/endpoint stay global. One shared preset component with visible entry toggles, closed entry contents and a full-screen text editor.
-- Browse other saved chats and draft while one generation stays bound to its original target. One generation at a time. Committed settings/history changes may queue durably; drafts never auto-send. After restart, review uncertain saved work; never replay a paid request automatically.
-- Existing alternatives loop. New reply is an explicit paid action. Gestures are shortcuts with visible buttons, and Android edges are reserved for system Back. Message menu supports edit/copy/delete/multi-select/fork. Chat swipe reveals Delete; no archive yet. Deletion has short Undo.
-- Restrained distinction for user messages; mostly full-width messages. Thinking initially collapsed; a new reply inherits the preceding assistant reply's expansion choice. Sanitized HTML/font colours/details are supported.
-- Summaryception enable/pause/frequency is global. Written memories are read-only in this scope. Changed summarized history retains memory but disables stale injection/automatic work; Undo restores history and memory together. No automatic paid rebuild.
-- WI/character/persona editors are interim native-compatible placeholders. General extension support is a later goal. Groups, archives, connection profiles, marketplace and APK migration are out of scope.
-- Judge performance against comfortable use on a real phone. Streaming batches per animation frame; long lists/messages use rendering windows. Do not introduce fade-in effects or jump scrolling.
+Quiet nearly full-width reading; dark charcoal and broad soft static blue-violet gradient. Simple composer with model picker and Send/Stop. Header subtitle is the chat name only when the character has multiple chats. Name/avatar opens character content; gear opens the curved Preset/Persona/Memory fan. Message corner ellipsis opens the tighter curved action fan; preserve native text selection.
 
-## Stability lessons
+Normal swiping past the final saved alternative deliberately generates another reply. Remove the permanent New reply control but retain an accessible deliberate generation action. The expandable model panel selects immediately, keeps effective model/scope information above its scrolling list, and separates model scope from preset scope.
 
-0.6.0's native harness inserted idle waits and missed the real first-click activation/send race. 0.6.1 fixed no-op Memory reservations, explicit alternative generation independent of ST's overswipe setting, in-place alternative updates and stale reconnect responses. Preserve these boundaries and test actual UI flows, not only isolated calls.
+Five tabs remain WI, Characters, Home in the center, Chats, Personas; hidden inside chat. App Settings belongs on Home only. Current previews describe separate screens and sample states, not a fully wired app or complete native-field schemas. See the design index for exact behavior, approvals and deferred features.
 
-Validation baseline: 94 automated tests pass. 28 real native ST/mock assertions passed for 0.6.1, plus browser checks of Send, New reply, arrows, horizontal drag, deletion leaving a user last, and shutdown → Reconnect → Review → Send. 0.6.2 updates bottom-follow regression boundaries. Android touch/keyboard/appearance validation remains user feedback, not something PC tests establish.
+## Safeguards that survive visual refinement
 
-## Useful references and workflow
+- One generation remains bound to its original target while the user browses/drafts elsewhere. Drafts never auto-send; state changes must not mutate a captured request.
+- Preserve durable pending changes, visible saving/error/pending/recovery states and explicit restart review. Never automatically replay generation or rebuild Memory with paid calls.
+- Persist and verify history mutations; preserve conflict protection, deletion Undo, original-preserving forks and Memory invalidation/restoration together with history.
+- Retain no-op Memory ownership fixes, Stop settlement, in-place saved-alternative synchronization and initiating-iframe reconnect health checks. Test real click flows without artificial idle waits that hide races.
+- Keep sanitized HTML/font colours/details and collapsed Thinking with inherited expansion behavior. Preserve reading position, streaming batching and bounded long-message/list rendering.
+- Existing model/preset storage does not yet implement every new scoped-preset requirement. Plan compatibility and migration; preserve unknown native fields and existing settings.
 
-`demo.zip` is the user's draft visualization, not final styling. `UI_OVERHAUL.md` records behavior/storage/limits. `FOUNDATION_REVIEW.md` records the source investigation. User screenshots and `or-proxy/` are user-provided, untracked files; preserve them.
+## Validation and delivery
 
-Run `npm test` for relevant regression coverage. Build a complete versioned ZIP, copy it to the project root and provide its matching root `repair-pocket.cjs`. Keep frontend/bridge stamps and imports consistent. Phone update: stop the launcher, place ZIP + script in Downloads, run `node ~/storage/downloads/repair-pocket.cjs`, reload and check both versions. Back up/preserve ST data. No paid model calls or keys are needed for mock testing.
+Recorded baseline: 94 automated tests; 28 native ST/mock assertions for the 0.6.1 repairs; 0.6.2 adds interaction-boundary coverage. These are prior results, not evidence that future edits pass. Run checks appropriate to actual changes and update `tests/TEST_REPORT.md`. Android gesture/keyboard/background comfort still requires device feedback.
+
+For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
+
+## Archives
+
+`history/` is a local ignored archive of older plans, investigations, reports, screenshots and the user's early `demo.zip`. Previously tracked material remains recoverable from Git history. User-provided proxy files in `or-proxy/` remain local and untracked; preserve them. Current approved references in `GoalVisuals/` are tracked, separate from historical inputs.

@@ -26,11 +26,11 @@ Browsing and drafting in another chat does not switch the generating ST chat. On
 
 Summaryception has global pause/frequency controls and read-only written memories. Changed summarized history stops stale memory injection and automatic summary work for that chat while retaining the written summaries. Undo restores history and memory together. Sanitized HTML/font colours/collapsible blocks and reasoning remain supported. Messages and large lists render nearby content with a buffer; streaming is batched per animation frame.
 
-Details, storage locations, recovery behavior and deliberate limits: [UI_OVERHAUL.md](UI_OVERHAUL.md). Foundation investigation: [FOUNDATION_REVIEW.md](FOUNDATION_REVIEW.md).
+Details, storage locations, recovery behavior and deliberate limits: [implementation notes](prototype/IMPLEMENTATION.md).
 
 ## Validation and preview
 
-`npm test`: **94 automated tests**. **28 native ST/mock assertions** plus real-interface checks cover scope persistence, fork preservation, deletion/Undo, Memory validity, generation ownership, Stop/save/readback and cross-chat browsing. Manual UI checks verify a separate draft and two queued sampler changes remain on their originating chat. Results and device limits: [TEST_REPORT.md](TEST_REPORT.md).
+`npm test`: **94 automated tests**. **28 native ST/mock assertions** plus real-interface checks cover scope persistence, fork preservation, deletion/Undo, Memory validity, generation ownership, Stop/save/readback and cross-chat browsing. Manual UI checks verify a separate draft and two queued sampler changes remain on their originating chat. Results and device limits: [test report](tests/TEST_REPORT.md).
 
 PC mock preview: **http://127.0.0.1:8123/st-mobile/**, fixture `/tmp/pocket-combined-engine`. Temporary fixtures may disappear after reboot. Restart its launcher with `node start.cjs --mock`. Original ST code/personal data were not changed; no real keys or paid model calls were used in development.
 
@@ -44,4 +44,8 @@ Prepared-engine compatibility patches retain CSRF/path checks: explicit tokenize
 
 The user previously confirmed real OpenRouter streaming inside Pocket on Android with the optional proxy. The new 0.6.2 interface still needs real-phone comfort testing. Android packaging/background guarantees, general extension support, groups, archives, profiles, full native library UI parity and Memory rebuilding are deferred. World Info editing currently links to native ST. Library authoring/persona/connection mutations require an idle engine. Recent chats are capped at 1,000 rows and list heights are estimated.
 
-Original design references: [concept](SillyTavern_Mobile_Frontend_Concept_v0.1.md), [architecture](Working_Architecture_v0.2.md), [source audit](ST_Source_Audit.md). Historical test packages stay local and are ignored by Git.
+Historical plans, source investigations, reports, screenshots and the early demo are kept locally in ignored `history/`; previously committed material is also recoverable from Git. Current design references remain tracked in `GoalVisuals/`. Generated packages are ignored; the current 0.6.2 package and confirmed-working 0.6.1 fallback remain in the root.
+
+## Design reference
+
+The current design discussion is separate from the implemented build. Open [interactive design reference](GoalVisuals/interactive-design-reference.html) and read [implementation guide](GoalVisuals/IMPLEMENTATION_GUIDE.md) plus [approved decisions](GoalVisuals/README.md) before coding. Implementation remains on hold.

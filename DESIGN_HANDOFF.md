@@ -15,7 +15,11 @@ Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 
 
 ## Product and architecture
 
-Pocket is a mobile browser frontend for SillyTavern 1.19.0 running in Termux, with an eventual app goal. It uses a hidden native ST iframe/bridge; ST owns normal data, provider secrets, generation, characters, personas, presets and Summaryception. Preserve this ownership rather than creating another engine or parallel content store.
+The product goal is an Android app for SillyTavern 1.19.0 running locally through Termux. The current browser build is a proof of concept for the app UI, ST integration and safeguards. Browser delivery is the current testing mechanism, not the final product direction. An APK, app framework and lifecycle integration are not implemented or selected yet.
+
+Design for Android app use: touch targets, keyboard behavior, system Back, icon explanations and continuity through interruptions. Preserve the agreed visuals and behavior when packaging changes. Browser-specific constraints are prototype limitations to evaluate, not permanent product requirements. This does not authorize APK development or selecting a new framework in the chat-refinement phase.
+
+The proof of concept currently uses a hidden native ST iframe/bridge; ST owns normal data, provider secrets, generation, characters, personas, presets and Summaryception. Preserve this ownership. The hidden iframe is the current implementation mechanism, not an already-decided final Android architecture.
 
 - Frontend: `prototype/frontend`, plain JavaScript modules and CSS.
 - Native bridge: `prototype/extension`.

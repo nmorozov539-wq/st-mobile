@@ -1,6 +1,6 @@
 # Pocket Tavern goal visuals
 
-Visual references from the design discussion. These are mockups, not implemented application screens.
+Visual references for the intended Pocket Tavern Android app. The current web build is a proof of concept for its UI, ST integration and safeguards. These are mockups, not implemented application screens; Android packaging/framework decisions remain a separate future phase.
 
 ## Coding-session entry point
 

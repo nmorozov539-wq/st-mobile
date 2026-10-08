@@ -2,6 +2,10 @@
 
 Start with `interactive-design-reference.html` in this folder. It is one self-contained offline file containing all 24 interactive previews, with bundled Lucide icons. Open it in a browser; select a screen in the sidebar. Earlier experiments are under a separate archive. Width controls and Reset belong to the reference viewer, not Pocket Tavern.
 
+## Product direction
+
+Pocket Tavern is intended as an Android app. The current browser build is a proof of concept for its interface, SillyTavern integration and safeguards. These references describe the intended app experience. Prototype browser limitations do not define the final product; Android packaging/framework/lifecycle work is a separate future phase, not part of the current chat refinement.
+
 ## Authority and approval
 
 This is a design reference, not a working frontend or permission to implement. Read `README.md` here for behavior, then project `DESIGN_HANDOFF.md`, `README.md`, `prototype/IMPLEMENTATION.md`, and `tests/TEST_REPORT.md` before coding. Later explicitly approved decisions supersede earlier experiments and stale “pending” notes. Preview clicks and sample values do not change approved defaults.

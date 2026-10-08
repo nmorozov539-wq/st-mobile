@@ -1,6 +1,8 @@
 # Pocket Tavern — v0.6.2
 
-A mobile browser interface for SillyTavern 1.19.0. One prepared Termux folder contains ST, Pocket Tavern and copied installed dependencies; one launcher serves both interfaces. ST owns normal `data/default-user` files and generation. This is a prototype, not an Android APK.
+Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
+
+For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern and copied installed dependencies; one launcher serves both interfaces. ST owns normal `data/default-user` files and generation. An Android APK is not implemented yet. App packaging, lifecycle and system integration remain future work; the app architecture/framework has not been selected.
 
 ## Current release
 

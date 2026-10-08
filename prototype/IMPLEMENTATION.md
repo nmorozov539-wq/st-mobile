@@ -1,4 +1,6 @@
-# Pocket Tavern 0.6.1: interface skeleton
+# Pocket Tavern 0.6.1: implemented proof-of-concept interface
+
+Pocket Tavern’s product goal is an Android app. This document describes the current browser/Termux proof of concept and its storage/operation boundaries, not a decision to ship the final product as a browser page. Android packaging, framework and lifecycle integration remain undecided future work.
 
 ## Data ownership
 

@@ -1,19 +1,19 @@
-import {createEngineMonitor} from './engine-monitor.js?build=0.7.1';
-import {checkBridgeBuild} from './build.js?build=0.7.1';
-import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.1';
-import {createJournal,revision,renderRange} from './journal.js?build=0.7.1';
-import {RuntimeConnection} from './transport.js?build=0.7.1';
+import {createEngineMonitor} from './engine-monitor.js?build=0.7.2';
+import {checkBridgeBuild} from './build.js?build=0.7.2';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.2';
+import {createJournal,revision,renderRange} from './journal.js?build=0.7.2';
+import {RuntimeConnection} from './transport.js?build=0.7.2';
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.7.1';
-import {createSettingsPanel} from './settings.js?build=0.7.1';
-import {createLibrary} from './library.js?build=0.7.1';
-import {createMemoryPanel} from './memory.js?build=0.7.1';
-import {probeEngine} from './engine-health.js?build=0.7.1';
-import {createPresetPanel} from './preset-panel.js?build=0.7.1';
-import {icon} from './icons.js?build=0.7.1';
-import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.1';
-import {createModelPanel} from './model-panel.js?build=0.7.1';
-import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.1';
+import {createHTMLFormatter} from './html-format.js?build=0.7.2';
+import {createSettingsPanel} from './settings.js?build=0.7.2';
+import {createLibrary} from './library.js?build=0.7.2';
+import {createMemoryPanel} from './memory.js?build=0.7.2';
+import {probeEngine} from './engine-health.js?build=0.7.2';
+import {createPresetPanel} from './preset-panel.js?build=0.7.2';
+import {icon} from './icons.js?build=0.7.2';
+import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.2';
+import {createModelPanel} from './model-panel.js?build=0.7.2';
+import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.2';
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
@@ -38,7 +38,7 @@ function controls(){const unavailable=!connected||review;const busy=engineBusy||
     $('stop').hidden=!operation;$('stop').disabled=unavailable||operation?.state!=='running';
     $('settings-button').disabled=!connected;$('model-chip').disabled=!connected;
     $('reconnect').disabled=initializing;$('review').hidden=!review;$('review').disabled=!connected||initializing;
-    presetPanel?.setAvailable();settingsPanel?.setLocked(unavailable);library?.setLocked(unavailable||busy);memoryPanel?.setAvailable(connected);memoryPanel?.setLocked(unavailable||busy);
+    presetPanel?.setAvailable();settingsPanel?.setLocked(unavailable);library?.setLocked(unavailable||busy,{drafting:!unavailable});memoryPanel?.setAvailable(connected);memoryPanel?.setLocked(unavailable||busy);
     $('selection-bar').hidden=!selecting;$('selection-count').textContent=`${selected.size} selected`;$('delete-selected').disabled=!selected.size||unavailable;
 }
 function portrait(c){const span=el('span',c?.name?.slice(0,1)??'✦','avatar');if(c){const img=el('img');img.src=`/characters/${encodeURIComponent(c.key)}`;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();span.append(img);}return span;}
@@ -111,7 +111,7 @@ async function openModels(global=false){await modelPanel.open(global?null:{...ta
 async function changeConnection(kind,value){if(engineBusy||memoryBusy)throw Error('Wait for the engine before changing global connection or persona settings.');const current=await raw('settings');await raw('configure',{kind,value,revision:current.revision},60000);await refresh();if(snapshot){snapshot=await workspace('read',{target:target(snapshot)});renderHeader();}}
 async function openConnection(){$('chat-settings').close();$('settings-button').dispatchEvent(new Event('open-connection'));await settingsPanel.open();}
 async function openLibrary(kind){$('library-kind').value=kind;await library.open(kind);}
-async function editCharacter(c){await openLibrary('characters');await library.edit(c.key);}
+async function editCharacter(c){await library.edit(c.key,{kind:'characters',fromLibrary:page!=='chat'});}
 function showStream(){if(!snapshot||!same(operation?.target,snapshot)||page!=='chat')return;const near=isNearBottom($('messages'));const oldThinking=streamNode?.querySelector('.thinking')?.open;streamNode?.remove();streamNode=el('article','','message stream');streamNode.append(el('div','Reply arriving…','byline'),reasoning(streamReasoning),el('div','','bubble'));streamNode.querySelector('.bubble').innerHTML=format(streamText);if(oldThinking??priorThinkingOpen())streamNode.querySelector('details').open=true;$('messages').append(streamNode);if(near)$('messages').scrollTop=$('messages').scrollHeight;}
 function onEvent(event){if(event.requestId!==operation?.requestId)return;if(event.type==='text.replace'){if(operation.mode==='send'&&event.text&&same(operation.target,snapshot)&&$('draft').value===operation.text){$('draft').value='';state.saveDraft(operation.target,'');}streamText=event.text;streamReasoning=event.reasoning??'';operation.state=event.state;controls();if(!streamFrame)streamFrame=requestAnimationFrame(()=>{streamFrame=null;if(!same(operation?.target,snapshot)||page!=='chat')return;if(!streamNode?.isConnected)showStream();const near=isNearBottom($('messages'));const bubble=streamNode.querySelector('.bubble');const open=Array.from(bubble.querySelectorAll('details')).map(d=>d.open);bubble.innerHTML=format(streamText);Array.from(bubble.querySelectorAll('details')).forEach((d,i)=>d.open=open[i]??false);const thinking=streamNode.querySelector('.thinking');thinking.hidden=!streamReasoning;thinking.querySelector('.thinking-body').innerHTML=format(streamReasoning);if(near)$('messages').scrollTop=$('messages').scrollHeight;$('jump').hidden=near;});}else if(event.type==='operation.verifying'){operation.state='verifying';status('Saving the reply…');controls();}}
 async function finishGeneration(result,pending){if(streamNode&&result.snapshot?.messages?.length){const index=result.snapshot.messages.length-1;detailsState.set(detailKey(result.snapshot.messages[index],index,result.snapshot),Array.from(streamNode.querySelectorAll('details')).map(d=>d.open));}if(same(snapshot,pending.target))saveDraft();if(result.persistence==='verified'){if(pending.argument.mode==='send'&&state.draft(pending.target)===pending.argument.text){state.saveDraft(pending.target,'');if(same(snapshot,pending.target))$('draft').value='';}state.finish();}else{review=true;showRecovery('Read the saved conversation before sending again.');}if(result.snapshot&&same(result.snapshot,snapshot)){snapshot=result.snapshot;render(true);}if(result.error){$('send-error').textContent=result.error.message;$('send-error').hidden=false;}status(result.error?result.error.message:result.state==='cancelled'?'Reply stopped':'Reply saved');await refresh();}
@@ -127,7 +127,7 @@ async function observeOperation(pending,port=connection.port){if(connection.port
 async function reviewWork(){const activity=await raw('activity');if(activity.busy)throw Error('Wait for generation or Memory to finish before reviewing changes.');if(state.pending()){const pending=state.pending();const saved=await workspace('read',{target:pending.target});await openChat(saved);if(submittedUserMessage(pending,saved)&&state.draft(pending.target)===pending.argument?.text){state.saveDraft(pending.target,'');$('draft').value='';}state.finish();}const list=$('queue-list');list.replaceChildren();for(const item of journal.read()){const row=el('section');row.append(el('p',`${item.label} · ${item.argument.newChatId??item.argument.target?.chatId??'global'} · ${item.error??item.state}`),button('Discard this change',()=>{journal.remove(item.id);reviewWork();}));if(item.argument.newChatId)row.append(button('Open created fork',()=>openChat({...item.argument.target,chatId:item.argument.newChatId})));if(item.argument.action==='deleteChat')row.append(button('Restore deleted chat',async()=>{const before={...item.argument.target,...JSON.parse(item.argument.expected)};await workspace('undo',{value:{before,after:null}});journal.remove(item.id);await reviewWork();await refresh();}));list.append(row);}if(journal.read().length)$('queue-review').showModal();else{review=false;$('recovery').hidden=true;$('send-error').hidden=true;status('Saved work reviewed · ready');controls();}}
 const rpc=async(method,arg,timeout)=>{if(method==='configure'&&arg?.kind==='persona'&&snapshot){await workspace('activate',{target:target(snapshot)});}if(method==='extensions'&&arg?.action==='read'){const value=await raw(method,arg,timeout);if(snapshot){if(!same(value.target,snapshot))value.memory=snapshot.metadata.summaryception??{layers:[]};value.needsRebuild=!!snapshot.metadata.pocket_tavern?.memoryInvalid;}return value;}return raw(method,arg,timeout);};
 settingsPanel=createSettingsPanel({rpc,action,adoptSnapshot:refresh,status,locked:()=>!connected||review||engineBusy||memoryBusy});
-library=createLibrary({rpc,action,locked:()=>!connected||review,refresh,onEditor:(kind,key)=>{$('character-chats').hidden=page!=='chat'||kind!=='characters'||key!==snapshot?.characterKey;}});
+library=createLibrary({rpc,action,format,converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),locked:()=>!connected||review,refresh,onEditor:(kind,key)=>{$('character-chats').hidden=page!=='chat'||kind!=='characters'||key!==snapshot?.characterKey;}});
 memoryPanel=createMemoryPanel({rpc,action,locked:()=>!connected||review||engineBusy||working,connected:()=>connected,onState:value=>{memoryState=value;renderMemoryNotice(value);},onBusy:value=>{memoryBusy=value;controls();if(!value)drain();},refresh:async()=>{await refresh();if(snapshot&&!engineBusy){snapshot=await workspace('read',{target:target(snapshot)});render(true);}}});
 for(const id of ['setting-preset','edit-active-preset','setting-thinking','setting-tools','setting-model','setting-custom-model','apply-custom-model']){const n=$(id);n.hidden=true;const label=document.querySelector(`label[for="${id}"]`);if(label)label.hidden=true;if(n.parentNode.tagName==='LABEL')n.parentNode.hidden=true;}
 // The skeleton exposes global pause and frequency. Existing advanced controls stay in ST.

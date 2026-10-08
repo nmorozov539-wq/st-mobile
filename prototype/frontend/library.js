@@ -1,13 +1,17 @@
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.1';
-export function createLibrary({rpc,action,refresh,locked,onEditor=()=>{}}) {
+import {createCharacterEditor} from './character-editor.js?build=0.7.2';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.2';
+export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,onEditor=()=>{}}) {
     const $=id=>document.getElementById(id);
-    let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001;
+    const character=createCharacterEditor({format,converter,sanitize});
+    $('asset-editor').addEventListener('pocket-back',event=>{if(kind==='characters'&&character.back()){event.preventDefault();renderEditor();}});
+    const cancel=document.createElement('button');cancel.id='cancel-character';cancel.textContent='Cancel';cancel.onclick=()=>$('asset-editor').close();const savebar=document.createElement('div');savebar.id='character-savebar';$('save-asset').before(savebar);savebar.append(cancel,$('save-asset'));
+    let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001,lastLocked=true,allowDrafts=false;
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     function field(parent,label,value,update,{type,rows=4}={}){
-        const wrapper=node('label',label),input=node(type==='boolean'?'input':type==='number'?'input':'textarea');
+        const wrapper=node('label',label),input=node(['boolean','number','text'].includes(type)?'input':'textarea');
         if(type==='boolean'){input.type='checkbox';input.checked=!!value;}
         else if(type==='number'){input.type='number';input.step='any';input.value=value??0;}
-        else {input.rows=rows;input.value=value??'';}
+        else {if(type==='text')input.type='text';else input.rows=rows;input.value=value??'';}
         input.oninput=()=>{update(type==='boolean'?input.checked:type==='number'?Number(input.value):input.value);syncJSON();};
         wrapper.append(input);parent.append(wrapper);
     }
@@ -15,11 +19,9 @@ export function createLibrary({rpc,action,refresh,locked,onEditor=()=>{}}) {
     const title=s=>labels[s]??s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
     function syncJSON(){$('asset-json').value=JSON.stringify(draft,null,2);}
     function renderEditor(){
-        const body=$('asset-fields');body.replaceChildren();
+        const body=$('asset-fields');body.replaceChildren();$('asset-editor').querySelector('.character-modes')?.remove();$('close-asset').setAttribute('aria-label','Close library editor');$('asset-editor').classList.toggle('character-editor',kind==='characters');$('asset-editor').querySelector('h2').textContent='Edit library item';$('close-asset').textContent='×';$('save-asset').hidden=false;$('character-savebar').hidden=false;$('asset-json').closest('details').hidden=false;cancel.hidden=kind!=='characters';
         if(kind==='characters'){
-            for(const [name,label] of [['name','Name'],['description','Description'],['personality','Personality'],['scenario','Scenario'],['first_mes','First message'],['mes_example','Example dialogue'],['system_prompt','System prompt'],['post_history_instructions','Post-history instructions'],['creator_notes','Creator notes'],['creator','Creator'],['character_version','Character version']])field(body,label,draft[name],v=>draft[name]=v,{rows:name==='name'?1:4});
-            field(body,'Alternate greetings (JSON array)',JSON.stringify(draft.alternate_greetings??[],null,2),v=>{try{const a=JSON.parse(v);if(!Array.isArray(a)||a.some(x=>typeof x!=='string'))throw Error();draft.alternate_greetings=a;invalid=false;$('asset-error').textContent='';}catch{invalid=true;$('asset-error').textContent='Alternate greetings must be a JSON array of strings. Apply valid JSON before saving.';}});
-            field(body,'Tags (comma separated)',(draft.tags??[]).join(', '),v=>draft.tags=v.split(',').map(x=>x.trim()).filter(Boolean));
+            character.render({body,draft,key,changed:syncJSON,field,rerender:renderEditor});
         }else if(kind==='personas'){
             field(body,'Name',draft.name,v=>draft.name=v,{rows:1});
             for(const name of ['description','title','lorebook'])field(body,title(name),draft.descriptor[name],v=>draft.descriptor[name]=v,{rows:name==='description'?5:1});
@@ -54,10 +56,10 @@ export function createLibrary({rpc,action,refresh,locked,onEditor=()=>{}}) {
                 body.append(section);
             }
         }
-        $('asset-portrait-label').hidden=kind==='presets';syncJSON();
+        if(kind!=='characters')$('asset-portrait-label').hidden=kind==='presets';syncJSON();applyLocks();
     }
     async function load(){rows=await rpc('assets',{action:'list',kind});$('asset-list').replaceChildren(...rows.map(row=>{const b=node('button',row.name);b.onclick=()=>run(async()=>{key=row.key;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=kind==='presets'?{name:key,preset:result.draft}:result.draft;openEditor();});return b;}));}
-    function openEditor(){orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
+    function openEditor({fromLibrary=true}={}){if(kind==='characters')character.begin(key,{fromLibrary});orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
     async function run(fn){if(locked())return;await action(async()=>{try{await fn();}catch(e){$('library-error').textContent=e.message;$('asset-error').textContent=e.message;throw e;}});}
     $('library-button').onclick=()=>run(async()=>{await load();$('library-error').textContent='';$('library-panel').showModal();});
     $('close-library').onclick=()=>$('library-panel').close();$('close-asset').onclick=()=>$('asset-editor').close();
@@ -74,7 +76,7 @@ export function createLibrary({rpc,action,refresh,locked,onEditor=()=>{}}) {
     $('save-asset').onclick=()=>run(async()=>{
         if(invalid)throw Error('Correct the alternate greetings JSON before saving.');
         $('asset-error').textContent='Saving and checking ST’s saved data…';
-        uncertain=true;
+        uncertain=true;$('save-asset').disabled=true;
         const result=await rpc('assets',{action:'write',kind,key,revision,draft,file:portrait},60000);
         uncertain=false;
         key=result.key;$('asset-editor').close();await load();await refresh();$('library-error').textContent='Saved in ST and verified.';
@@ -84,5 +86,6 @@ export function createLibrary({rpc,action,refresh,locked,onEditor=()=>{}}) {
     async function openPreset(){await run(async()=>{kind='presets';$('library-kind').value=kind;const config=await rpc('settings');key=config.selected.preset;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft={name:key,preset:result.draft};$('settings-panel').close();openEditor();});}
     $('edit-active-preset').onclick=openPreset;
     $('active-preset').onclick=openPreset;
-    return {openPreset,async open(value){kind=value;$('library-kind').value=value;await load();$('library-panel').showModal();},async edit(value){key=value;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=result.draft;openEditor();},setLocked(value){for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button'))if(!['close-library','close-asset','character-chats'].includes(n.id))n.disabled=value||(n.id==='save-asset'&&uncertain);}};
+    function applyLocks(){const value=lastLocked,drafting=allowDrafts;for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button')){if(['close-library','close-asset','character-chats','cancel-character'].includes(n.id))continue;const localDraft=kind==='characters'&&drafting&&!['save-asset','import-asset','asset-import'].includes(n.id);n.disabled=(value&&!localDraft)||(n.id==='save-asset'&&uncertain);}if($('character-work-status'))$('character-work-status').hidden=kind!=='characters';if(kind==='characters'){let status=$('character-work-status');if(!status){status=node('p');status.id='character-work-status';status.setAttribute('role','status');$('asset-fields').before(status);}status.textContent=value&&drafting?'You can read and draft here. Saving is available after the engine finishes.':'';}}
+    return {openPreset,async open(value){kind=value;$('library-kind').value=value;await load();$('library-panel').showModal();},async edit(value,options){kind=options?.kind??kind;$('library-kind').value=kind;key=value;const result=await rpc('assets',{action:'read',kind,key});revision=result.revision;draft=result.draft;openEditor(options);},setLocked(value,{drafting=false}={}){lastLocked=value;allowDrafts=drafting;applyLocks();}};
 }

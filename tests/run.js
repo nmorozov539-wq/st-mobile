@@ -22,3 +22,5 @@ import './engine-monitor.test.js';
 import './chat-phase.test.js';
 
 import './preset-phase.test.js';
+
+import './character-phase.test.js';

@@ -54,3 +54,8 @@ For an authorized release, build a versioned ZIP and place it plus matching `rep
 ## Archives
 
 `history/` is a local ignored archive of older plans, investigations, reports, screenshots and the user's early `demo.zip`. Previously tracked material remains recoverable from Git history. User-provided proxy files in `or-proxy/` remain local and untracked; preserve them. Current approved references in `GoalVisuals/` are tracked, separate from historical inputs.
+
+
+## Current rollout — Character content 0.7.2
+
+Chat has been confirmed working on the phone. Preset was renamed 0.7.1; Character content is 0.7.2. The user cannot currently test and has authorized continued development and commits at verified milestones. PHONE_TEST_CHECKLIST.md records outstanding device checks. Continue Character integration next, preserving native multi-associations and keeping the latest two-line persona-link draft pending approval. No Android framework migration or publication is authorized.

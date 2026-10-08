@@ -97,3 +97,14 @@ Character is the next authorized major screen; phone review is deferred at the u
 Phase-2 evidence: 105 automated tests, 42 live preset checks, 65 chat regressions with actual restart/review, 28 native workspace assertions and 11 HTML checks pass. The package/repair checks are recorded in `tests/TEST_REPORT.md`. Android-only behavior remains a phone review requirement.
 
 Delivery validation: matching 0.7.1 ZIP/repair pass; real updater retains 490 isolated data files byte-for-byte. Shipped-launcher handshake, first Send, unavailable selection and keyboard-sized entry footer checks pass.
+
+
+## Phase 3a: Character content — 0.7.2
+
+The user deferred phone testing, requested a running checklist, authorized continuing and allowed milestone commits. Release names now remain in the 0.7.* line (Preset was renamed 0.7.1); saved-settings schema stays v3.
+
+This coherent subphase covers Read/Edit and native content: portrait/name/tags, Description/Greeting/Advanced, explicit greeting add/reorder/delete/set-main, raw creator metadata, opaque-origin sanitized notes, and verified native saves. Chat entry remembers the mode per card; library management defaults to Edit. Browsing/drafting during generation does not activate another native target and Save remains gated. Notes CSS stays inside its iframe; scripts, external images and navigation are blocked, while raw source is preserved.
+
+Next Character subphase: native persona/lorebook associations and targeted detach, export/duplicate/delete, then the approved conversation selector and new-before-delete workflow. Existing Conversations destination remains available. The two-line persona draft remains pending; multiple native associations are not rewritten. The library’s overall redesign remains later work.
+
+Verified phase-3a evidence: 107 automated checks, 34 final shipped-launcher Character UI checks, 65 chat regression checks including restart/review, ZIP/repair validation and 520-file byte-identical updater preservation. Full conditions and device limits are recorded in tests/TEST_REPORT.md.

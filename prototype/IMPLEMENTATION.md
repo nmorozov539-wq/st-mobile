@@ -1,4 +1,4 @@
-# Pocket Tavern 0.7.1: approved chat and preset phases
+# Pocket Tavern 0.7.2: approved chat and preset phases
 
 Pocket Tavern’s product goal is an Android app. This document describes the current browser/Termux proof of concept and its storage/operation boundaries, not a decision to ship the final product as a browser page. Android packaging, framework and lifecycle integration remain undecided future work.
 
@@ -60,3 +60,8 @@ If a change affects summarized history or an early fork truncates it, keep the w
 No real provider keys, paid model calls or personal data were used for development checks.
 
 Deferred Summaryception work keeps the engine occupied while it waits for the reply/save to finish. Its retry captures the originating chat; if full ST changes that target unexpectedly, the deferred operation is cancelled rather than summarized against the new chat. Stop cancels pending retries as well as active requests.
+
+
+### Character content milestone 0.7.2
+
+`character-editor.js`, `character-data.js` and `character.css` extend the existing native card authoring path. Unknown data and optimistic native revision guards stay intact. View mode uses a separate per-avatar local preference and never changes ST character settings. Greeting edits affect only the draft; Save uses the existing verified native write. Read/Edit and JSON changes retain draft content. Creator notes are sanitized into an inert template before opaque-origin sandbox rendering with a no-network CSP; raw notes remain unmodified. Read/draft controls remain usable while generation runs, but Save/import remain gated. Association/card/conversation integration remains the next subphase.

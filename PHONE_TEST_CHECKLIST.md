@@ -1,6 +1,6 @@
 # Pocket Tavern phone test checklist
 
-All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, then Character subphases. Release numbering does not change the saved-settings schema.
+All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, then further Character subphases. Release numbering does not change the saved-settings schema.
 
 Chat was reported working on the phone. Unchecked items below remain device checks, even when desktop/mock checks pass. Development may continue while phone testing is unavailable; commit each verified milestone. Use a spare/test conversation for destructive checks.
 
@@ -38,7 +38,7 @@ Chat was reported working on the phone. Unchecked items below remain device chec
 - [ ] Reset one preset’s remembered adjustments; other remembered presets and model settings remain.
 - [ ] Save/Cancel remains reachable above the keyboard; long entry lists scroll comfortably.
 
-## Character — upcoming subphases
+## Character content — 0.7.2 onward
 
 - [ ] Read/Edit choice is remembered separately for each character.
 - [ ] Description, main greeting, alternate greetings and advanced fields survive a save/reopen.
@@ -46,5 +46,7 @@ Chat was reported working on the phone. Unchecked items below remain device chec
 - [ ] Creator notes expand safely; formatting stays inside the notes preview.
 - [ ] Portrait, tags, unknown native fields and embedded lorebook survive editing.
 - [ ] Character drafts remain available during generation; saved writes require an idle engine.
+## Character integration — upcoming subphase
+
 - [ ] Persona associations preserve multiple links and native precedence; the two-line draft remains pending approval.
 - [ ] Test each newly shipped character action here as its subphase is completed.

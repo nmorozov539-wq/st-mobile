@@ -1,3 +1,19 @@
+# Character content milestone — 0.7.2
+
+Current-checkout verification (9 October 2026), isolated ST 1.19.0 fixture `/tmp/pocket-release-engine` and local mock provider only; no original ST or personal data modified.
+
+- 107 automated tests pass, including greeting main/reorder/delete/add bounds, duplicate text, malformed-input rejection and opaque native field preservation.
+- 34 actual native/mock Character UI checks pass against the final shipped launcher: create and existing-card save/readback; unknown extension fields, embedded lorebook, prompt overrides and raw notes retained; main/alternate organization; cancellation; Save re-enabled after verified save/reopen; per-card view memory; library defaults to Edit; draft preservation across Read/Edit; Back exits greeting organization first.
+- Creator notes tests verify retained/rendered CSS, script/handler/navigation removal, opaque-origin sandbox, parent controls unaffected and no external requests. Preview assembly uses an inert template; raw source stays intact. External images and link navigation are blocked in the preview.
+- Character fits 320/390/430 px; Save and Cancel remain reachable at 390×420 px. Final Read/Edit screenshots visually inspected at `/tmp/pocket-character-ui/` (fixture-only, not production assets).
+- During a real mocked streaming request, character browsing/drafting preserves the native generating target, Save remains disabled with a visible explanation, dismissal returns directly to chat, and Stop settles without another request.
+- All 65 chat regression checks pass with final packaged code, including first-click Send with no idle delay, scoped model changes during work, saved alternatives and CDP touch overswipe, edit/delete/Undo/multi-select/fork, Memory invalidation/Undo, bounded rendering, native text selection, menu placement and actual fixture engine interruption/restart/review without request replay. Zero product page errors.
+- Final updater preserves all 520 fixture data files byte-for-byte. Actual ZIP repair passes: matching 0.7.2 helper, duplicate download names, code backup/data preservation, optional proxy dependencies and malicious-path rejection. Package contains 66 files, the phone checklist and no test harness/user proxy source. Frontend, bridge, manifest, helper and archived sources match. `git diff --check` passes.
+
+Reproduction: `node tests/run.js`; prepare/install the combined 0.7.2 kit into an isolated mock engine. With engine/provider running, set `POCKET_PLAYWRIGHT_MODULE` to the local Playwright module and `PLAYWRIGHT_BROWSERS_PATH` to the installed browser, then run `node tests/character-ui.cjs`. With engine port 8123 free and mock provider 8124 running with `--many-models`, run `node tests/chat-ui-runner.cjs`; it owns/restarts only the prepared fixture. With both test ports free, run `POCKET_REPAIR_FIXTURE=/tmp/pocket-release-engine node tests/repair-kit.cjs`.
+
+Phone-only keyboard/system Back/edge-gesture/background/clipboard behavior remains unverified for this phase and is recorded in `PHONE_TEST_CHECKLIST.md`. The user authorized continuing without waiting for device testing and committing verified milestones. This release completes Character content only; native association/card actions and the approved conversation selector are the next subphase. The two-line persona-link draft remains awaiting approval. Earlier evidence follows; prior UI outcomes are not counted as fresh 0.7.2 results.
+
 # Current release numbering — 0.7.1
 
 Preset release 0.8.0 was renamed 0.7.1 at the user’s request; Chat remains 0.7.0. Saved-settings schema remains version 3. Current checkout: 105 automated checks pass after renaming. Phone checks are tracked in `PHONE_TEST_CHECKLIST.md`; the user authorized continuing without waiting and committing milestones. Earlier full UI evidence below predates the release-name change.

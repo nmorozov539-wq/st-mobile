@@ -50,3 +50,8 @@ Native supported fields and metadata must survive even when a mock editor omits 
 - Full Summaryception functionality is the intended future target; current bridge limitations are integration gaps. Preserve native import/cancellation/skip semantics.
 
 The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character awaits review of this phase. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
+
+
+## Character content rollout — 0.7.2
+
+The first Character subphase implements native content, greeting organization and safe notes previews through the existing verified card editor. Library entry defaults to Edit; chat entry remembers Read/Edit per card. Native links, lorebooks, card actions and new-chat/delete workflows require the next integration subphase. Do not treat the awaiting-approval two-line persona-link draft as accepted. Release numbering stays 0.7.*; storage schema remains independently versioned. Outstanding device checks are in PHONE_TEST_CHECKLIST.md.

@@ -1,4 +1,19 @@
-# Verified results — Character association controls 0.7.5
+# Verification report
+
+## 0.7.6 — Character conversation selector
+
+Verified 9 October 2026 against a newly prepared isolated ST 1.19.0 fixture at `/tmp/pocket-release-engine`, with the local mock provider only. Original ST, personal data and local proxy sources were not modified.
+
+- Fresh baseline: all 122 existing automated tests passed before edits. Final checkout: all 126 tests pass. New checks cover complete 1,203-chat native history, read-only requested-character ownership, missing/empty/malformed history, delayed editor-session responses, bounded rendering and focus-preserving availability updates.
+- Actual in-app browser checks: one-chat line hidden; multiple-chat line above portrait; real saved-chat selection retains the open Character editor and an unsaved name draft; Escape dismisses the selector alone. During a real slow mock reply, selection changed the reading target and Stop settled the reply in its original file. Disk verification found three messages in the original chat and one greeting in the other; one mock request occurred. No generation was triggered by selection.
+- Final installed package: bottom sheet fits 320×640 (282 px wide, bottom 632) and 430×844 (392 px wide, bottom 836). Independently scrollable list, saved-chat count and active selection appear. Keyboard focus survives routine activity polling; Back leaves Character open. Overflow still opens the original Conversations destination. No error-level browser logs were captured in this final check.
+- Updater byte-preserved all 224 files in this fresh fixture's data directory. Actual ZIP repair checks pass, including duplicate download names, code backups, retained data and proxy dependencies, and archive-path guards. Frontend/bridge/manifest/helper versions are 0.7.6; settings schema remains v3. `git diff --check` passes.
+
+Coverage limits: the Playwright Chromium download stalled and was stopped; the full 65-check chat regression runner and Character/association browser runners were **not rerun for 0.7.6**. Their earlier results below are historical. Actual browser checks above cover this selector subphase, but do not establish full regression coverage, real-phone keyboard/system Back/TalkBack/background behavior, or reconnect/recovery races for this build. These remain pending in the phone checklist. The offline reference's source and approved PNGs were reviewed; the attempted fresh `file:` browser opening was blocked by browser policy, so no new interactive-reference inspection is claimed.
+
+Scope: only the approved current-chat selector ships here. Existing new/delete controls retain prior behavior under overflow; approved create-before-optional-delete confirmation remains the next subphase. No settings migration, automatic request/replay, Memory rebuild, persona draft approval or Android migration.
+
+Reproduce automated checks with `node tests/run.js`. Build with `python3 scripts/build-phone-package.py`, copy the resulting ZIP into the project root for repair testing, and run `POCKET_REPAIR_FIXTURE=/tmp/pocket-release-engine node tests/repair-kit.cjs` while fixture ports are free. Browser regression runners require a working Playwright Chromium installation.
 
 Verified 9 October 2026 against the isolated ST 1.19.0 mock fixture. Original ST/personal data and local user proxy sources remain untouched. No real keys, paid requests, framework migration or publication.
 

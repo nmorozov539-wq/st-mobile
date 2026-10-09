@@ -28,3 +28,5 @@ import './character-phase.test.js';
 import './character-actions.test.js';
 
 import './character-associations.test.js';
+
+import './character-chats.test.js';

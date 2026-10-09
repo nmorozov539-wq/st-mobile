@@ -1,5 +1,5 @@
-import {createCharacterAssociations} from './character-associations.js?build=0.7.5';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.5';
+import {createCharacterAssociations} from './character-associations.js?build=0.7.6';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.6';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions}) {
     const links=createCharacterAssociations(associationOptions);
@@ -11,7 +11,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         try{mode=storage.getItem(`pocket-character-mode:${key}`)==='edit'?'edit':'read';}catch{}
         if(!key||fromLibrary)mode='edit';
     }
-    function render({body,draft,key,associations,associationError,changed,field,rerender,onActions}) {
+    function render({body,draft,key,associations,associationError,changed,field,rerender,onActions,chats}) {
         const panel=document.getElementById('asset-editor');panel.classList.add('character-editor');
         panel.querySelector('h2').textContent='Character';
         document.getElementById('save-asset').hidden=mode!=='edit';
@@ -22,6 +22,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         const back=document.getElementById('close-asset');back.textContent='‹';back.setAttribute('aria-label',mode==='edit'?'Cancel character edits':'Back from character');panel.querySelector('.dialog-heading').prepend(back);
         const tabs=node('div');tabs.className='character-modes';tabs.setAttribute('aria-label','Character view');
         for(const view of ['read','edit']){const b=button(view==='read'?'Read':'Edit',()=>{mode=view;organizing=false;try{if(cardKey)storage.setItem(`pocket-character-mode:${cardKey}`,mode);}catch{}rerender();});b.setAttribute('aria-pressed',String(mode===view));tabs.append(b);}panel.querySelector('.character-modes')?.remove();panel.querySelector('.dialog-heading').append(tabs);panel.querySelector('.character-actions-trigger')?.remove();if(key){const overflow=button('…',onActions);overflow.className='character-actions-trigger';overflow.setAttribute('aria-label','Character actions');overflow.setAttribute('aria-controls','character-actions');overflow.setAttribute('aria-expanded',String(!document.getElementById('character-actions').hidden));panel.querySelector('.dialog-heading').append(overflow);}
+        chats?.render(body,key);
         const identity=node('section');identity.className='character-identity';
         const portraitColumn=node('div');portraitColumn.className='character-portrait-column';
         if(key){const image=node('img');image.src=`/thumbnail?type=avatar&file=${encodeURIComponent(key)}`;image.alt='';image.className='character-portrait';portraitColumn.append(image);}

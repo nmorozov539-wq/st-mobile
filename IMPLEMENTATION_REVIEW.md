@@ -133,3 +133,9 @@ The bridge checks card and live/persisted shared-settings revisions, uses the co
 Next Character subphase: approved current-chat selector and create-new-before-optional-delete workflow. Full Persona, World Info, Memory and library redesigns remain separate roadmap phases.
 
 0.7.5 verified evidence: 122 automated tests; 37 association-action, 4 loading, 18 association-visibility, 34 Character-content, 29 card-action and 65 chat UI checks. Final updater preserves 935 fixture files; 70-file ZIP and matching repair helper pass. Test findings fixed stale activity sampling and delayed-save editor ownership. Device-only checks remain outstanding. See tests/TEST_REPORT.md for exact verification order.
+
+## Character conversation selector — 0.7.6
+
+The approved thin current-chat line appears above the portrait only for the current character with multiple saved chats. Its bottom sheet reads the character’s complete native history without activating ST, keeps the Character draft and reading state, selects immediately, and dismisses with Done, outside or Back. History reads have captured editor-session guards; stale replies cannot replace a newer pane. The independently scrolling list uses bounded rendering and retains keyboard focus through activity polling. Loading/errors remain visible with retry. Existing Conversations controls are now in Character overflow; their creation/deletion behavior is unchanged in this selector subphase.
+
+No storage migration or generation request is introduced. Native settings schema remains v3. Next: approved Start new chat confirmation with deletion off by default, verified native greeting before optional guarded deletion, durable uncertainty review and Undo. Full Persona/World Info/Memory/libraries remain later phases; the two-line persona-link draft is still awaiting approval.

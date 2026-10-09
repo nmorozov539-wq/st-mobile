@@ -89,3 +89,13 @@ Association editing/removal follows in 0.7.5 below; the redesigned chat selector
 - [ ] Save an association then immediately open a fresh chat and Send; no stale busy refusal or duplicate request.
 - [ ] Change the same native card/settings elsewhere while its sheet is open; verify conflict feedback and inspect saved work before another attempt.
 - [ ] Check Back/outside dismissal, long lorebook names, large text, picker scrolling and keyboard-sized Save/Cancel on your phone.
+
+## Character conversation selector — 0.7.6
+
+- [ ] With one chat, verify no current-chat selector appears above the portrait.
+- [ ] With multiple chats, open the thin current-chat line, choose an existing chat and verify Character stays open with your unsaved edits retained.
+- [ ] Check long names and scrolling on your phone; Done, outside touch and Android Back dismiss only the selector.
+- [ ] Start a reply, open Character and switch chats. Confirm the reply stays in its original chat and Stop settles it there.
+- [ ] Check per-chat composer drafts and reading position when switching back.
+- [ ] Character overflow still opens Conversations. New-before-optional-delete confirmation is the next subphase.
+- [ ] Check keyboard, background/reconnect and TalkBack behavior on Android; desktop checks cannot establish these.

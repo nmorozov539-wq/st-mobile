@@ -1,8 +1,10 @@
-import {createCharacterActions} from './character-actions.js?build=0.7.5';
-import {createCharacterEditor} from './character-editor.js?build=0.7.5';
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.5';
-export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{}}) {
+import {createCharacterChats} from './character-chats.js?build=0.7.6';
+import {createCharacterActions} from './character-actions.js?build=0.7.6';
+import {createCharacterEditor} from './character-editor.js?build=0.7.6';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.6';
+export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{}}) {
     const $=id=>document.getElementById(id);
+    const chats=createCharacterChats({rpc,action,readChat,onChat,readState:()=>({key,editorSession,open:$('asset-editor').open,unavailable:lastLocked&&!allowDrafts})});
     const character=createCharacterEditor({format,converter,sanitize,associationOptions:{rpc,action,readState:associationState,onSaved:associationSaved,editPersona:editRelatedPersona}});
     const backEditor=event=>{if(kind!=='characters')return;if(cardActions.back()){event.preventDefault();return;}if(character.back()){event.preventDefault();renderEditor();}};
     $('asset-editor').addEventListener('pocket-back',backEditor);$('asset-editor').addEventListener('cancel',backEditor);
@@ -40,9 +42,9 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
         try{const result=await rpc('assets',{kind:'characters',action:'read',key});if(kind!=='characters'||key!==old.key||editorSession!==resumeSession)return;associations=result.associations;associationGuard=result.associationRevision;associationError=result.associationError??'';}catch(error){if(editorSession!==resumeSession)return;associationError=error.message;}
         if(kind!=='characters'||key!==old.key||editorSession!==resumeSession)return;
         if(portrait){try{const files=new DataTransfer();files.items.add(portrait);$('asset-portrait').files=files.files;}catch{$('asset-error').textContent=`Portrait draft retained: ${portrait.name}`;}}else $('asset-portrait').value='';
-        await refreshAvailability();if(kind!=='characters'||key!==old.key||editorSession!==resumeSession)return;renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=old.scroll;
+        await refreshAvailability();if(kind!=='characters'||key!==old.key||editorSession!==resumeSession)return;renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=old.scroll;chats.load(key,editorSession);
     }
-    $('asset-editor').addEventListener('close',()=>{if(returnCharacter)resumeCharacter().catch(error=>{$('asset-error').textContent=error.message;});});
+    $('asset-editor').addEventListener('close',()=>{chats.dismiss();if(returnCharacter)resumeCharacter().catch(error=>{$('asset-error').textContent=error.message;});});
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     function field(parent,label,value,update,{type,rows=4}={}){
         const wrapper=node('label',label),input=node(['boolean','number','text'].includes(type)?'input':'textarea');
@@ -58,7 +60,7 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
     function renderEditor(){
         const body=$('asset-fields');body.replaceChildren();$('asset-editor').querySelector('.character-modes')?.remove();$('asset-editor').querySelector('.character-actions-trigger')?.remove();$('close-asset').setAttribute('aria-label','Close library editor');$('asset-editor').classList.toggle('character-editor',kind==='characters');$('asset-editor').querySelector('h2').textContent='Edit library item';$('close-asset').textContent='×';$('save-asset').hidden=false;$('character-savebar').hidden=false;$('asset-json').closest('details').hidden=false;cancel.hidden=kind!=='characters';
         if(kind==='characters'){
-            character.render({body,draft,key,associations,associationError,changed:syncJSON,field,rerender:renderEditor,onActions:cardActions.open});
+            character.render({body,draft,key,associations,associationError,changed:syncJSON,field,rerender:renderEditor,onActions:cardActions.open,chats});
         }else if(kind==='personas'){
             field(body,'Name',draft.name,v=>draft.name=v,{rows:1});
             for(const name of ['description','title','lorebook'])field(body,title(name),draft.descriptor[name],v=>draft.descriptor[name]=v,{rows:name==='description'?5:1});
@@ -97,7 +99,7 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
     }
     async function load(){rows=await rpc('assets',{action:'list',kind});$('asset-list').replaceChildren(...rows.map(row=>{const b=node('button',row.name);b.onclick=()=>run(async()=>{key=row.key;const result=await rpc('assets',{action:'read',kind,key});associations=result.associations??null;associationError=result.associationError??'';associationGuard=result.associationRevision??null;revision=result.revision;draft=kind==='presets'?{name:key,preset:result.draft}:result.draft;await showEditor();});return b;}));}
     async function showEditor(options){await refreshAvailability();openEditor(options);}
-    function openEditor({fromLibrary=true}={}){editorSession++;cardActions.back();if(kind==='characters')character.begin(key,{fromLibrary});orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=0;}
+    function openEditor({fromLibrary=true}={}){editorSession++;cardActions.back();if(kind==='characters')character.begin(key,{fromLibrary});orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=0;if(kind==='characters')chats.load(key,editorSession);}
     async function run(fn){if(locked())return;await action(async()=>{try{await fn();}catch(e){$('library-error').textContent=e.message;$('asset-error').textContent=e.message;throw e;}});}
     $('library-button').onclick=()=>run(async()=>{await load();$('library-error').textContent='';$('library-panel').showModal();});
     $('close-library').onclick=()=>$('library-panel').close();$('close-asset').onclick=()=>{if(kind==='characters'&&cardActions.back())return;if(kind==='characters'&&character.back()){renderEditor();return;}$('asset-editor').close();};
@@ -126,6 +128,6 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
     async function openPreset(){await run(async()=>{kind='presets';$('library-kind').value=kind;const config=await rpc('settings');key=config.selected.preset;const result=await rpc('assets',{action:'read',kind,key});associations=result.associations??null;associationError=result.associationError??'';associationGuard=result.associationRevision??null;revision=result.revision;draft={name:key,preset:result.draft};$('settings-panel').close();await showEditor();});}
     $('edit-active-preset').onclick=openPreset;
     $('active-preset').onclick=openPreset;
-    function applyLocks(){const value=lastLocked,drafting=allowDrafts;cardActions.update();character.updateLinks();for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button')){if(n.closest('#character-actions')||n.closest('.character-lorebooks')||n.classList.contains('character-persona-line'))continue;if(['close-library','close-asset','character-chats','cancel-character'].includes(n.id))continue;const localDraft=kind==='characters'&&drafting&&!['save-asset','import-asset','asset-import'].includes(n.id);n.disabled=(value&&!localDraft)||(n.id==='save-asset'&&uncertain);}if($('character-work-status'))$('character-work-status').hidden=kind!=='characters';if(kind==='characters'){let status=$('character-work-status');if(!status){status=node('p');status.id='character-work-status';status.setAttribute('role','status');$('asset-fields').before(status);}status.textContent=value&&drafting?'You can read and draft here. Saving is available after the engine finishes.':'';}}
+    function applyLocks(){const value=lastLocked,drafting=allowDrafts;cardActions.update();character.updateLinks();chats.update();for(const id of ['library-panel','asset-editor'])for(const n of $(id).querySelectorAll('input,textarea,select,button')){if(n.closest('#character-actions')||n.closest('.character-lorebooks')||n.classList.contains('character-persona-line')||n.classList.contains('character-chat-line'))continue;if(['close-library','close-asset','character-chats','cancel-character'].includes(n.id))continue;const localDraft=kind==='characters'&&drafting&&!['save-asset','import-asset','asset-import'].includes(n.id);n.disabled=(value&&!localDraft)||(n.id==='save-asset'&&uncertain);}if($('character-work-status'))$('character-work-status').hidden=kind!=='characters';if(kind==='characters'){let status=$('character-work-status');if(!status){status=node('p');status.id='character-work-status';status.setAttribute('role','status');$('asset-fields').before(status);}status.textContent=value&&drafting?'You can read and draft here. Saving is available after the engine finishes.':'';}}
     return {openPreset,async open(value){kind=value;$('library-kind').value=value;await load();$('library-panel').showModal();},async edit(value,options){kind=options?.kind??kind;$('library-kind').value=kind;key=value;const result=await rpc('assets',{action:'read',kind,key});associations=result.associations??null;associationError=result.associationError??'';associationGuard=result.associationRevision??null;revision=result.revision;draft=result.draft;await showEditor(options);},setLocked(value,{drafting=false}={}){lastLocked=value;allowDrafts=drafting;applyLocks();}};
 }

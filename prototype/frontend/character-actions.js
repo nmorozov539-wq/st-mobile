@@ -1,15 +1,19 @@
-export function createCharacterActions({rpc,refresh,readState,onDeleted,action}) {
+export function createCharacterActions({rpc,refresh,readState,onDeleted,action,onStartChat}) {
     const $=id=>document.getElementById(id);let captured=null,waiting=false,uncertain=false,returnScroll=0;
     function update(){
         if($('character-actions').hidden&&!$('character-delete-confirm').open)return;
         const current=readState(),dirty=!current.key||current.dirty;
+        $('character-new-chat').hidden=!current.target;
+        const saved=current.revision?JSON.parse(current.revision):{};const complete=[saved.name,saved.description,saved.first_mes].every(v=>typeof v==='string'&&v.trim());
+        $('character-new-chat').disabled=waiting||uncertain||dirty||!complete||current.busy||current.unavailable;
         for(const format of ['png','json'])$(`character-export-${format}`).disabled=waiting||uncertain||dirty||current.unavailable;
         for(const id of ['character-duplicate','character-delete','character-delete-apply'])$(id).disabled=waiting||uncertain||dirty||current.busy||current.unavailable;
-        $('character-actions-note').textContent=dirty?'Save or cancel your draft before using saved-card actions.':current.busy?'Exports use the saved card. Duplicate and Delete are available after the engine finishes.':'These actions use your saved card. Exports and duplicates do not include your chats.';
+        $('character-actions-note').textContent=dirty?'Save or cancel your draft before using saved-card actions.':current.busy?'Exports use the saved card. Duplicate and Delete are available after the engine finishes.':!complete?'Incomplete character: save a name, description and main greeting before starting a chat.':'These actions use your saved card. Exports and duplicates do not include your chats.';
         $('character-delete-chats').disabled=waiting||uncertain;
     }
     function back(){if($('character-actions').hidden)return false;$('character-actions').hidden=true;$('asset-editor').scrollTop=returnScroll;document.querySelector('.character-actions-trigger')?.setAttribute('aria-expanded','false');return true;}
     $('character-actions-close').onclick=back;
+    $('character-new-chat').onclick=()=>{update();if($('character-new-chat').disabled)return;const value=readState();back();onStartChat({key:value.key,name:value.name,cardRevision:value.revision,editorSession:value.editorSession,target:value.target});};
     function open(){if(back()||waiting)return;const value=readState();if(!value.key)return;captured={key:value.key,revision:value.revision};waiting=false;uncertain=false;$('character-actions-target').textContent=value.name;$('character-actions-status').textContent='';returnScroll=$('asset-editor').scrollTop;$('character-actions').hidden=false;$('asset-editor').scrollTop=0;update();document.querySelector('.character-actions-trigger')?.setAttribute('aria-expanded','true');}
     async function perform(kind,extra={}){
         if(waiting||uncertain||!captured)return;

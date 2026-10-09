@@ -1,8 +1,8 @@
-import {createCharacterChats} from './character-chats.js?build=0.7.6';
-import {createCharacterActions} from './character-actions.js?build=0.7.6';
-import {createCharacterEditor} from './character-editor.js?build=0.7.6';
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.6';
-export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{}}) {
+import {createCharacterChats} from './character-chats.js?build=0.7.7';
+import {createCharacterActions} from './character-actions.js?build=0.7.7';
+import {createCharacterEditor} from './character-editor.js?build=0.7.7';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.7';
+export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{},onStartChat=async()=>{}}) {
     const $=id=>document.getElementById(id);
     const chats=createCharacterChats({rpc,action,readChat,onChat,readState:()=>({key,editorSession,open:$('asset-editor').open,unavailable:lastLocked&&!allowDrafts})});
     const character=createCharacterEditor({format,converter,sanitize,associationOptions:{rpc,action,readState:associationState,onSaved:associationSaved,editPersona:editRelatedPersona}});
@@ -14,7 +14,7 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
     let savedAssociationRevision=null,savedAssociationCard={},primaryDraftDirty=false;
     let associations=null,associationError='',associationGuard=null,returnCharacter=null;
     let kind='characters',rows=[],key=null,revision=null,draft={},portrait, uncertain=false, invalid=false, orderId=100001,lastLocked=true,allowDrafts=false;
-    const cardActions=createCharacterActions({rpc,refresh,onDeleted,action,readState:()=>({key,revision,name:revision?JSON.parse(revision).name:draft.name,dirty:!!portrait||JSON.stringify(draft)!==revision,busy:lastLocked&&allowDrafts,unavailable:lastLocked&&!allowDrafts})});
+    const cardActions=createCharacterActions({rpc,refresh,onDeleted,action,onStartChat:origin=>onStartChat(origin,()=>key===origin.key&&editorSession===origin.editorSession&&$('asset-editor').open),readState:()=>({key,revision,editorSession,target:readChat()?.characterKey===key?{characterKey:key,chatId:readChat().chatId}:null,name:revision?JSON.parse(revision).name:draft.name,dirty:!!portrait||JSON.stringify(draft)!==revision,busy:lastLocked&&allowDrafts,unavailable:lastLocked&&!allowDrafts})});
     function associationCard(){if(savedAssociationRevision!==revision){savedAssociationRevision=revision;savedAssociationCard=revision?JSON.parse(revision):{};}return savedAssociationCard;}
     function associationState(){
         const saved=associationCard();
@@ -119,7 +119,7 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
         $('asset-error').textContent='Saving and checking ST’s saved data…';
         uncertain=true;$('save-asset').disabled=true;
         const result=await rpc('assets',{action:'write',kind,key,revision,draft,file:portrait},60000);
-        if(kind!==origin.kind||key!==origin.key||editorSession!==origin.session){await refresh();return;}
+        if(kind!==origin.kind||key!==origin.key||editorSession!==origin.session){await refreshAvailability();await refresh();return;}
         uncertain=false;
         key=result.key;const returning=!!returnCharacter;if(returning)await resumeCharacter();else $('asset-editor').close();if(!returning)await load();await refresh();$('library-error').textContent='Saved in ST and verified.';
     });

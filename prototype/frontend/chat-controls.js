@@ -1,4 +1,4 @@
-import {icon} from './icons.js?build=0.7.6';
+import {icon} from './icons.js?build=0.7.7';
 
 export function generationDuration(message) {
     if(message.is_user||!message.gen_started||!message.gen_finished)return null;

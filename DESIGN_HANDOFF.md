@@ -1,6 +1,6 @@
 # Pocket Tavern design handoff
 
-Updated 8 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.7.1 preset phase; 0.7.0 chat is user-confirmed working on Android.
+Updated 9 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.7.7 Character new-chat workflow; 0.7.0 chat is user-confirmed working on Android.
 
 ## Start here
 
@@ -49,7 +49,7 @@ Five tabs remain WI, Characters, Home in the center, Chats, Personas; hidden ins
 
 Recorded baseline: 94 automated tests; 28 native ST/mock assertions for the 0.6.1 repairs; 0.6.2 adds interaction-boundary coverage. These are prior results, not evidence that future edits pass. Run checks appropriate to actual changes and update `tests/TEST_REPORT.md`. Android gesture/keyboard/background comfort still requires device feedback.
 
-For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.7.1, phone-confirmed 0.7.0, previous 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
+For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.7.7, phone-confirmed 0.7.0, previous 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
 
 ## Archives
 
@@ -84,3 +84,12 @@ Next Character subphase: approved current-chat selector and create-new-before-op
 The approved thin current-chat line appears above the portrait only for the current character with multiple saved chats. Its bottom sheet reads the character’s complete native history without activating ST, keeps the Character draft and reading state, selects immediately, and dismisses with Done, outside or Back. History reads have captured editor-session guards; stale replies cannot replace a newer pane. The independently scrolling list uses bounded rendering and retains keyboard focus through activity polling. Loading/errors remain visible with retry. Existing Conversations controls are now in Character overflow; their creation/deletion behavior is unchanged in this selector subphase.
 
 No storage migration or generation request is introduced. Native settings schema remains v3. Next: approved Start new chat confirmation with deletion off by default, verified native greeting before optional guarded deletion, durable uncertainty review and Undo. Full Persona/World Info/Memory/libraries remain later phases; the two-line persona-link draft is still awaiting approval.
+
+
+## Character new-chat workflow — 0.7.7
+
+Start new chat is an explicit saved-card action available from the current Character overflow and existing Conversations destination. The confirmation captures the actual saved card and source chat, defaults deletion off and blocks incomplete cards, unsaved drafts, generation and unresolved work. ST creates its own greeting and saved alternatives without a model call; fresh chat settings inherit normally without copying the source’s Memory or scoped overrides. The replacement is independently verified before optional guarded source deletion. Undo retains the original source, valid Memory and opaque native fields, while retaining the replacement.
+
+The full source snapshot enters the durable journal before mutation. Lost acknowledgements and failed verification require explicit saved-work review; new-chat operations never drain or replay automatically. Review offers inspection and, where requested, restoration of the deleted source. Existing queued deletion backups gain full headers with compatibility for older pending entries. Native Author’s Note initialization follows actual native defaults for missing fields; all other metadata, messages and header fields remain guarded. Unknown source header fields survive ST’s native header reconstruction. Pocket Summaryception ignores native first-message events, including legacy zero-turn configurations, while ordinary generated-message summarization remains available.
+
+Conversation selection captures immutable editor ownership so closing or replacing the selector during a read cannot navigate or dismiss a newer pane. Character management without a selected chat safely hides the line; delayed related-persona saves refresh availability without replacing the resumed draft. No schema migration or Android framework work is included. Full library, Persona, World Info and Memory designs remain separate phases. The two-line persona draft is still pending approval. Device verification remains in PHONE_TEST_CHECKLIST.md; current desktop/mock evidence is in tests/TEST_REPORT.md.

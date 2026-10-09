@@ -71,3 +71,13 @@ test('deferred automatic Memory cannot run against a different chat',async()=>{
 test('ordinary chat activation never reserves Memory for a no-op branch repair',async()=>{
  const f=fixture();f.hostBusy(true);f.ctx.chatMetadata.summaryception={summarizedUpTo:1,layers:[]};await vm.runInContext('repairIfBranched()',f.sandbox);assert.equal(f.api.read().busy,false);assert.equal(f.verified(),0);
 });
+test('native greeting events never start Pocket Memory requests, even with zero verbatim turns',async()=>{
+ let calls=0;const f=fixture(async()=>{calls++;return 'Fixture summary';});
+ f.ctx.extensionSettings.summaryception.verbatimTurns=0;f.ctx.chat=[{is_user:false,is_system:false,mes:'Native greeting'}];
+ vm.runInContext("onMessageReceived(0, 'first_message')",f.sandbox);await new Promise(setImmediate);
+ assert.equal(calls,0);assert.equal(f.verified(),0);assert.equal(f.ctx.chatMetadata.summaryception,undefined);
+ // The greeting remains part of context when a later real assistant turn triggers Memory.
+ f.ctx.chat.push({is_user:true,mes:'Actual user turn'},{is_user:false,mes:'Actual generated reply'});
+ vm.runInContext("onMessageReceived(2)",f.sandbox);await new Promise(setImmediate);
+ assert.ok(calls>0);
+});

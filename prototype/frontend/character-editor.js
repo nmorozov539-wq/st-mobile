@@ -1,5 +1,5 @@
-import {createCharacterAssociations} from './character-associations.js?build=0.7.6';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.6';
+import {createCharacterAssociations} from './character-associations.js?build=0.7.7';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.7';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions}) {
     const links=createCharacterAssociations(associationOptions);

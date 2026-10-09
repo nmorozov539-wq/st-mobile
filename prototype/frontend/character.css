@@ -22,3 +22,8 @@
 #character-chat-picker{margin:auto auto 8px;border-radius:20px 20px 12px 12px;background:#272c3c;border-color:#4d536c;padding:18px}
 #character-chat-picker .dialog-heading h2{font-size:1rem;font-weight:500}
 #character-chat-picker .dialog-heading button{background:transparent;border:0;color:#b9c7d9}
+#new-chat-confirm{width:min(390px,calc(100% - 24px));margin:auto;max-height:85dvh;overflow:auto;border-radius:18px}
+.new-chat-delete-label{display:flex;align-items:center;gap:10px;margin:16px 0}
+.new-chat-delete-label input{width:20px;height:20px;flex-shrink:0}
+#new-chat-confirm .dialog-actions{display:flex;gap:8px;flex-wrap:wrap}
+#new-chat-status{font-size:.85rem;color:#b9c7d9}

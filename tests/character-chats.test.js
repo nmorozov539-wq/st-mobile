@@ -53,3 +53,22 @@ test('large history renders a bounded window and activity updates do not replace
   assert.ok(list.children.at(-1).style.height.length>0);
  }finally{globalThis.document=previous;}
 });
+test('delayed selection owns its original session, rather than a subsequently opened Character pane',async()=>{
+ const previous=globalThis.document,body=new Element('body'),panel=new Element('section');let line,state={key:'a',editorSession:1,open:true,unavailable:false},release,adopted=false;
+ globalThis.document={body,createElement:tag=>new Element(tag),querySelector:()=>line};
+ try{
+  const chats=createCharacterChats({rpc:async(_,arg)=>[{characterKey:arg.characterKey,chatId:'One'},{characterKey:arg.characterKey,chatId:'Two'}],action:fn=>fn(),readChat:()=>({characterKey:state.key,chatId:'One'}),onChat:async(_,guard)=>{await new Promise(r=>release=r);if(guard())adopted=true;},readState:()=>state});
+  chats.render(panel,'a');line=panel.children[0];await chats.load('a',1);line.onclick();
+  const selection=body.children[0].children[2].querySelectorAll('button')[1].onclick();
+  state={key:'b',editorSession:2,open:true,unavailable:false};await chats.load('b',2);line.onclick();release();await selection;
+  assert.equal(adopted,false);assert.equal(body.children[0].open,true);assert.equal(line.textContent,'One  ⌄');
+ }finally{globalThis.document=previous;}
+});
+test('Character management without a selected chat keeps its conversation line hidden and updates safely',async()=>{
+ const previous=globalThis.document,body=new Element('body'),panel=new Element('section');let line;
+ globalThis.document={body,createElement:tag=>new Element(tag),querySelector:()=>line};
+ try{
+  const chats=createCharacterChats({rpc:async()=>[{characterKey:'a',chatId:'One'},{characterKey:'a',chatId:'Two'}],action:fn=>fn(),readChat:()=>undefined,onChat:()=>assert.fail('management must not select a chat'),readState:()=>({key:'a',editorSession:1,open:true,unavailable:false})});
+  chats.render(panel,'a');line=panel.children[0];await chats.load('a',1);assert.doesNotThrow(()=>chats.update());assert.equal(line.hidden,true);assert.equal(body.children[0].open,false);
+ }finally{globalThis.document=previous;}
+});

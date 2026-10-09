@@ -30,3 +30,7 @@ import './character-actions.test.js';
 import './character-associations.test.js';
 
 import './character-chats.test.js';
+
+import './new-chat.test.js';
+
+import './new-chat-panel.test.js';

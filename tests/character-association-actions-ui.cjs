@@ -7,6 +7,7 @@ let passed=0;const check=(value,label)=>{assert.ok(value,label);passed++;console
 module.exports=(async()=>{
  const browser=await chromium.launch({headless:true});let saved;
  const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ const activeRequests=new Set();p.on('request',r=>activeRequests.add(r.url()));p.on('requestfinished',r=>activeRequests.delete(r.url()));p.on('requestfailed',r=>activeRequests.delete(r.url()));
  const ready=async()=>{await p.goto('http://127.0.0.1:8123/st-mobile/');await p.waitForFunction(()=>document.querySelector('#status').textContent==='Engine ready',null,{timeout:60000});};
  const native=(fn,arg)=>p.locator('#engine').contentFrame().locator('body').evaluate(fn,arg);
  const findFields=async name=>{const scroller=p.locator('#landing');await scroller.evaluate(async e=>{e.scrollTop=0;await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);});for(let step=0;step<80;step++){const fields=p.locator('.library-row').filter({has:p.getByText(name,{exact:true})}).getByRole('button',{name:'Fields',exact:true});const box=await fields.first().boundingBox().catch(()=>null),area=await scroller.boundingBox();if(box&&box.y>=area.y&&box.y+box.height<=area.y+area.height)return fields;await scroller.evaluate(async(e,delta)=>{e.scrollTop+=delta;await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);},box?box.y-(area.y+area.height/2):500);}throw Error('Fixture not found');};
@@ -29,11 +30,11 @@ module.exports=(async()=>{
  // Hold a real native Save request while returning to the Character draft.
  await p.locator('.character-persona-line').click();await p.getByRole('button',{name:'Edit persona',exact:true}).click();await p.getByRole('textbox',{name:'Description',exact:true}).fill('Delayed native persona edit');
  let releaseSave,hitSave,held=false;const saveGate=new Promise(r=>releaseSave=r),saveHit=new Promise(r=>hitSave=r);
- await p.route('**/api/settings/save',async route=>{if(!held){held=true;hitSave();await saveGate;}await route.continue();});
+ await p.route('**/api/settings/save',async route=>{if(!held&&route.request().postDataJSON()?.power_user?.persona_descriptions?.['association-one.png']?.description==='Delayed native persona edit'){held=true;hitSave();await saveGate;}await route.continue();});
  try{
     await p.locator('#save-asset').click();await saveHit;await p.locator('#close-asset').click();await p.waitForFunction(()=>document.querySelector('#asset-editor').classList.contains('character-editor'));
     check(await p.getByRole('textbox',{name:'Description',exact:true}).inputValue()==='Keep Character draft while editing persona','returning during pending persona Save preserves Character draft');
-    const settled=p.waitForResponse(r=>r.url().endsWith('/api/settings/save')&&r.status()===200);releaseSave();await settled;await p.waitForFunction(()=>document.querySelector('#character-work-status').textContent==='');
+    const settled=p.waitForResponse(r=>r.url().endsWith('/api/settings/save')&&r.status()===200);releaseSave();await settled;await p.waitForFunction(()=>document.querySelector('#character-work-status').textContent==='').catch(async e=>{console.error('SAVE SETTLEMENT',await p.evaluate(()=>({status:document.querySelector('#status').textContent,work:document.querySelector('#character-work-status').textContent,error:document.querySelector('#asset-error').textContent})),[...activeRequests],await native(async()=>{const s=await import('/script.js');return {saving:s.isChatSaving,generating:s.isGenerating(),extensions:[...window.pocketExtensions.values()].map(x=>x.read())};}));throw e;});
     check(await p.locator('#asset-editor').isVisible()&&await p.getByRole('textbox',{name:'Description',exact:true}).inputValue()==='Keep Character draft while editing persona','late Save completion cannot dismiss or replace the resumed Character draft');
     check((await readSettings()).power.persona_descriptions['association-one.png'].description==='Delayed native persona edit','pending persona Save settles on its captured native persona');
  }finally{releaseSave();await p.unroute('**/api/settings/save');}

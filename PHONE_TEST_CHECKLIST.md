@@ -1,6 +1,6 @@
 # Pocket Tavern phone test checklist
 
-All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, association controls 0.7.5, then further Character subphases. Release numbering does not change the saved-settings schema.
+All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, association controls 0.7.5, conversation selector 0.7.6 and new-chat workflow 0.7.7. Release numbering does not change the saved-settings schema.
 
 Chat was reported working on the phone. Unchecked items below remain device checks, even when desktop/mock checks pass. Development may continue while phone testing is unavailable; commit each verified milestone. Use a spare/test conversation for destructive checks.
 
@@ -99,3 +99,14 @@ Association editing/removal follows in 0.7.5 below; the redesigned chat selector
 - [ ] Check per-chat composer drafts and reading position when switching back.
 - [ ] Character overflow still opens Conversations. New-before-optional-delete confirmation is the next subphase.
 - [ ] Check keyboard, background/reconnect and TalkBack behavior on Android; desktop checks cannot establish these.
+
+## New-chat workflow — 0.7.7 onward
+
+- [ ] Open Start new chat from Character overflow; it names the actual character/source and Delete current starts unchecked each time.
+- [ ] Cancel/Back returns to Character without creating a chat or losing your draft/reading position.
+- [ ] Start with deletion off: actual greeting and alternatives appear, old chat and its Memory remain, and no AI request is made.
+- [ ] Start with deletion on using a disposable conversation: new greeting is saved before old chat deletion; Undo restores the old chat and its Memory while retaining the new one.
+- [ ] Check confirmation on small widths, rotation, large text and TalkBack; action explanations and Cancel remain reachable.
+- [ ] During a reply, browsing and conversation selection remain available; Start new chat stays blocked, and Stop saves to the original generating target.
+- [ ] After an interrupted new-chat save/delete, reconnect and inspect saved work; creation/deletion never repeats automatically. Restore old chat only when it is missing.
+- [ ] Incomplete/unsaved cards and independently changed saved chats block creation with a useful explanation.

@@ -1,11 +1,11 @@
-import { createWorkspace } from './workspace.js?build=0.7.6';
-import { createAdapter } from './adapter.js?build=0.7.6';
-import { createGenerationRuntime } from './runtime.js?build=0.7.6';
+import { createWorkspace } from './workspace.js?build=0.7.7';
+import { createAdapter } from './adapter.js?build=0.7.7';
+import { createGenerationRuntime } from './runtime.js?build=0.7.7';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.7.6';
+import { createConfigurationRuntime } from './configuration.js?build=0.7.7';
 
-import { createAssetRuntime } from './assets.js?build=0.7.6';
+import { createAssetRuntime } from './assets.js?build=0.7.7';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -16,7 +16,7 @@ const sessionId = crypto.randomUUID();
 const runtime = createGenerationRuntime(getContext);
 const isBusy = ({owner}={}) => isGenerating() || isChatSaving || [...(window.pocketExtensions?.values()??[])].some(extension=>{const state=extension.read();return state.busy && !(owner==='generation' && state.id==='summaryception' && state.waiting);});
 const configuration = createConfigurationRuntime(getContext);
-const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||!!adapter.activity().operation,configuration});
+const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||adapter.activity({ignoreExternal:true}).busy,configuration});
 const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
     generation: runtime, configuration, assets: createAssetRuntime(getContext), extensions: window.pocketExtensions });
@@ -33,7 +33,7 @@ window.pocketSaveSettings = async expected => {
 
 if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
     let port;
-    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.6'};}, characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.7'};}, characters: () => adapter.listCharacters(),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),

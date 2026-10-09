@@ -1,4 +1,4 @@
-import {renderRange} from './journal.js?build=0.7.6';
+import {renderRange} from './journal.js?build=0.7.7';
 
 // History is read without activating ST. A captured editor session owns each read.
 export function createCharacterChats({rpc,action,readChat,onChat,readState}) {
@@ -14,7 +14,7 @@ export function createCharacterChats({rpc,action,readChat,onChat,readState}) {
     dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
     const current=()=>origin&&readState().open!==false&&readState().key===origin.key&&readState().editorSession===origin.session;
     async function load(key,session){
-        const token=++request;origin={key,session};rows=[];loading=true;error='';dialog.close();update();
+        const token=++request;origin={key,session};rows=[];loading=true;error='';switching=false;dialog.close();update();
         try{const result=await rpc('workspace',{action:'history',characterKey:key});if(token!==request||!current())return;rows=result;}
         catch(e){if(token!==request||!current())return;error=e.message;}
         finally{if(token===request&&current()){loading=false;update();}}
@@ -24,7 +24,7 @@ export function createCharacterChats({rpc,action,readChat,onChat,readState}) {
         const chat=readChat(),same=chat?.characterKey===origin.key;
         line.hidden=!same||(!loading&&!error&&rows.length<2);
         line.disabled=loading||readState().unavailable;
-        line.textContent=loading?'Reading conversations…':error?'Conversations unavailable · retry':chat.chatId+'  ⌄';
+        line.textContent=loading?'Reading conversations…':error?'Conversations unavailable · retry':(chat?.chatId??'Choose conversation')+'  ⌄';
         line.setAttribute('aria-label',error?'Retry reading conversations':`Choose conversation · ${chat?.chatId??''}`);
         if(dialog.open)for(const b of list.querySelectorAll('button'))b.disabled=switching||readState().unavailable;
     }
@@ -35,10 +35,13 @@ export function createCharacterChats({rpc,action,readChat,onChat,readState}) {
         list.append(spacer(range.before));
         for(const row of rows.slice(range.start,range.end)){
             const b=button(row.chatId,()=>action(async()=>{
-                if(switching||!current()||readState().unavailable)return;switching=true;paint();
-                try{await onChat(row,current);if(current()){dialog.close();update();}}
-                catch(e){if(current()){error=e.message;status.textContent=error;}throw e;}
-                finally{switching=false;if(dialog.open)paint();}
+                if(switching||!current()||readState().unavailable)return;
+                const selected={...origin},version=request;
+                const ownsSelection=()=>version===request&&dialog.open&&readState().open!==false&&readState().key===selected.key&&readState().editorSession===selected.session;
+                switching=true;paint();
+                try{await onChat(row,ownsSelection);if(ownsSelection()){dialog.close();update();}}
+                catch(e){if(ownsSelection()){error=e.message;status.textContent=error;}throw e;}
+                finally{if(version===request){switching=false;if(dialog.open)paint();}}
             }));
             b.className='character-chat-choice';b.disabled=switching||readState().unavailable;b.setAttribute('aria-pressed',String(readChat()?.characterKey===row.characterKey&&readChat()?.chatId===row.chatId));list.append(b);
         }

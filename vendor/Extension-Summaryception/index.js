@@ -1557,7 +1557,9 @@ function updateInjection() {
 
 // ─── Event Handlers ──────────────────────────────────────────────────
 
-function onMessageReceived(messageIndex) {
+function onMessageReceived(messageIndex, type) {
+    // Opening or creating a native greeting must never start a paid Memory call.
+    if (pocketMode && type === 'first_message') return;
     if (!getSettings().enabled) return;
     try {
         const { chat } = SillyTavern.getContext();

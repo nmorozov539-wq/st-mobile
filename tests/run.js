@@ -34,3 +34,6 @@ import './character-chats.test.js';
 import './new-chat.test.js';
 
 import './new-chat-panel.test.js';
+
+import './libraries.test.js';
+import './syntax.test.js';

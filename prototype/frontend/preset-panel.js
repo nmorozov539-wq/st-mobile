@@ -1,6 +1,6 @@
-import {icon} from './icons.js?build=0.7.7';
-import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.7.7';
-import {revision} from './journal.js?build=0.7.7';
+import {icon} from './icons.js?build=0.7.9';
+import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.7.9';
+import {revision} from './journal.js?build=0.7.9';
 
 const triggers=[['normal','Normal reply'],['swipe','New alternative'],['continue','Continue'],['regenerate','Regenerate'],['impersonate','Impersonate'],['quiet','Quiet generation']];
 const labels={temperature:'Temperature',openai_max_tokens:'Reply token limit',openai_max_context:'Context token budget',top_p:'Top P'};

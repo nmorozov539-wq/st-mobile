@@ -1,5 +1,5 @@
-import {selectPreset,changePresetGeneration,resetPresetToGlobal} from './preset-state.js?build=0.7.7';
-import {revision} from './journal.js?build=0.7.7';
+import {selectPreset,changePresetGeneration,resetPresetToGlobal} from './preset-state.js?build=0.7.9';
+import {revision} from './journal.js?build=0.7.9';
 
 export function effectiveSettings(value) {
     const preset=value.chat?.enabled&&value.chat.copy?{scope:'chat',copy:structuredClone(value.chat.copy)}:

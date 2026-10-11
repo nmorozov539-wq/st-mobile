@@ -2824,14 +2824,17 @@ const pocketRead = () => {
     const s=getSettings();
     return {id:MODULE_NAME,version:'5.5.4-pocket',busy:!!(pocketWorking||isSummarizing||pocketPendingAuto||pocketPendingRepair),waiting:!!(pocketPendingAuto||pocketPendingRepair)&&!pocketWorking&&!isSummarizing,
         waitingFor:pocketPendingAuto?'summary':pocketPendingRepair?'repair':null,
-        settings:{enabled:s.enabled,pauseSummarization:s.pauseSummarization,verbatimTurns:s.verbatimTurns,turnsPerSummary:s.turnsPerSummary,snippetsPerLayer:s.snippetsPerLayer,snippetsPerPromotion:s.snippetsPerPromotion,summarizerResponseLength:s.summarizerResponseLength,promptPreset:s.promptPreset,summarizerUserPrompt:s.summarizerUserPrompt,connectionSource:s.connectionSource},
-        memory:structuredClone(SillyTavern.getContext().chatMetadata[MODULE_NAME]??{layers:[],summarizedUpTo:-1,ghostedIndices:[]}),failure:pocketFailure,needsRebuild:!!SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid,
+        settings:{enabled:s.enabled,pauseSummarization:s.pauseSummarization,verbatimTurns:s.verbatimTurns,turnsPerSummary:s.turnsPerSummary,snippetsPerLayer:s.snippetsPerLayer,snippetsPerPromotion:s.snippetsPerPromotion,summarizerResponseLength:s.summarizerResponseLength,promptPreset:s.promptPreset,summarizerUserPrompt:s.summarizerUserPrompt,connectionSource:s.connectionSource,maxLayers:s.maxLayers,disableGhosting:s.disableGhosting,debugMode:s.debugMode,traceMode:s.traceMode,injectionTemplate:s.injectionTemplate,summarizerSystemPrompt:s.summarizerSystemPrompt,stripPatterns:[...(s.stripPatterns??[])],savedCustomPrompts:{...(s.savedCustomPrompts??{})}},
+        memory:structuredClone(SillyTavern.getContext().chatMetadata[MODULE_NAME]??{layers:[],summarizedUpTo:-1,ghostedIndices:[]}),injection:(()=>{try{return getSettings().enabled?assembleSummaryBlock():'';}catch{return '';}})(),failure:pocketFailure,needsRebuild:!!SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid,
         backlog:pocketBacklog?{turns:pocketBacklog.overflowCount,calls:pocketBacklog.estimatedCalls}:null};
 };
+const pocketPersist=async()=>{updateInjection();await SillyTavern.getContext().saveMetadata();await SillyTavern.getContext().saveChat();updateUI();await window.pocketVerifyMemory();};
+const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)throw Error('Memory file has an unsupported layer list.');let n=0;return layers.map(layer=>{if(!Array.isArray(layer))throw Error('Memory file layers must be lists.');return layer.map(sn=>{if(typeof sn?.text!=='string'||!sn.text.trim()||sn.text.length>20000||++n>5000)throw Error('Memory file has an invalid snippet.');const out={text:sn.text};if(Array.isArray(sn.turnRange)&&sn.turnRange.length===2&&sn.turnRange.every(Number.isInteger)&&sn.turnRange[0]>=0&&sn.turnRange[1]>=sn.turnRange[0])out.turnRange=[sn.turnRange[0],sn.turnRange[1]];if(Number.isFinite(sn.timestamp))out.timestamp=sn.timestamp;if(sn.regenerated===true)out.regenerated=true;return out;});});};
 (window.pocketExtensions ??= new Map()).set(MODULE_NAME,{
     read:pocketRead,
     async run({action,value}){
         if(action==='read')return pocketRead();
+        if(action==='export')return {...pocketRead(),exported:structuredClone(getChatStore())};
         if(action==='choice'){
             if(!pocketBacklog || !['catchup','partial','skip'].includes(value))throw Error('The backlog choice is no longer available.');
             const resolve=pocketBacklog.resolve;pocketBacklog=null;resolve(value);return pocketRead();
@@ -2850,9 +2853,17 @@ const pocketRead = () => {
                     if(['enabled','pauseSummarization'].includes(key)){if(typeof v!=='boolean')throw Error('Expected an on/off setting.');}
                     else if(['verbatimTurns','turnsPerSummary','snippetsPerLayer','snippetsPerPromotion','summarizerResponseLength'].includes(key)){if(!Number.isInteger(v)||v<(key==='summarizerResponseLength'?0:1)||v>100000)throw Error('Enter a valid whole-number memory setting.');}
                     else if(key==='promptPreset'){if(!Object.hasOwn(PROMPT_PRESETS,v))throw Error('Choose a supported prompt preset.');}
+                    else if(['disableGhosting','debugMode','traceMode'].includes(key)){if(typeof v!=='boolean')throw Error('Expected an on/off setting.');}
+                    else if(key==='maxLayers'){if(!Number.isInteger(v)||v<1||v>20)throw Error('Maximum layer depth must be 1 to 20.');}
+                    else if(key==='injectionTemplate'){if(typeof v!=='string'||!v.includes('{{summary}}')||v.length>20000)throw Error('The injection wrapper must contain {{summary}}.');}
+                    else if(key==='summarizerSystemPrompt'){if(typeof v!=='string'||v.length>20000)throw Error('Expected system prompt text.');}
+                    else if(key==='stripPatterns'){if(!Array.isArray(v)||v.length>50||v.some(x=>typeof x!=='string'||!x||x.length>200))throw Error('Strip patterns must be up to 50 non-empty lines.');}
+                    else if(key==='connectionSource'){if(v!=='default')throw Error('Pocket can switch only back to the Default ST connection.');}
+                    else if(key==='savedCustomPrompts'){if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length>100||Object.entries(v).some(([k,t])=>!k||k.length>80||typeof t!=='string'||t.length>50000))throw Error('Saved prompts are invalid.');}
                     else if(key==='summarizerUserPrompt'){if(typeof v!=='string')throw Error('Expected prompt text.');}
                     else throw Error('Unsupported memory setting.');
                 }
+                if(value.promptPreset && s.promptPreset==='custom' && value.promptPreset!=='custom')s.lastCustomPrompt=value.summarizerUserPrompt??s.summarizerUserPrompt;
                 Object.assign(s,value);
                 if(value.promptPreset && value.promptPreset!=='custom')s.summarizerUserPrompt=PROMPT_PRESETS[value.promptPreset];
                 value.summarizerUserPrompt=s.summarizerUserPrompt;await window.pocketSaveSettings(value);updateInjection();updateUI();
@@ -2865,6 +2876,63 @@ const pocketRead = () => {
                 const turns=getAssistantTurns(chat).filter(t=>!chat[t.index].extra?.sc_ghosted);
                 if(turns.length>s.verbatimTurns)await runCatchup(turns,turns.length-s.verbatimTurns);
                 updateInjection();await SillyTavern.getContext().saveChat();await window.pocketVerifyMemory();
+            }else if(action==='snippet'){
+                const ctx=SillyTavern.getContext(),store=getChatStore(),{op,layer,index,expected,text}=value??{};
+                if(ctx.chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
+                if(!Number.isInteger(layer)||!Number.isInteger(index))throw Error('Choose a saved snippet.');
+                const sn=store.layers[layer]?.[index];
+                if(!sn||sn.text!==expected)throw Error('That snippet changed. Reopen Saved memories and try again.');
+                if(op==='edit'){
+                    const next=String(text??'').trim();
+                    if(!next||next.length>20000)throw Error('Snippet text cannot be empty.');
+                    sn.text=next;
+                }else if(op==='delete'){
+                    store.layers[layer].splice(index,1);
+                    const ends=(store.layers[0]??[]).filter(x=>x.turnRange).map(x=>x.turnRange[1]);
+                    store.summarizedUpTo=ends.length?Math.max(...ends):-1;
+                }else if(op==='regenerate'){
+                    if(!sn.turnRange)throw Error('Only Layer 0 snippets have source turns to regenerate.');
+                    if(ctx.groupId)throw Error('Pocket memory supports single-character chats only.');
+                    if(getSettings().connectionSource && getSettings().connectionSource!=='default')throw Error('Choose Default ST as Summaryception’s connection first.');
+                    const story=buildPassageFromRange(ctx.chat,sn.turnRange[0],sn.turnRange[1]);
+                    if(!story.trim())throw Error('Source turns are empty. Cannot regenerate.');
+                    const others=[];for(let i=store.layers.length-1;i>=0;i--)for(const [j,o] of (store.layers[i]??[]).entries())if(!(i===layer&&j===index))others.push(o.text);
+                    isSummarizing=true;
+                    let summary;
+                    try{summary=await callSummarizer(story,others.join(' ')||'(none yet)');}finally{isSummarizing=false;}
+                    if(!summary)throw Error(pocketStopped?'Regeneration stopped. The original snippet was kept.':'Regeneration failed. The original snippet was kept.');
+                    sn.text=summary;sn.timestamp=Date.now();sn.regenerated=true;
+                }else throw Error('Unknown snippet operation.');
+                await pocketPersist();
+            }else if(action==='clear'){
+                if(SillyTavern.getContext().groupId)throw Error('Pocket memory supports single-character chats only.');
+                await unghostAllMessages();
+                const store=getChatStore();store.layers.length=0;store.summarizedUpTo=-1;store.ghostedIndices=[];
+                const meta=SillyTavern.getContext().chatMetadata;if(meta.pocket_tavern)delete meta.pocket_tavern.memoryInvalid;
+                pocketBacklog=null;
+                await pocketPersist();
+            }else if(action==='import'){
+                const ctx=SillyTavern.getContext();
+                if(ctx.groupId)throw Error('Pocket memory supports single-character chats only.');
+                if(ctx.chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
+                const data=value?.data;
+                if(!data||!Array.isArray(data.layers))throw Error('This is not a Summaryception memory file.');
+                const layers=pocketPlainSnippets(data.layers);
+                const upTo=Number.isInteger(data.summarizedUpTo)?data.summarizedUpTo:-1;
+                if(upTo<-1||upTo>=ctx.chat.length)throw Error('This memory belongs to a longer conversation than the open chat.');
+                await unghostAllMessages();
+                const store=getChatStore();store.layers=layers;store.summarizedUpTo=upTo;store.ghostedIndices=[];
+                if(upTo>=0)await ghostMessagesUpTo(upTo);
+                await pocketPersist();
+            }else if(action==='repair'){
+                if(SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
+                await repairIfBranchedOriginal();
+                await pocketPersist();
+            }else if(action==='reset'){
+                const s=getSettings(),keys=['verbatimTurns','turnsPerSummary','snippetsPerLayer','snippetsPerPromotion','maxLayers','summarizerSystemPrompt','summarizerUserPrompt','promptPreset','injectionTemplate','summarizerResponseLength','debugMode','traceMode'];
+                const next=Object.fromEntries(keys.map(k=>[k,defaultSettings[k]]));next.stripPatterns=[...defaultSettings.stripPatterns];
+                Object.assign(s,next);
+                await window.pocketSaveSettings(next);updateInjection();updateUI();
             }else throw Error('Unknown memory operation.');
             return pocketRead();
         }catch(error){pocketFailure=error.message;throw error;}

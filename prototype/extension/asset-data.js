@@ -41,9 +41,9 @@ export function validatePreset(value) {
 }
 
 // Native welcome messages are UI scaffolding; temporary conversations are data.
-export function canCloseEmptyCharacterView(ctx,{welcomeMessageType,composerText=''}={}) {
+export function canCloseEmptyCharacterView(ctx,{welcomeMessageType,composerText='',operation='deleting a character'}={}) {
     if(ctx.characterId!==undefined||ctx.groupId)return false;
     const changed=ctx.chatMetadata?.tainted||composerText.trim()||ctx.chat.some(message=>message.is_user||!message.is_system&&!(welcomeMessageType&&message.extra?.type===welcomeMessageType));
-    if(changed)throw Error('ST has an unsaved temporary conversation. Save or close it in the native interface before deleting a character.');
+    if(changed)throw Error(`ST has an unsaved temporary conversation. Save or close it in the native interface before ${operation}.`);
     return true;
 }

@@ -76,3 +76,12 @@ test('uncertain native source loading retains the full backup before greeting cr
  f.deps.activate=async()=>{throw Error('Native source save acknowledgement lost');};
  await assert.rejects(startNewChat(f.arg,f.deps),e=>e.code==='NEW_CHAT_UNCERTAIN');assert.deepEqual(f.arg,backup);assert.ok(!f.events.some(e=>e.startsWith('create:')||e.startsWith('delete:')));
 });
+
+test('fresh-character creation needs no source, never opens an old chat and never deletes one',async()=>{
+ const f=fixture();f.arg.target={characterKey:f.arg.target.characterKey};f.arg.before=null;
+ const result=await startNewChat(f.arg,f.deps);assert.equal(result.snapshot.chatId,'Fresh');assert.deepEqual(f.files.get('Original'),f.before);assert.ok(!f.events.some(e=>e.startsWith('activate:')||e.startsWith('delete:')));
+ const first=fixture();first.files.delete('Original');first.arg.target={characterKey:first.arg.target.characterKey};first.arg.before=null;await startNewChat(first.arg,first.deps);assert.equal(first.files.size,1);
+});
+test('source-free creation cannot request deletion or carry an unrelated source snapshot',async()=>{
+ for(const mutate of [f=>f.arg.deleteCurrent=true,f=>f.arg.before=f.before]){const f=fixture();f.arg.target={characterKey:f.arg.target.characterKey};f.arg.before=null;mutate(f);await assert.rejects(startNewChat(f.arg,f.deps),e=>e.code==='INVALID_ARGUMENT');assert.ok(!f.events.some(e=>e.startsWith('create:')));}
+});

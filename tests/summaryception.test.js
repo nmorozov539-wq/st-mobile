@@ -81,3 +81,34 @@ test('native greeting events never start Pocket Memory requests, even with zero 
  vm.runInContext("onMessageReceived(2)",f.sandbox);await new Promise(setImmediate);
  assert.ok(calls>0);
 });
+
+test('Pocket snippet actions edit, regenerate and delete only the expected saved snippet and verify persistence',async()=>{
+ let text='First summary.';const f=fixture(async()=>text);await f.api.run({action:'summarize'});
+ const read=()=>f.api.read().memory.layers[0],verified=f.verified();
+ await assert.rejects(f.api.run({action:'snippet',value:{op:'edit',layer:0,index:0,expected:'stale',text:'x'}}),/changed/);
+ await assert.rejects(f.api.run({action:'snippet',value:{op:'edit',layer:0,index:0,expected:read()[0].text,text:'  '}}),/empty/);
+ await f.api.run({action:'snippet',value:{op:'edit',layer:0,index:0,expected:read()[0].text,text:'Edited by hand.'}});
+ assert.equal(read()[0].text,'Edited by hand.');assert.match(f.ctx.injection,/Edited by hand/);assert.equal(f.verified(),verified+1);
+ text='Regenerated summary.';await f.api.run({action:'snippet',value:{op:'regenerate',layer:0,index:1,expected:read()[1].text}});
+ assert.equal(read()[1].text,'Regenerated summary.');assert.equal(read()[1].regenerated,true);assert.equal(read()[0].text,'Edited by hand.');
+ await f.api.run({action:'snippet',value:{op:'delete',layer:0,index:0,expected:'Edited by hand.'}});
+ assert.equal(read().length,1);assert.equal(f.api.read().busy,false);
+});
+test('Pocket clear resets memory, unghosts messages and lifts the rebuild block; export/import round-trips safely',async()=>{
+ const f=fixture();await f.api.run({action:'summarize'});
+ const exported=(await f.api.run({action:'export'})).exported;assert.equal(exported.layers[0].length,2);
+ await f.api.run({action:'clear'});assert.equal(f.api.read().memory.layers.flat().length,0);assert.equal(f.ctx.chat[0].extra?.sc_ghosted,undefined);assert.equal(f.ctx.injection??'','');
+ await f.api.run({action:'import',value:{data:exported}});assert.equal(f.api.read().memory.layers[0].length,2);assert.equal(f.ctx.chat[0].extra.sc_ghosted,true);
+ await assert.rejects(f.api.run({action:'import',value:{data:{layers:[[{text:''}]]}}}),/invalid snippet/);
+ await assert.rejects(f.api.run({action:'import',value:{data:{layers:[],summarizedUpTo:99}}}),/longer conversation/);
+ f.ctx.chatMetadata.pocket_tavern={memoryInvalid:{reason:'changed history'},keep:1};
+ await assert.rejects(f.api.run({action:'snippet',value:{op:'delete',layer:0,index:0,expected:'x'}}),/Clear memory first/);
+ await f.api.run({action:'clear'});assert.equal(f.api.read().needsRebuild,false);assert.equal(f.ctx.chatMetadata.pocket_tavern.keep,1);
+});
+test('Pocket settings accept the full configuration surface, reject unsafe values and reset to defaults',async()=>{
+ const f=fixture();
+ await f.api.run({action:'settings',value:{maxLayers:7,debugMode:true,stripPatterns:['<x>'],injectionTemplate:'[m] {{summary}}',savedCustomPrompts:{Mine:'text'},disableGhosting:true}});
+ const s=f.api.read().settings;assert.equal(s.maxLayers,7);assert.equal(JSON.stringify(s.stripPatterns),'["<x>"]');assert.equal(s.savedCustomPrompts.Mine,'text');
+ for(const bad of [{injectionTemplate:'no marker'},{maxLayers:0},{connectionSource:'openai'},{stripPatterns:['']},{savedCustomPrompts:[]},{unknown:1}])await assert.rejects(f.api.run({action:'settings',value:bad}));
+ await f.api.run({action:'reset'});const r=f.api.read().settings;assert.equal(r.maxLayers,5);assert.equal(r.debugMode,false);assert.ok(r.stripPatterns.length>1);assert.equal(r.savedCustomPrompts.Mine,'text');
+});

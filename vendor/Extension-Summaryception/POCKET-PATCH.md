@@ -7,3 +7,5 @@ summary/repair pipeline with Pocket chat operations, and moves backlog choices
 into Pocket's Memory panel. Summary algorithms and native storage are retained.
 Native ST pages retain the original dialogs and UI. Auto-update is disabled so
 an upstream change cannot silently remove this coordination patch.
+
+0.7.9 additions to the registered Pocket API (all validated, all persisted and verified through window.pocketVerifyMemory): `read` also returns the assembled `injection` text and full advanced settings; `settings` accepts layer depth, hiding, logging, system prompt, wrapper (must contain {{summary}}), strip patterns, saved custom prompts and switching connectionSource back to default; `snippet` (edit/delete/regenerate, guarded by expected text), `clear` (also lifts the Pocket rebuild block), `import`, `export`, `repair` and `reset`. Native ST pages are unchanged.

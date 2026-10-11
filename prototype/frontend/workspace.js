@@ -1,0 +1,132 @@
+import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.9';
+import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.7.9';
+import {assertPersisted} from './persistence.js?build=0.7.9';
+import {readCharacterHistory} from './character-history.js?build=0.7.9';
+import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.9';
+import { saveSettings,system_message_types } from '/script.js';
+import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
+import { user_avatar } from '/scripts/personas.js';
+import { getPresetManager } from '/scripts/preset-manager.js';
+import { selectSavedChat } from './chat-selection.js?build=0.7.9';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.9';
+
+export function createWorkspace({getContext,isBusy,configuration}) {
+    let mutating=false;
+    const ctx=()=>getContext();
+    const fail=(code,text)=>{throw Object.assign(Error(text),{code});};
+    const active=()=>({characterKey:ctx().characters[ctx().characterId]?.avatar,chatId:ctx().chatId});
+    const same=(a,b)=>a?.characterKey===b?.characterKey&&a?.chatId===b?.chatId;
+    const fields=Object.entries(settingsToUpdate).filter(([key,[,,,connection]])=>!connection&&key!=='extensions');
+    const generation=()=>Object.fromEntries(fields.filter(([, [,key]])=>ctx().chatCompletionSettings[key]!==undefined).map(([name,[,key]])=>[name,clone(ctx().chatCompletionSettings[key])]));
+    const baseline=()=>ctx().extensionSettings.pocket_tavern??={version:1,global:{preset:ctx().chatCompletionSettings.preset_settings_openai,model:getChatCompletionModel(),generation:generation()}};
+    async function post(url,body){const response=await fetch(url,{method:'POST',headers:ctx().getRequestHeaders(),body:JSON.stringify(body),cache:'no-store'});if(!response.ok)fail('SAVE_FAILED',`ST request failed (${response.status}).`);const text=await response.text();return response.headers.get('content-type')?.includes('application/json')?JSON.parse(text):text;}
+    function valid(target){if(!target?.characterKey||typeof target.chatId!=='string'||!target.chatId||target.chatId.includes('/')||target.chatId.includes('\\'))fail('INVALID_ARGUMENT','Choose an existing conversation.');if(!ctx().characters.some(c=>c.avatar===target.characterKey))fail('CHAT_NOT_FOUND','Character no longer exists.');}
+    async function read(target){valid(target);const rows=await post('/api/chats/get',{avatar_url:target.characterKey,file_name:target.chatId});if(!Array.isArray(rows)||!rows.length)fail('CHAT_NOT_FOUND','Conversation no longer exists.');const metadata=clone(rows[0].chat_metadata??{});return {...target,header:clone(rows[0]),messages:rows.slice(1),metadata,presentation:{personaName:ctx().powerUserSettings.personas?.[metadata.persona??Object.entries(ctx().powerUserSettings.persona_descriptions??{}).find(([,d])=>d.connections?.some(c=>c.type==='character'&&c.id===target.characterKey))?.[0]??ctx().powerUserSettings.default_persona??user_avatar]??ctx().name1,preset:metadata.pocket_tavern?.settings?.copy?.preset??baseline().global.preset}};}
+    async function write(value){await post('/api/chats/save',{avatar_url:value.characterKey,file_name:value.chatId,chat:[{user_name:'unused',character_name:'unused',...clone(value.header??{}),chat_metadata:value.metadata},...value.messages]});const saved=await read(value);assertRevision(saved.messages,revision(value.messages));assertRevision(saved.metadata,revision(value.metadata));assertRevision(saved.header,revision({user_name:'unused',character_name:'unused',...clone(value.header??{}),chat_metadata:value.metadata}));return saved;}
+    async function recent(){const rows=await post('/api/chats/recent',{max:1000,metadata:false,pinned:[]});return rows.filter(r=>r.avatar&&!r.group).map(r=>({characterKey:r.avatar,chatId:String(r.file_name??r.file_id).replace(/\.jsonl$/,''),preview:String(r.mes??''),updated:r.last_mes,messages:r.chat_items}));}
+    const history=characterKey=>readCharacterHistory(characterKey,{characters:ctx().characters,post});
+    async function scopes(target){const snapshot=target?await read(target):null,character=ctx().characters.find(c=>c.avatar===target?.characterKey);const global=clone(baseline().global),char=withModelSelection(character?.data?.extensions?.pocket_tavern?.settings),chat=withModelSelection(snapshot?.metadata.pocket_tavern?.settings);return {global,character:char,chat,effective:effectiveScope(global,char,chat),revision:revision({global,char,chat})};}
+    async function activate(target){valid(target);if(isBusy())fail('BUSY','Only one generation or saved change can run at a time.');if(!same(active(),target)){if(ctx().characterId!==undefined)await ctx().saveChat();const index=ctx().characters.findIndex(c=>c.avatar===target.characterKey);if(ctx().characterId!==index)await ctx().selectCharacterById(index);await selectSavedChat(getContext,target.chatId);}await getPresetApplicationPromise();await apply((await scopes(target)).effective.copy);return read(target);}
+    async function saveGlobal(){await saveSettings();const data=await post('/api/settings/get',{});const saved=JSON.parse(data.settings).extension_settings?.pocket_tavern;assertRevision(saved,revision(baseline()));}
+    async function apply(copy){const settings=ctx().chatCompletionSettings;settings.bind_preset_to_connection=false;for(const [name,[selector,key,checkbox]]of fields){if(!Object.hasOwn(copy.generation??{},name))continue;const value=clone(copy.generation[name]);settings[key]=value;const input=selector?document.querySelector(selector):null;if(input){if(checkbox)input.checked=!!value;else if(typeof value!=='object')input.value=value;}}
+        // PromptManager reads arrays from settings; re-render its controls without preset events.
+        settings.preset_settings_openai=copy.preset;
+        promptManager?.render(false);
+        if(copy.model&&getChatCompletionModel()!==copy.model)await configuration.change({kind:'model',value:copy.model});
+        await saveSettings();
+    }
+    async function store(target,scope,value){if(scope==='global'){baseline().global=value;await saveGlobal();}else if(scope==='chat'){const snapshot=await read(target);snapshot.metadata.pocket_tavern??={};snapshot.metadata.pocket_tavern.settings=value;await write(snapshot);if(same(active(),target)){ctx().chatMetadata.pocket_tavern??={};ctx().chatMetadata.pocket_tavern.settings=clone(value);}}else if(scope==='character'){const c=ctx().characters.find(c=>c.avatar===target.characterKey);const namespace={...c.data?.extensions?.pocket_tavern,settings:value};await post('/api/characters/merge-attributes',{avatar:c.avatar,data:{extensions:{pocket_tavern:namespace}}});const saved=await post('/api/characters/get',{avatar_url:c.avatar});assertRevision(saved.data?.extensions?.pocket_tavern?.settings,revision(value));c.data.extensions??={};c.data.extensions.pocket_tavern=namespace;}else fail('INVALID_ARGUMENT','Unknown settings scope.');}
+    function presetData(name){const list=getPresetManager('openai').getPresetList();if(!Object.hasOwn(list.preset_names,name))fail('INVALID_ARGUMENT','Preset no longer exists.');const preset=list.presets[list.preset_names[name]];return {generation:{...clone(baseline().global.generation),...Object.fromEntries(fields.filter(([key])=>Object.hasOwn(preset,key)).map(([key])=>[key,clone(preset[key])]))},fields:fields.map(([name,[selector,key,checkbox]])=>({name,checkbox,type:typeof ctx().chatCompletionSettings[key]}))};}
+    async function configure(arg){const before=await scopes(arg.target);assertRevision({global:before.global,char:before.character,chat:before.chat},settingsGuard(arg.expected));const scope=arg.scope;
+        if(scope!=='global'&&!arg.target)fail('INVALID_ARGUMENT','Open a chat first.');
+        let record=scope==='global'?clone(before.global):withModelSelection(before[scope])??{enabled:false,copy:clone(scope==='character'?before.global:before.character?.enabled?before.character.copy:before.global),modelSelection:{enabled:false,value:null}};
+        if(!['global','character','chat'].includes(scope))fail('INVALID_ARGUMENT','Unknown settings scope.');
+        if(arg.kind==='scope'){await store(arg.target,'chat',switchScope(before.chat,scope==='chat',before.effective.copy));if(scope!=='chat')await store(arg.target,'character',switchScope(before.character,scope==='character',before.effective.copy));}
+        else {const copy=scope==='global'?record:record.copy;
+            if(scope!=='global'&&!['model','inheritModel','inheritPreset'].includes(arg.kind))record.enabled=true;
+            if(arg.kind==='reset')resetPresetToGlobal(copy,before.global);
+            else if(arg.kind==='model'){if(!configuration.read().models.some(m=>m.id===arg.value))fail('INVALID_ARGUMENT','Choose an available model.');if(scope==='global')copy.model=arg.value;else record.modelSelection={...record.modelSelection,enabled:true,value:arg.value};}
+            else if(arg.kind==='inheritModel'){if(scope==='global')fail('INVALID_ARGUMENT','Global needs a model choice.');record.modelSelection.enabled=false;}
+            else if(arg.kind==='inheritPreset'){if(scope==='global')fail('INVALID_ARGUMENT','Global needs a preset.');record.enabled=false;}
+            else if(arg.kind==='preset'){selectPreset(copy,arg.value,presetData(arg.value).generation);}
+            else if(arg.kind==='generation'){for(const [key,value]of Object.entries(arg.value??{})){if(!fields.some(([name])=>name===key))fail('INVALID_ARGUMENT','Connection settings cannot belong to a preset copy.');if(typeof value==='number'&&!Number.isFinite(value))fail('INVALID_ARGUMENT','Enter a finite generation value.');if(['openai_max_tokens','openai_max_context'].includes(key)&&(!Number.isInteger(value)||value<1))fail('INVALID_ARGUMENT','Token limits must be positive whole numbers.');if(key==='temperature'&&(typeof value!=='number'||value<0||value>2))fail('INVALID_ARGUMENT','Temperature must be between 0 and 2.');}changePresetGeneration(copy,arg.value,arg.preset);}
+            else fail('INVALID_ARGUMENT','Unsupported scoped change.');await store(arg.target,scope,record);}
+        if(arg.target&&same(active(),arg.target))await ctx().reloadCurrentChat();const current=active();if(current.characterKey&&current.chatId)await apply((await scopes(current)).effective.copy);else await apply(baseline().global);return scopes(arg.target);
+    }
+    async function mutate(arg){const before=await read(arg.target);try{assertRevision({messages:before.messages,metadata:before.metadata},arg.expected);}catch(error){if(!arg.before || arg.action==='deleteChat' || before.messages.length<arg.before.messages.length || revision(before.messages.slice(0,arg.before.messages.length))!==revision(arg.before.messages))throw error;}
+        if(arg.action==='deleteChat'){await activate(arg.target);const rows=await history(arg.target.characterKey);const next=rows.find(r=>r.chatId!==arg.target.chatId);await selectSavedChat(getContext,next?.chatId??`Conversation ${crypto.randomUUID().slice(0,8)}`);await post('/api/chats/delete',{avatar_url:arg.target.characterKey,chatfile:arg.target.chatId+'.jsonl'});return {deleted:true,undo:{before,after:null}};}
+        const value=alterHistory(before,{...arg,integrity:arg.integrity??crypto.randomUUID()});
+        if(arg.action==='fork'){value.chatId=arg.newChatId??`${before.chatId} · fork ${crypto.randomUUID().slice(0,8)}`;valid(value);try{await read(value);fail('CONFLICT','This fork already exists. Open it and discard the pending operation.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}await write(value);return {snapshot:await activate(value)};}
+        await activate(arg.target);const loaded=await read(arg.target);if(revision(loaded.messages)!==revision(before.messages))fail('CONFLICT','Chat changed while being opened. Reload before editing.');await write(value);if(arg.action==='swipe'){const runtime=ctx();runtime.chat[arg.messageId]=clone(value.messages[arg.messageId]);runtime.updateChatMetadata(clone(value.metadata),true);runtime.updateMessageBlock(arg.messageId,runtime.chat[arg.messageId]);}else await ctx().reloadCurrentChat();return {snapshot:await read(arg.target),undo:{before,after:revision({messages:value.messages,metadata:value.metadata})}};
+    }
+    async function newChat(arg){
+        if(ctx().groupId)fail('GROUP_ACTIVE','Return to a one-character chat in ST before starting a new Pocket conversation.');
+        if(document.querySelector('#send_textarea')?.value?.trim()||document.querySelector('#chat .edit_textarea'))fail('COMPOSER_BUSY','Save or cancel the native ST draft or message edit before starting a new conversation.');
+        return startNewChat(arg,{read,activate:async target=>{
+                const expected=initializedChatSnapshot(arg.before,clone(ctx().extensionSettings.note??{}));
+                await activate(target);
+                const loaded=await read(target);
+                // Restore only the captured opaque header fields; retain the native
+                // header and metadata so unexpected changes still fail verification.
+                const header={...clone(arg.before.header),...loaded.header};
+                const preserved=await write({...loaded,header});
+                assertChatUnchanged(expected,preserved);
+                return expected;
+            },
+            readCard:async key=>safeObject((await post('/api/characters/get',{avatar_url:key})).data),
+            createNative:async(target,receipt)=>{
+                if(arg.target.chatId){await selectSavedChat(getContext,target.chatId);}
+                else {
+                    // Set the requested new filename before selecting another character:
+                    // native selection then loads exactly one fresh greeting, not an
+                    // intermediate default conversation.
+                    const previous=active(),runtime=ctx();
+                    if(previous.characterKey&&previous.chatId){
+                        // A completed Pocket operation is already verified on disk.
+                        // Refuse unsaved native work instead of re-saving the old file
+                        // (which could overwrite independent fields or its header).
+                        const saved=await read(previous);
+                        const expected=initializedChatSnapshot(saved,clone(runtime.extensionSettings.note??{}));
+                        assertPersisted(expected,[{chat_metadata:clone(runtime.chatMetadata)},...clone(runtime.chat)]);
+                    }else {try{if(!canCloseEmptyCharacterView(runtime,{welcomeMessageType:system_message_types.ASSISTANT_MESSAGE,operation:'starting a fresh chat'}))fail('COMPOSER_BUSY','Save or close the native ST conversation before starting a fresh chat.');}catch(error){fail('COMPOSER_BUSY',error.message);}}
+                    valid(target);
+                    const index=ctx().characters.findIndex(c=>c.avatar===target.characterKey);
+                    await post('/api/characters/merge-attributes',{avatar:target.characterKey,chat:target.chatId});
+                    ctx().characters[index].chat=target.chatId;
+                    if(ctx().characterId===index)await ctx().reloadCurrentChat();
+                    else await ctx().selectCharacterById(index,{switchMenu:false});
+                }
+                const runtime=ctx();
+                if(!same(active(),target))fail('TARGET_CHANGED','The engine selected another chat.');
+                runtime.updateChatMetadata({...clone(runtime.chatMetadata),pocket_tavern:{...clone(runtime.chatMetadata.pocket_tavern??{}),newChat:receipt}},true);
+                await runtime.saveChat();
+                await activate(target);
+            },
+            verifyNative:async target=>{
+                if(!same(active(),target))fail('TARGET_CHANGED','The engine selected another chat before verification.');
+                const live={...target,messages:clone(ctx().chat),metadata:clone(ctx().chatMetadata)};
+                await ctx().saveChat();const saved=await read(target);
+                assertPersisted(live,[{...saved.header,chat_metadata:saved.metadata},...saved.messages]);return saved;
+            },
+            deleteSaved:async target=>{
+                await post('/api/chats/delete',{avatar_url:target.characterKey,chatfile:target.chatId+'.jsonl'});
+                await ctx().eventSource.emit(ctx().eventTypes.CHAT_DELETED,target.chatId);
+            }});
+    }
+    async function undo({before,after}){if(after){const current=await read(before);assertRevision({messages:current.messages,metadata:current.metadata},after);}else {try{await read(before);fail('CONFLICT','A chat with this name already exists.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}}await write(before);if(same(active(),before))await ctx().reloadCurrentChat();await activate(before);const loaded=await read(before);await write({...loaded,header:clone(before.header??loaded.header)});return read(before);}
+    async function linkPersonaToChat(arg){
+        if(!arg.target)fail('INVALID_ARGUMENT','Open a chat first.');
+        valid(arg.target);
+        const personaKey=arg.personaKey??null;
+        if(personaKey&&!Object.hasOwn(ctx().powerUserSettings.personas??{},personaKey))fail('INVALID_ARGUMENT','Choose an existing persona.');
+        const snapshot=await read(arg.target);
+        const before=snapshot.metadata.persona;
+        if(before===personaKey)return {changed:false,snapshot};
+        snapshot.metadata.persona=personaKey===null?undefined:personaKey;
+        if(personaKey===null)delete snapshot.metadata.persona;
+        await write(snapshot);
+        if(same(active(),arg.target)){ctx().chatMetadata.persona=personaKey===null?undefined:personaKey;if(personaKey===null)delete ctx().chatMetadata.persona;await ctx().saveChat();}
+        return {changed:true,snapshot:await read(arg.target)};
+    }
+    return {read,recent,history,scopes,presetData,async initialize(){const namespace=baseline();if(namespace.version>3)fail('UNSUPPORTED_SETTINGS','These Pocket settings need a newer build.');namespace.version=3;ctx().chatCompletionSettings.bind_preset_to_connection=false;await saveGlobal();},async run(arg){if(mutating||isBusy())fail('BUSY','Changes are pending until the engine finishes.');mutating=true;try{if(arg.action==='activate')return await activate(arg.target);if(arg.action==='configure')return await configure(arg);if(arg.action==='linkPersonaToChat')return await linkPersonaToChat(arg);if(arg.action==='undo')return await undo(arg.value);if(arg.action==='newChat')return await newChat(arg);return await mutate(arg);}finally{mutating=false;}},busy:()=>mutating};
+}

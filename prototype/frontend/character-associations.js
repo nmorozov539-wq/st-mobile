@@ -16,8 +16,11 @@ export function createCharacterAssociations({rpc,action,readState,onSaved,editPe
         for(const b of primaryButtons)b.disabled=blocked||state.primaryDirty;
         if(status&&!waiting&&!uncertain&&loadingFor!==captured)status.textContent=state.busy?'Available after the engine finishes.':state.unavailable?'Reconnect and review saved work before changing links.':state.primaryDirty&&primaryButtons.length?'Save or cancel lorebook changes in the card draft first.':'';
     }
-    function open(sheet,title){
-        for(const d of dialogs)if(d.open)d.close();sheet.replaceChildren();captured={...readState()};mutationButtons=[];primaryButtons=[];uncertain=false;sheet.setAttribute('aria-label',title);sheet.append(node('h3',title));status=node('p');status.setAttribute('role','status');sheet.append(status);sheet.showModal();update();
+    function open(sheet,title,{closeButton=false}={}){
+        for(const d of dialogs)if(d.open)d.close();sheet.replaceChildren();captured={...readState()};mutationButtons=[];primaryButtons=[];uncertain=false;sheet.setAttribute('aria-label',title);
+        const header=node('div');header.className='sheet-header';header.append(node('h3',title));
+        if(closeButton){const x=button('×',()=>sheet.close());x.className='sheet-close';x.setAttribute('aria-label','Close');header.append(x);}
+        sheet.append(header);status=node('p');status.setAttribute('role','status');sheet.append(status);sheet.showModal();update();
     }
     function mutateButton(sheet,label,fn,{primary=false}={}){const b=button(label,fn);mutationButtons.push(b);if(primary)primaryButtons.push(b);sheet.append(b);update();return b;}
     function back(sheet){sheet.append(button('Back',()=>sheet.close()));}
@@ -30,16 +33,18 @@ export function createCharacterAssociations({rpc,action,readState,onSaved,editPe
         }catch(error){uncertain=true;status.textContent=error.message+' Reopen the character and inspect saved links before another change.';throw error;}
         finally{waiting=false;update();}});
     }
-    function confirmation(title,text,extra){open(confirm,title);confirm.append(node('p',text),node('small',`Character file: ${captured.key}`));mutateButton(confirm,extra.operation==='persona-unlink'?'Remove link':'Unattach',()=>perform(extra),{primary:extra.type==='primary'});back(confirm);}
+    function confirmation(title,text,extra){open(confirm,title);confirm.classList.add('confirm-compact');confirm.append(node('p',text));const actions=node('div');actions.className='confirm-actions';const actionBtn=mutateButton(actions,extra.operation==='persona-unlink'?'Remove link':'Unattach',()=>perform(extra),{primary:extra.type==='primary'});actionBtn.classList.add('destructive');actions.append(button('Cancel',()=>confirm.close()));confirm.append(actions);}
     function showPersonas(personas){
-        open(personaSheet,personas.length>1?'Linked personas':'Linked persona');const list=node('ul');
+        const title=personas.length>1?'Linked personas':`Linked persona · ${personas[0]?.name??''}`;
+        open(personaSheet,title,{closeButton:true});const list=node('ul');
         for(const persona of personas){const row=node('li',persona.name);row.append(node('small',persona.available?'Linked to this character':`Saved link · persona unavailable (${persona.key})`));list.append(row);}personaSheet.append(list);
         if(personas.length>1)personaSheet.append(node('p','Several native links exist. All are preserved. Manage multiple links in SillyTavern.'));
         else if(personas[0]?.available){
             const persona=personas[0];personaSheet.append(button('Edit persona',async()=>{personaSheet.close();await action(()=>editPersona(persona.key));}));
-            mutateButton(personaSheet,'Remove link',()=>confirmation('Remove persona link',`Remove ${persona.name}’s character link to ${captured.name}? The persona and its other links are kept.`,{operation:'persona-unlink',personaKey:persona.key}));
+            const removeBtn=mutateButton(personaSheet,'Remove link',()=>confirmation(`Remove ${persona.name}’s link to ${captured.name}?`,`Remove ${persona.name}’s character link to ${captured.name}? The persona and its other links are kept.`,{operation:'persona-unlink',personaKey:persona.key}));
+            removeBtn.classList.add('destructive');
         }
-        back(personaSheet);update();
+        update();
     }
     async function connect(){
         open(picker,'Connect lorebook');status.textContent='Loading saved lorebooks…';const origin=captured;loadingFor=origin;const close=button('Back',()=>picker.close());picker.append(close);

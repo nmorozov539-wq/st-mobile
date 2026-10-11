@@ -1,6 +1,6 @@
 # Pocket Tavern design handoff
 
-Updated 9 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.7.7 Character new-chat workflow; 0.7.0 chat is user-confirmed working on Android.
+Updated 9 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.7.9 Memory; 0.7.8 Characters and Chats libraries; 0.7.0 chat is user-confirmed working on Android.
 
 ## Start here
 
@@ -49,7 +49,7 @@ Five tabs remain WI, Characters, Home in the center, Chats, Personas; hidden ins
 
 Recorded baseline: 94 automated tests; 28 native ST/mock assertions for the 0.6.1 repairs; 0.6.2 adds interaction-boundary coverage. These are prior results, not evidence that future edits pass. Run checks appropriate to actual changes and update `tests/TEST_REPORT.md`. Android gesture/keyboard/background comfort still requires device feedback.
 
-For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.7.7, phone-confirmed 0.7.0, previous 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
+For an authorized release, build a versioned ZIP and place it plus matching `repair-pocket.cjs` in the root. Keep frontend/bridge stamps and imports consistent. Phone update preserves ST data/settings and uses the documented repair flow. Current 0.7.8, phone-confirmed 0.7.0, previous 0.6.2 and working 0.6.1 ZIPs remain local, ignored generated artifacts.
 
 ## Archives
 
@@ -93,3 +93,21 @@ Start new chat is an explicit saved-card action available from the current Chara
 The full source snapshot enters the durable journal before mutation. Lost acknowledgements and failed verification require explicit saved-work review; new-chat operations never drain or replay automatically. Review offers inspection and, where requested, restoration of the deleted source. Existing queued deletion backups gain full headers with compatibility for older pending entries. Native Author’s Note initialization follows actual native defaults for missing fields; all other metadata, messages and header fields remain guarded. Unknown source header fields survive ST’s native header reconstruction. Pocket Summaryception ignores native first-message events, including legacy zero-turn configurations, while ordinary generated-message summarization remains available.
 
 Conversation selection captures immutable editor ownership so closing or replacing the selector during a read cannot navigate or dismiss a newer pane. Character management without a selected chat safely hides the line; delayed related-persona saves refresh availability without replacing the resumed draft. No schema migration or Android framework work is included. Full library, Persona, World Info and Memory designs remain separate phases. The two-line persona draft is still pending approval. Device verification remains in PHONE_TEST_CHECKLIST.md; current desktop/mock evidence is in tests/TEST_REPORT.md.
+
+## Characters and Chats libraries — 0.7.8
+
+Approved three-column character grid and recent-chat rows are implemented, with separate Import/Create, accessible incomplete-card warnings, actual timestamps and a dedicated fresh-character picker. A library tap opens Edit without activating native ST or creating any chat. Import retains supported native formats and unknown fields. A valid name permits saving an incomplete card; Start chat requires the saved name, description and main greeting. Existing rows resume exact saved chats; deletion names its target and retains full Undo.
+
+Source-free creation assigns the requested filename before native character selection/reload, avoiding an intermediate default chat. Native welcome scaffolding is allowed; temporary messages, drafts, native editors, groups and unsaved live conversation differences block switching. Saved previous messages/header fields are not rewritten. Native greeting alternatives, inherited independent settings and fresh Memory remain ST-owned. Read-only preparation reserves the action against duplicate clicks and honors Back before mutation. Interrupted writes retain their exact operation identity for explicit saved-work review; nothing automatically retries or requests AI. Settings schema remains v3; no data migration.
+
+Lists remain bounded and load shallow-card details only for rendered rows. Recent chat history is capped at 1,000 with a visible notice; the existing Character selector supplies complete per-character history. Library drafting during generation does not switch the captured target; native mutations wait for settlement. Full Persona, World Info, Memory, Home/Settings and Android packaging are separate future phases. The two-line persona draft is still unapproved.
+
+## Memory — 0.7.9
+
+Memory is now a full page (gear → Memory, or Memory in the in-chat status bar) matching the approved Memory mockups: status, Enable/Pause, Summarize now, and collapsible Saved memories, Injection preview, Turns & layers, Summarizer prompts, Summarizer connection, Layer statistics and Maintenance, with a sticky Save settings. Configuration is global; saved memories belong to the open conversation.
+
+Every write goes through verified Summaryception extension actions, never the page: `settings` (diff-only, whitelisted keys, JSON readback), `snippet` (edit/regenerate/delete, guarded by the expected current text), `clear`, `import`, `export`, `repair` and `reset`. Mutations require the extension to be idle, save the chat and run Pocket's memory-persistence verification. Clear also lifts the post-history-edit rebuild block, so Clear then Summarize now is the rebuild path. Import validates shape, sizes and that the file fits the open chat, and is refused while a rebuild is pending. Regeneration is Layer 0 only, confirms the possible cost first, and can be stopped; failure or Stop keeps the original text.
+
+The in-chat bar shows Summarizing/Waiting with Stop, the inline catch-up choice card, “Summarization stopped · Progress saved” and “Memory saved · Summarization complete”. Cancel in a catch-up card stops the pending operation. Background polling never redraws while a field has focus.
+
+Not implemented, by design: a separate summarizer endpoint/API key/model and Test connection. Pocket summarizes only through the main ST connection (the existing proxy rule) and never stores another provider's key; a non-default source can be switched back to Default from the page. Native import/cancellation/skip semantics are unchanged. Settings schema remains v3; no data migration. The vendored extension needs a restart of the engine to expose the new actions; an older extension degrades to read-only sections with an explanatory note.

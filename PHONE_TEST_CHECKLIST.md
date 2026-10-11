@@ -1,6 +1,6 @@
 # Pocket Tavern phone test checklist
 
-All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, association controls 0.7.5, conversation selector 0.7.6 and new-chat workflow 0.7.7. Release numbering does not change the saved-settings schema.
+All releases use the **0.7.* line**: Chat 0.7.0, Preset 0.7.1, Character content 0.7.2, Character actions 0.7.3, association visibility 0.7.4, association controls 0.7.5, conversation selector 0.7.6 new-chat workflow 0.7.7 Characters/Chats libraries 0.7.8 and Memory 0.7.9. Release numbering does not change the saved-settings schema.
 
 Chat was reported working on the phone. Unchecked items below remain device checks, even when desktop/mock checks pass. Development may continue while phone testing is unavailable; commit each verified milestone. Use a spare/test conversation for destructive checks.
 
@@ -110,3 +110,31 @@ Association editing/removal follows in 0.7.5 below; the redesigned chat selector
 - [ ] During a reply, browsing and conversation selection remain available; Start new chat stays blocked, and Stop saves to the original generating target.
 - [ ] After an interrupted new-chat save/delete, reconnect and inspect saved work; creation/deletion never repeats automatically. Restore old chat only when it is missing.
 - [ ] Incomplete/unsaved cards and independently changed saved chats block creation with a useful explanation.
+
+## Characters and Chats libraries — 0.7.8
+
+- [ ] Character grid stays three columns; long names, missing portraits and Incomplete warnings remain understandable with large text.
+- [ ] Tapping a character opens Edit and creates/selects no conversation.
+- [ ] Import native PNG/JSON and another supported format; existing cards, unknown fields and chats survive.
+- [ ] Create a named incomplete card; Save works, Incomplete appears, Start chat stays unavailable.
+- [ ] Complete/save that card; Start chat opens one actual greeting with its saved alternatives, without an AI request.
+- [ ] Dirty character edits disable Start chat; Cancel preserves the saved card.
+- [ ] Chats + opens the picker; Back creates nothing; picking a complete character always starts fresh.
+- [ ] Existing chat row resumes the exact selected conversation.
+- [ ] Left swipe reveals Delete without opening the chat; right swipe hides it. Chat ellipsis names the deletion target; Cancel preserves it; Delete/Undo restores messages, valid Memory and native fields.
+- [ ] Browse Characters/Chats during generation; draft editing stays available, mutations wait, Stop saves to the original target.
+- [ ] Rapidly tap Start chat; exactly one new conversation is created.
+- [ ] Interrupt a fresh save by reloading/restarting; saved-work review appears and creation never automatically repeats.
+- [ ] Check scrolling/reading positions, navigation icons, keyboard, Android Back and TalkBack on the grid and picker.
+
+## Memory — 0.7.9
+
+- [ ] Gear → Memory opens the full page; Back returns to the same chat and scroll position.
+- [ ] Status, Enable/Pause, Summarize now and Save settings work; Save stays disabled until something changes and the keyboard never hides the focused field.
+- [ ] Saved memories: layer tabs, Edit, Regenerate (Layer 0 only, cost confirmation) and Delete each change only the chosen snippet and survive leaving and reopening the chat.
+- [ ] Injection preview matches what is sent; Refresh updates it after an edit.
+- [ ] Turns & layers, prompts (preset, Custom, saved prompts, wrapper, strip patterns) and output limit save and persist after an engine restart.
+- [ ] Maintenance: Export saves a JSON file; Import replaces memory after confirmation; Repair; Clear memory (confirmation) then Summarize now rebuilds after a history edit; Reset to defaults keeps memories and saved prompts.
+- [ ] Catch-up choice appears in the page and above the chat; All, One batch, Skip and Cancel behave; Stop in the chat bar shows “Summarization stopped · Progress saved”; completion shows “Memory saved”.
+- [ ] A non-default Summaryception connection explains itself and Use the main ST connection switches it back.
+- [ ] Android system Back, large text and TalkBack on the page, dialogs and file pickers (import/export).

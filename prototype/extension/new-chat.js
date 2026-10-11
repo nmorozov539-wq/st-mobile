@@ -1,5 +1,5 @@
-import {assertPersisted,canonical} from './persistence.js?build=0.7.7';
-import {assetName,assertUnchanged} from './asset-data.js?build=0.7.7';
+import {assertPersisted,canonical} from './persistence.js?build=0.7.9';
+import {assetName,assertUnchanged} from './asset-data.js?build=0.7.9';
 
 const fail=(code,message)=>{throw Object.assign(Error(message),{code});};
 const headerFields=value=>{const header={...value.header};delete header.chat_metadata;return header;};
@@ -23,23 +23,27 @@ export function validateNewChatCard(card){
 // ST creates the greeting. Nothing here sends a model request or retries a write.
 export async function startNewChat(arg,{read,readCard,activate,createNative,verifyNative,deleteSaved}){
     const {target,before,newChatId,operationId,cardRevision,deleteCurrent}=arg;
-    if(!target?.characterKey||!target.chatId||before?.characterKey!==target.characterKey||before?.chatId!==target.chatId||typeof deleteCurrent!=='boolean'||typeof operationId!=='string'||!operationId||!Array.isArray(before.messages)||!before.metadata||typeof cardRevision!=='string')fail('INVALID_ARGUMENT','Choose a saved source chat and an explicit deletion choice.');
+    const hasSource=!!target?.chatId;
+    if(!target?.characterKey||(hasSource&&(before?.characterKey!==target.characterKey||before?.chatId!==target.chatId||!Array.isArray(before?.messages)||!before?.metadata))||(!hasSource&&(before!=null||deleteCurrent))||typeof deleteCurrent!=='boolean'||typeof operationId!=='string'||!operationId||typeof cardRevision!=='string')fail('INVALID_ARGUMENT','Choose a saved source chat and an explicit deletion choice.');
     assetName(newChatId);
-    if(newChatId===target.chatId)fail('INVALID_ARGUMENT','A fresh chat needs a different name.');
+    if(hasSource&&newChatId===target.chatId)fail('INVALID_ARGUMENT','A fresh chat needs a different name.');
     const fresh={characterKey:target.characterKey,chatId:newChatId};
     const guardCard=async()=>{const card=await readCard(target.characterKey);assertUnchanged(card,cardRevision);validateNewChatCard(card);};
     let sourceBefore=before;
     const guardSource=async()=>{const current=await read(target);assertChatUnchanged(sourceBefore,current);return current;};
-    await guardCard();await guardSource();
+    await guardCard();if(hasSource)await guardSource();
     try{await read(fresh);fail('NAME_EXISTS','That new chat already exists. Review it before starting another.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}
     let started=false;
     try{
         // Loading itself can save native defaults/header data. Keep the durable
         // backup and require review if any acknowledgement is lost from here.
         started=true;
-        const initialized=await activate(target);
-        if(initialized)sourceBefore=initialized;
-        await guardSource();await guardCard();
+        if(hasSource){
+            const initialized=await activate(target);
+            if(initialized)sourceBefore=initialized;
+            await guardSource();
+        }
+        await guardCard();
         await createNative(fresh,{id:operationId,source:target,deleteRequested:deleteCurrent});
         let saved=await verifyNative(fresh);
         if(saved.metadata.pocket_tavern?.newChat?.id!==operationId||saved.messages.length!==1||saved.messages[0].is_user||saved.messages[0].is_system||!String(saved.messages[0].mes??'').trim())fail('GREETING_NOT_VERIFIED','The new greeting could not be verified. The old chat has been kept.');

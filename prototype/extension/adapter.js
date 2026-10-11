@@ -41,7 +41,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                     ...(generation ? ['generation.send', 'generation.stop', 'generation.status', 'message.edit', 'swipes.select', 'swipes.generate'] : [])] };
         },
         listCharacters() {
-            return context().characters.map(character => ({ key: character.avatar, name: character.name }));
+            return context().characters.map(character => ({ key: character.avatar, name: character.name, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()) }));
         },
         snapshot,
         async selectCharacter(key) {
@@ -94,7 +94,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             context();
             const extension=extensions?.get(argument?.id);
             if(!extension)fail('UNSUPPORTED','This extension has no Pocket integration installed.');
-            if(['read','stop','choice'].includes(argument.action))return clone(await extension.run(argument));
+            if(['read','stop','choice','export'].includes(argument.action))return clone(await extension.run(argument));
             if(selecting||active||isBusy())fail('BUSY','Finish the current engine operation first.');
             selecting=true;
             try{return clone(await extension.run(argument));}finally{selecting=false;}

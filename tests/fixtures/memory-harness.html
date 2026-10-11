@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="memory.css"><style>body{background:#181b20;color:#dce1eb;font:15px system-ui;margin:0}#landing{height:100vh;overflow:auto}</style></head><body><section id="landing"><div id="page-content"></div></section>
+<script type="module">
+import {createMemoryPanel} from './memory.js';
+const base=()=>({id:'summaryception',version:'5.5.4-pocket',busy:false,waiting:false,
+ settings:{enabled:true,pauseSummarization:false,verbatimTurns:10,turnsPerSummary:3,snippetsPerLayer:20,snippetsPerPromotion:3,maxLayers:5,disableGhosting:false,summarizerResponseLength:0,promptPreset:'narrative',summarizerUserPrompt:'NARRATIVE PROMPT',summarizerSystemPrompt:'SYS',injectionTemplate:'<ctx>{{summary}}</ctx>',stripPatterns:['<x>'],savedCustomPrompts:{Mine:'my saved'},debugMode:false,traceMode:false,connectionSource:'default'},
+ memory:{layers:[[{text:'One.',turnRange:[0,2],timestamp:1700000000000},{text:'Two.',turnRange:[3,5],timestamp:1700000100000}],[{text:'Promoted.'}]],summarizedUpTo:5},
+ injection:'<ctx>Promoted. One. Two.</ctx>',failure:'',needsRebuild:false,backlog:null,target:{characterKey:'a.png',chatId:'Chat 1'}});
+window.fake={state:base(),calls:[],errors:[],refreshes:0,notes:[]};
+const f=window.fake;
+const rpc=async(method,arg)=>{
+ const a=arg.action;f.calls.push(structuredClone(arg));
+ if(a==='read')return structuredClone(f.state);
+ if(a==='export')return {...structuredClone(f.state),exported:structuredClone(f.state.memory)};
+ if(a==='settings'){Object.assign(f.state.settings,arg.value);return structuredClone(f.state);}
+ if(a==='snippet'){const v=arg.value,l=f.state.memory.layers[v.layer];if(l[v.index].text!==v.expected)throw Error('That snippet changed.');if(v.op==='edit')l[v.index].text=v.text;if(v.op==='delete')l.splice(v.index,1);if(v.op==='regenerate')l[v.index].text='Regenerated.';f.state.injection='<ctx>'+f.state.memory.layers.flat().map(s=>s.text).join(' ')+'</ctx>';return structuredClone(f.state);}
+ if(a==='clear'){f.state.memory={layers:[],summarizedUpTo:-1};f.state.injection='';f.state.needsRebuild=false;return structuredClone(f.state);}
+ if(a==='import'){f.state.memory={layers:arg.value.data.layers,summarizedUpTo:1};return structuredClone(f.state);}
+ if(a==='reset'){f.state.settings.verbatimTurns=10;return structuredClone(f.state);}
+ if(a==='choice'||a==='stop'){f.state.backlog=null;return structuredClone(f.state);}
+ if(a==='repair'||a==='summarize')return structuredClone(f.state);
+ throw Error('Unknown '+a);
+};
+window.panel=createMemoryPanel({rpc:(m,arg)=>rpc(m,arg),action:async fn=>{try{return await fn();}catch(e){f.errors.push(e.message);}},connected:()=>true,onBusy:()=>{},onState:()=>{},notify:t=>f.notes.push(t),refresh:async()=>{f.refreshes++;},locked:()=>false});
+window.reset=()=>{f.state=base();f.calls.length=0;f.errors.length=0;f.notes.length=0;};
+await panel.open();panel.renderPage(document.getElementById('page-content'));
+window.ready=true;
+</script></body></html>

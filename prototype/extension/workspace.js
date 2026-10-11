@@ -1,14 +1,14 @@
-import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.7';
-import {safeObject} from './asset-data.js?build=0.7.7';
-import {assertPersisted} from './persistence.js?build=0.7.7';
-import {readCharacterHistory} from './character-history.js?build=0.7.7';
-import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.7';
-import { saveSettings } from '/script.js';
+import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.9';
+import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.7.9';
+import {assertPersisted} from './persistence.js?build=0.7.9';
+import {readCharacterHistory} from './character-history.js?build=0.7.9';
+import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.9';
+import { saveSettings,system_message_types } from '/script.js';
 import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
 import { user_avatar } from '/scripts/personas.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { selectSavedChat } from './chat-selection.js?build=0.7.7';
-import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.7';
+import { selectSavedChat } from './chat-selection.js?build=0.7.9';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.9';
 
 export function createWorkspace({getContext,isBusy,configuration}) {
     let mutating=false;
@@ -60,6 +60,8 @@ export function createWorkspace({getContext,isBusy,configuration}) {
         await activate(arg.target);const loaded=await read(arg.target);if(revision(loaded.messages)!==revision(before.messages))fail('CONFLICT','Chat changed while being opened. Reload before editing.');await write(value);if(arg.action==='swipe'){const runtime=ctx();runtime.chat[arg.messageId]=clone(value.messages[arg.messageId]);runtime.updateChatMetadata(clone(value.metadata),true);runtime.updateMessageBlock(arg.messageId,runtime.chat[arg.messageId]);}else await ctx().reloadCurrentChat();return {snapshot:await read(arg.target),undo:{before,after:revision({messages:value.messages,metadata:value.metadata})}};
     }
     async function newChat(arg){
+        if(ctx().groupId)fail('GROUP_ACTIVE','Return to a one-character chat in ST before starting a new Pocket conversation.');
+        if(document.querySelector('#send_textarea')?.value?.trim()||document.querySelector('#chat .edit_textarea'))fail('COMPOSER_BUSY','Save or cancel the native ST draft or message edit before starting a new conversation.');
         return startNewChat(arg,{read,activate:async target=>{
                 const expected=initializedChatSnapshot(arg.before,clone(ctx().extensionSettings.note??{}));
                 await activate(target);
@@ -73,7 +75,27 @@ export function createWorkspace({getContext,isBusy,configuration}) {
             },
             readCard:async key=>safeObject((await post('/api/characters/get',{avatar_url:key})).data),
             createNative:async(target,receipt)=>{
-                await selectSavedChat(getContext,target.chatId);
+                if(arg.target.chatId){await selectSavedChat(getContext,target.chatId);}
+                else {
+                    // Set the requested new filename before selecting another character:
+                    // native selection then loads exactly one fresh greeting, not an
+                    // intermediate default conversation.
+                    const previous=active(),runtime=ctx();
+                    if(previous.characterKey&&previous.chatId){
+                        // A completed Pocket operation is already verified on disk.
+                        // Refuse unsaved native work instead of re-saving the old file
+                        // (which could overwrite independent fields or its header).
+                        const saved=await read(previous);
+                        const expected=initializedChatSnapshot(saved,clone(runtime.extensionSettings.note??{}));
+                        assertPersisted(expected,[{chat_metadata:clone(runtime.chatMetadata)},...clone(runtime.chat)]);
+                    }else {try{if(!canCloseEmptyCharacterView(runtime,{welcomeMessageType:system_message_types.ASSISTANT_MESSAGE,operation:'starting a fresh chat'}))fail('COMPOSER_BUSY','Save or close the native ST conversation before starting a fresh chat.');}catch(error){fail('COMPOSER_BUSY',error.message);}}
+                    valid(target);
+                    const index=ctx().characters.findIndex(c=>c.avatar===target.characterKey);
+                    await post('/api/characters/merge-attributes',{avatar:target.characterKey,chat:target.chatId});
+                    ctx().characters[index].chat=target.chatId;
+                    if(ctx().characterId===index)await ctx().reloadCurrentChat();
+                    else await ctx().selectCharacterById(index,{switchMenu:false});
+                }
                 const runtime=ctx();
                 if(!same(active(),target))fail('TARGET_CHANGED','The engine selected another chat.');
                 runtime.updateChatMetadata({...clone(runtime.chatMetadata),pocket_tavern:{...clone(runtime.chatMetadata.pocket_tavern??{}),newChat:receipt}},true);

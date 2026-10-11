@@ -3,7 +3,7 @@
 const fs=require('node:fs');const path=require('node:path');const os=require('node:os');
 const net=require('node:net');const {spawn}=require('node:child_process');
 const {pipeline}=require('node:stream/promises');
-const RELEASE='0.7.7',PREFIX=`pocket-tavern-combined-v${RELEASE}/`;
+const RELEASE='0.7.9',PREFIX=`pocket-tavern-combined-v${RELEASE}/`;
 async function extractKit(archive,destination,engine){
  const yauzl=require(require.resolve('yauzl',{paths:[engine]}));
  await new Promise((resolve,reject)=>yauzl.open(archive,{lazyEntries:true},(error,zip)=>{
@@ -12,7 +12,7 @@ async function extractKit(archive,destination,engine){
   zip.on('error',reject);zip.on('end',resolve);
   zip.on('entry',async entry=>{
    try{
-    if(!entry.fileName.startsWith(PREFIX)||entry.fileName.split('/').includes('..')||entry.fileName.includes('\\'))throw Error('Unexpected ZIP layout. Use the combined v0.7.7 package.');
+    if(!entry.fileName.startsWith(PREFIX)||entry.fileName.split('/').includes('..')||entry.fileName.includes('\\'))throw Error('Unexpected ZIP layout. Use the combined v0.7.9 package.');
     if(((entry.externalFileAttributes>>>16)&0o170000)===0o120000)throw Error('The kit must not contain symbolic links.');
     total+=entry.uncompressedSize;
     if(++count>500||total>20000000||entry.uncompressedSize>5000000)throw Error('The ZIP is larger than the expected prototype kit.');
@@ -28,7 +28,7 @@ async function extractKit(archive,destination,engine){
   });zip.readEntry();
  }));
  const bundle=path.join(destination,PREFIX);
- for(const file of ['update-test.cjs','setup-proxy.cjs','proxy.cjs','start.cjs','frontend/index.html','extension/index.js'])if(!fs.existsSync(path.join(bundle,file)))throw Error(`Incomplete ZIP: missing ${file}. Download the verified v0.7.7 package again.`);
+ for(const file of ['update-test.cjs','setup-proxy.cjs','proxy.cjs','start.cjs','frontend/index.html','extension/index.js'])if(!fs.existsSync(path.join(bundle,file)))throw Error(`Incomplete ZIP: missing ${file}. Download the verified v0.7.9 package again.`);
  return bundle;
 }
 function locateArchive(folders){
@@ -40,7 +40,7 @@ function locateArchive(folders){
   }
  }
  candidates.sort((a,b)=>b.time-a.time);
- if(!candidates.length)throw Error('Cannot find pocket-tavern-combined-v0.7.7.zip. Put it beside this repair script or in Downloads.');
+ if(!candidates.length)throw Error('Cannot find pocket-tavern-combined-v0.7.9.zip. Put it beside this repair script or in Downloads.');
  return candidates[0].file;
 }
 function locateProxy(folders){
@@ -70,7 +70,7 @@ async function repair({archive,source,target=path.join(os.homedir(),'pocket-tave
    console.log('Installed bundled proxy dependencies from:',source);
   }
   console.log('Launching with --proxy. Look for “OpenRouter TLS-proxy listening on http://127.0.0.1:8001” before ST starts.');
-  console.log('After startup, RELOAD the phone browser at http://127.0.0.1:8123/st-mobile/ . Settings must show frontend and engine bridge 0.7.7; choose Custom to see the endpoint field.');
+  console.log('After startup, RELOAD the phone browser at http://127.0.0.1:8123/st-mobile/ . Settings must show frontend and engine bridge 0.7.9; choose Custom to see the endpoint field.');
  }finally{fs.rmSync(stage,{recursive:true,force:true});}
  if(launch){
   const child=spawn(process.execPath,[path.join(target,'start.cjs'),'--proxy'],{cwd:target,stdio:'inherit'});

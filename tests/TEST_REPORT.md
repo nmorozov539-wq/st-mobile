@@ -1,5 +1,12 @@
 # Verification report
 
+## 0.7.10 — World Info
+
+- **215 automated tests pass** (9 new World Info rule tests in `tests/worldinfo.test.js`; the syntax test now parses every new module).
+- **20 bridge checks pass against a real ST 1.19.0 fixture** (`tests/worldinfo-bridge.cjs`): create/duplicate/rename/import/delete books, add/save/duplicate/delete entries, exact on-disk values, stale-revision refusal, folder metadata, global-link relocation on rename, activation save with read-back verification.
+- **16 phone-viewport UI checks pass** (`tests/worldinfo-ui.cjs`): library, editor (conditional depth controls), enable toggle, discard confirmation, Activation persistence and mutual exclusion, folders, book deletion; zero page errors. Screenshots inspected at 390×844.
+- Not yet verified on the phone: keyboard/IME behaviour in the editor, long-book performance, and system Back.
+
 ## 0.7.9 — Memory
 
 Verified 11 October 2026 on the project checkout. The isolated ST 1.19.0 fixture and its Playwright regression suites were not available in this session, so **the earlier fixture UI suites were not re-run**; no real keys, paid calls or personal data were used.

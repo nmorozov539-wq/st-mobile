@@ -1,11 +1,12 @@
-import { createWorkspace } from './workspace.js?build=0.7.9';
-import { createAdapter } from './adapter.js?build=0.7.9';
-import { createGenerationRuntime } from './runtime.js?build=0.7.9';
+import { createWorkspace } from './workspace.js?build=0.7.10';
+import { createAdapter } from './adapter.js?build=0.7.10';
+import { createGenerationRuntime } from './runtime.js?build=0.7.10';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.7.9';
+import { createConfigurationRuntime } from './configuration.js?build=0.7.10';
 
-import { createAssetRuntime } from './assets.js?build=0.7.9';
+import { createAssetRuntime } from './assets.js?build=0.7.10';
+import { createWorldInfoRuntime } from './worldinfo.js?build=0.7.10';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -19,7 +20,7 @@ const configuration = createConfigurationRuntime(getContext);
 const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||adapter.activity({ignoreExternal:true}).busy,configuration});
 const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
-    generation: runtime, configuration, assets: createAssetRuntime(getContext), extensions: window.pocketExtensions });
+    generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext), extensions: window.pocketExtensions });
 
 window.pocketEngineBusy = () => {try{return isGenerating() || isChatSaving || workspace.busy() || adapter.activity({ignoreExternal:true}).busy || [...(window.pocketExtensions?.entries()??[])].some(([id,extension])=>id!=='summaryception' && extension.read().busy);}catch{return true;}};
 window.pocketVerifyMemory = () => runtime.verifyPersistence(adapter.snapshot());
@@ -33,12 +34,12 @@ window.pocketSaveSettings = async expected => {
 
 if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
     let port;
-    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.9'};}, characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.10'};}, characters: () => adapter.listCharacters(),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),
         chats: () => adapter.listChats(), manage: arg => adapter.manageChat(arg),
-        extensions: async arg => {const value=await adapter.extensions(arg);const current=getContext();return {...value,target:{characterKey:current.characters[current.characterId]?.avatar,chatId:current.chatId}};}, assets: arg => adapter.assets(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
+        extensions: async arg => {const value=await adapter.extensions(arg);const current=getContext();return {...value,target:{characterKey:current.characters[current.characterId]?.avatar,chatId:current.chatId}};}, assets: arg => adapter.assets(arg), worldinfo: arg => adapter.worldInfo(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
         activity: () => ({...adapter.activity(),locks:[...(isGenerating()?['ST generation/swipe']:[]),...(isChatSaving?['ST chat save']:[]),...(workspace.busy()?['workspace change']:[]),...[...(window.pocketExtensions?.values()??[])].filter(e=>e.read().busy).map(e=>e.read().waiting?`Memory waiting (${e.read().waitingFor??'deferred'})`:'Memory running')]}), reconcile: () => adapter.reconcile(), reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
     window.addEventListener('message', event => {
         if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'st-mobile-connect' || !event.ports[0]) return;

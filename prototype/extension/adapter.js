@@ -1,5 +1,5 @@
 // ST behavior lives in the runtime bindings; this module owns operation tracking.
-export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, extensions }) {
+export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, worldInfo, extensions }) {
     let ready = false;
     let selecting = false;
     let disposed = false;
@@ -37,7 +37,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         handshake() {
             context();
             return { protocolVersion: 1, supportedSTVersion: supportedVersion, runtimeVersion,
-                capabilities: ['characters.list', 'characters.select', 'chat.snapshot', 'chats.list', 'chats.open', 'chats.create', 'chats.rename', 'chats.delete', 'runtime.activity', ...(configuration ? ['settings.read', 'settings.change'] : []), ...(assets?['library.read','library.write','library.import']:[]), ...(extensions?.size?['extensions.read','extensions.control']:[]),
+                capabilities: ['characters.list', 'characters.select', 'chat.snapshot', 'chats.list', 'chats.open', 'chats.create', 'chats.rename', 'chats.delete', 'runtime.activity', ...(configuration ? ['settings.read', 'settings.change'] : []), ...(worldInfo?['worldinfo.read','worldinfo.write']:[]), ...(assets?['library.read','library.write','library.import']:[]), ...(extensions?.size?['extensions.read','extensions.control']:[]),
                     ...(generation ? ['generation.send', 'generation.stop', 'generation.status', 'message.edit', 'swipes.select', 'swipes.generate'] : [])] };
         },
         listCharacters() {
@@ -106,6 +106,14 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation first.');
             selecting = true;
             try { return clone(await assets.run(argument)); } finally { selecting = false; }
+        },
+        async worldInfo(argument) {
+            context();
+            if (!worldInfo) fail('UNSUPPORTED', 'World Info editing is unavailable.');
+            if (['list','activation','book','entry','export'].includes(argument?.action)) return clone(await worldInfo.run(argument));
+            if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation first.');
+            selecting = true;
+            try { return clone(await worldInfo.run(argument)); } finally { selecting = false; }
         },
         activity({ignoreExternal=false} = {}) { context(); return { busy: !!(selecting || active || (!ignoreExternal && isBusy())), operation: active ? clone(active.status) : null }; },
         async listChats() {

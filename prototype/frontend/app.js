@@ -1,21 +1,22 @@
-import {createLibraryViews,characterStatus} from './libraries.js?build=0.7.9';
-import {createNewChatPanel} from './new-chat-panel.js?build=0.7.9';
-import {createEngineMonitor} from './engine-monitor.js?build=0.7.9';
-import {checkBridgeBuild} from './build.js?build=0.7.9';
-import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.9';
-import {createJournal,revision,renderRange} from './journal.js?build=0.7.9';
-import {RuntimeConnection} from './transport.js?build=0.7.9';
+import {createLibraryViews,characterStatus} from './libraries.js?build=0.7.10';
+import {createNewChatPanel} from './new-chat-panel.js?build=0.7.10';
+import {createEngineMonitor} from './engine-monitor.js?build=0.7.10';
+import {checkBridgeBuild} from './build.js?build=0.7.10';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.10';
+import {createJournal,revision,renderRange} from './journal.js?build=0.7.10';
+import {RuntimeConnection} from './transport.js?build=0.7.10';
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.7.9';
-import {createSettingsPanel} from './settings.js?build=0.7.9';
-import {createLibrary} from './library.js?build=0.7.9';
-import {createMemoryPanel} from './memory.js?build=0.7.9';
-import {probeEngine} from './engine-health.js?build=0.7.9';
-import {createPresetPanel} from './preset-panel.js?build=0.7.9';
-import {icon} from './icons.js?build=0.7.9';
-import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.9';
-import {createModelPanel} from './model-panel.js?build=0.7.9';
-import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.9';
+import {createHTMLFormatter} from './html-format.js?build=0.7.10';
+import {createSettingsPanel} from './settings.js?build=0.7.10';
+import {createLibrary} from './library.js?build=0.7.10';
+import {createMemoryPanel} from './memory.js?build=0.7.10';
+import {createWorldInfoPanel} from './world-info.js?build=0.7.10';
+import {probeEngine} from './engine-health.js?build=0.7.10';
+import {createPresetPanel} from './preset-panel.js?build=0.7.10';
+import {icon} from './icons.js?build=0.7.10';
+import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.10';
+import {createModelPanel} from './model-panel.js?build=0.7.10';
+import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.10';
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
@@ -27,7 +28,7 @@ let freshPreparing=false;
 let snapshot,characters=[],recents=[],configuration,scopes,sessionId,connected=false,initializing=false,engineBusy=false,working=false,memoryBusy=false,review=false,draining=false;
 let page='home',entryPage='home',operation=null,streamText='',streamReasoning='',streamFrame,streamNode,renderedKey,menuIndex,editorTarget,selected=new Set(),selecting=false,undoRecord,undoTimer,draftTimer;
 let newChatPanel,libraryViews,navVersion=0,chatDeleteArgument=null,chatDeleteToken=0,importWaiting=false,importUncertain=false;
-let settingsPanel,library,memoryPanel,presetPanel,chatControls,modelPanel,inlineDraft='',deleteArgument,memoryState,statusTimer,startingGeneration=false;
+let settingsPanel,library,memoryPanel,wiPanel,presetPanel,chatControls,modelPanel,inlineDraft='',deleteArgument,memoryState,statusTimer,startingGeneration=false;
 let presetPanelOrigin=null;
 let personaEdit=null,personaPortraitFile=null;
 let memoryWasBusy=false,memoryStopAsked=false,memoryResult=null,memoryResultTimer;
@@ -58,7 +59,7 @@ function windowList(parent,rows,makeRow,estimate=100,scroller=$('landing')){
     if(scroller===$('landing'))listRenderer=render;else{let frame;scroller.onscroll=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=null;render();});};}
     render();return render;
 }
-function renderPage(){listRenderer=null;if(page==='chat')return;const content=$('page-content');content.replaceChildren();const titles={home:'Pocket Tavern',chats:'Chats',characters:'Characters',personas:'Personas',wi:'World Info','new-chat':'New chat','persona-editor':personaEdit?.key?'Edit persona':'New persona','persona-picker':'Persona',memory:'Memory'};$('page-title').textContent=titles[page];$('page-subtitle').hidden=page!=='memory';$('page-subtitle').textContent=page==='memory'?'Summaryception':'';$('landing').classList.toggle('library-screen',['characters','chats','new-chat','personas','persona-editor','persona-picker','memory'].includes(page));$('app-settings').hidden=page!=='home';$('page-back').hidden=page!=='new-chat'&&page!=='persona-editor'&&page!=='persona-picker'&&page!=='memory';$('page-new-chat').hidden=page!=='chats';for(const b of $('bottom-nav').querySelectorAll('button'))b.classList.toggle('current',b.dataset.page===(page==='new-chat'?'chats':page));
+function renderPage(){listRenderer=null;if(page==='chat')return;const content=$('page-content');content.replaceChildren();const titles={home:'Pocket Tavern',chats:'Chats',characters:'Characters',personas:'Personas',wi:'World Info','new-chat':'New chat','persona-editor':personaEdit?.key?'Edit persona':'New persona','persona-picker':'Persona',memory:'Memory','wi-entry':'Entry','wi-activation':'Activation'};$('page-title').textContent=titles[page];$('page-subtitle').hidden=page!=='memory';$('page-subtitle').textContent=page==='memory'?'Summaryception':'';$('landing').classList.toggle('library-screen',['characters','chats','new-chat','personas','persona-editor','persona-picker','memory','wi','wi-entry','wi-activation'].includes(page));$('page-wi-activation').hidden=page!=='wi';$('app-settings').hidden=page!=='home';$('page-back').hidden=page!=='new-chat'&&page!=='persona-editor'&&page!=='persona-picker'&&page!=='memory'&&page!=='wi-entry'&&page!=='wi-activation';$('page-new-chat').hidden=page!=='chats';for(const b of $('bottom-nav').querySelectorAll('button'))b.classList.toggle('current',b.dataset.page===(page==='new-chat'?'chats':page));
     if(page==='home'){
         const card=el('section','','status-card');card.append(el('small',connected?'ENGINE ONLINE':'ENGINE OFFLINE'),el('h2',configuration?.onlineStatus==='no_connection'?'API not connected':configuration?.onlineStatus??'Connecting…'));
         if(operation)card.append(button('Stop current reply',()=>$('stop').click()));const global=scopes?.global;card.append(button(`Model · ${global?.model??configuration?.selected.model??'Choose'}`,()=>openModels(true)),button(`Preset · ${global?.preset??configuration?.selected.preset??'Choose'}`,()=>openPreset(true)));content.append(card);
@@ -71,6 +72,9 @@ function renderPage(){listRenderer=null;if(page==='chat')return;const content=$(
     else if(page==='persona-editor'){renderPersonaEditor(content);}
     else if(page==='persona-picker'){renderPersonaPicker(content);}
     else if(page==='memory'){memoryPanel.renderPage(content);}
+    else if(page==='wi'){wiPanel.renderLibrary(content);}
+    else if(page==='wi-entry'){wiPanel.renderEntry(content);}
+    else if(page==='wi-activation'){wiPanel.renderActivation(content);}
     else {content.append(el('p','Native World Info activation remains global. Character and chat books keep their ST rules.'),button('Select global lorebooks',()=>openConnection()));for(const name of configuration?.lorebooks??[])content.append(el('div',`${configuration.selected.lorebooks.includes(name)?'●':'○'} ${name}`,'library-row'));content.append(el('a','Open the native World Info editor','native-link'));content.lastChild.href='/';content.lastChild.target='_blank';}
 }
 async function openPersonaEditor(p){
@@ -202,7 +206,7 @@ async function openLinkDialog(persona){
     $('persona-link-dialog').showModal();
 }
 function showCharacters(){navigate('new-chat');}
-function navigate(next,{dismissPanels=true}={}){navVersion++;chatDeleteToken++;if(dismissPanels)chatControls?.dismiss();if(page!=='chat')pagePositions.set(page,$('landing').scrollTop);if(page==='chat'){rememberDetails();saveDraft();positions.set(key(snapshot),$('messages').scrollTop);}page=next;$('landing').hidden=next==='chat';$('chat-screen').hidden=next!=='chat';$('bottom-nav').hidden=next==='chat'||next==='persona-editor'||next==='persona-picker'||next==='memory';if(next!=='chat'){renderPage();$('landing').scrollTop=pagePositions.get(next)??0;listRenderer?.();}}
+function navigate(next,{dismissPanels=true}={}){navVersion++;chatDeleteToken++;if(dismissPanels)chatControls?.dismiss();if(page!=='chat')pagePositions.set(page,$('landing').scrollTop);if(page==='chat'){rememberDetails();saveDraft();positions.set(key(snapshot),$('messages').scrollTop);}page=next;$('landing').hidden=next==='chat';$('chat-screen').hidden=next!=='chat';$('bottom-nav').hidden=next==='chat'||next==='persona-editor'||next==='persona-picker'||next==='memory'||next==='wi-entry'||next==='wi-activation';if(next!=='chat'){renderPage();$('landing').scrollTop=pagePositions.get(next)??0;listRenderer?.();}}
 async function openChat(value,{dismissPanels=true,guard=()=>true}={}){saveDraft();if(page==='chat'){rememberDetails();}if(page==='chat')positions.set(key(snapshot),$('messages').scrollTop);else entryPage=page;const saved=await workspace('read',{target:target(value)});const savedScopes=projectedScopes(await workspace('scopes',{target:target(saved)}),saved);if(!guard())return;snapshot=saved;state.saveTarget(saved);selected.clear();selecting=false;$('draft').value=state.draft(saved);scopes=savedScopes;navigate('chat',{dismissPanels});render(true);if(operation&&same(operation.target,snapshot))showStream();}
 
 function renderHeader(){if(!snapshot)return;const c=characters.find(c=>c.key===snapshot.characterKey),copy=scopes?.effective.copy;$('avatar').replaceChildren(portrait(c));$('name').textContent=c?.name??'Chat';$('subtitle').hidden=recents.filter(r=>r.characterKey===snapshot.characterKey).length<2;$('subtitle').textContent=snapshot.chatId;$('model-chip').replaceChildren(el('span',copy?.model??'Model'),icon('down'));$('model-chip').title=copy?.model??'Choose model';renderMemoryNotice();$('active-preset').textContent=copy?.preset??'Preset';$('active-persona').textContent=snapshot.presentation?.personaName??'Persona';$('scope-chip').textContent=scopes?.effective.scope??'global';}
@@ -323,6 +327,7 @@ newChatPanel=createNewChatPanel({action,prepare:prepareNewChat,apply:applyNewCha
 library=createLibrary({rpc,action,onStartChat:(card,guard)=>newChatPanel.open(card,guard),onStartFresh:startFreshChat,readChat:()=>snapshot,onChat:(row,guard)=>openChat(row,{dismissPanels:false,guard}),refreshAvailability:async()=>{const activity=await raw('activity');engineBusy=activity.busy||!!operation;controls();},onDeleted:characterKey=>{if(snapshot?.characterKey===characterKey){navigate('characters',{dismissPanels:false});snapshot=null;selected.clear();}},format,converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),locked:()=>!connected||review,refresh,onEditor:(kind,key)=>{$('character-chats').hidden=page!=='chat'||kind!=='characters'||key!==snapshot?.characterKey;}});
 libraryViews=createLibraryViews({node:el,button,portrait,personaPortrait,windowList,editCharacter:c=>library.edit(c.key,{kind:'characters',fromLibrary:true}),createCharacter:()=>library.createCharacter(),importCharacters:()=>{importUncertain=false;$('character-import-file').value='';$('character-import-file').disabled=importWaiting;$('character-import-status').textContent='Choose a character card from your device.';$('character-import-confirm').showModal();},editPersona:p=>action(()=>openPersonaEditor(p)),createPersona:()=>action(()=>openPersonaEditor(null)),startFresh:startFreshChat,onDelete:confirmChatDelete,readCard:key=>raw('assets',{kind:'characters',action:'read',key}),availability:()=>connected&&!review&&!freshPreparing&&!engineBusy&&!working&&!memoryBusy&&!draining&&!startingGeneration});
 $('character-import-file').onchange=()=>action(async()=>{const file=$('character-import-file').files[0];if(!file||importWaiting||importUncertain)return;importWaiting=true;$('character-import-file').disabled=true;$('character-import-status').textContent='Importing and verifying the native card…';try{await library.importCharacter(file);$('character-import-confirm').close();status('Character imported and verified');}catch(e){importUncertain=true;$('character-import-status').textContent=e.message+' Inspect saved characters before another import.';throw e;}finally{importWaiting=false;if(!importUncertain)$('character-import-file').disabled=false;}});
+wiPanel=createWorldInfoPanel({rpc,action,locked:()=>!connected||review||engineBusy||working||memoryBusy,notify:text=>toast(text),navigate:value=>navigate(value),setSubtitle:text=>{$('page-subtitle').textContent=text;$('page-subtitle').hidden=!text;}});
 memoryPanel=createMemoryPanel({rpc,action,locked:()=>!connected||review||engineBusy||working,connected:()=>connected,onState:value=>{if(value.busy&&!memoryWasBusy)memoryStopAsked=false;if(memoryWasBusy&&!value.busy&&!value.failure){memoryResult=memoryStopAsked?'stopped':'done';clearTimeout(memoryResultTimer);memoryResultTimer=setTimeout(()=>{memoryResult=null;renderMemoryNotice();},6000);}if(value.busy)memoryResult=null;memoryWasBusy=value.busy;memoryState=value;renderMemoryNotice(value);},onStopRequested:()=>{memoryStopAsked=true;},notify:text=>toast(text),onBusy:value=>{memoryBusy=value;controls();if(!value)drain();},refresh:async()=>{await refresh();if(snapshot&&!engineBusy){snapshot=await workspace('read',{target:target(snapshot)});render(true);}}});
 for(const id of ['setting-preset','edit-active-preset','setting-thinking','setting-tools','setting-model','setting-custom-model','apply-custom-model']){const n=$(id);n.hidden=true;const label=document.querySelector(`label[for="${id}"]`);if(label)label.hidden=true;if(n.parentNode.tagName==='LABEL')n.parentNode.hidden=true;}
 // The skeleton exposes global pause and frequency. Existing advanced controls stay in ST.
@@ -333,7 +338,7 @@ const loadPresetState=async origin=>{const state=projectedScopes(await workspace
 presetPanel=createPresetPanel({action,available:()=>connected&&!review,load:loadPresetState,change:async(kind,value,scope,origin,preset)=>{await configureScope(kind,value,scope,origin?target(origin):null,preset);return {...await loadPresetState(origin),pending:journal.read().some(i=>i.argument.action==='configure')};}});
 for(const n of document.querySelectorAll('[data-close]'))n.onclick=()=>$(n.dataset.close).close();
 for(const b of $('bottom-nav').querySelectorAll('button')){b.prepend(icon({home:'home',chats:'chat',characters:'characters',personas:'persona',wi:'book'}[b.dataset.page]));b.onclick=()=>action(async()=>{if(b.dataset.page==='home'&&page==='home'){const row=recents.find(r=>same(r,state.target()))??recents[0];if(row)await openChat(row);}else navigate(b.dataset.page);});}
-$('page-back').onclick=()=>{if(page==='persona-editor')navigate('personas');else if(page==='persona-picker')navigate('chat');else if(page==='memory')navigate('chat');else navigate('chats');};$('page-new-chat').onclick=showCharacters;
+$('page-back').onclick=()=>{if(page==='persona-editor')navigate('personas');else if(page==='persona-picker')navigate('chat');else if(page==='memory')navigate('chat');else if(page==='wi-entry'||page==='wi-activation')action(()=>wiPanel.leave(page));else navigate('chats');};$('page-wi-activation').onclick=()=>action(()=>wiPanel.openActivation());$('page-new-chat').onclick=showCharacters;
 $('chat-delete-apply').onclick=()=>action(async()=>{if(!chatDeleteArgument||$('chat-delete-apply').disabled)return;const captured=chatDeleteArgument;$('chat-delete-confirm').close();chatDeleteArgument=null;await queueChange(captured,'Delete conversation');});
 $('back').onclick=()=>navigate(entryPage);$('avatar').onclick=$('name').onclick=()=>action(()=>editCharacter(characters.find(c=>c.key===snapshot.characterKey)));$('app-settings').onclick=()=>action(openConnection);
 $('settings-button').onclick=()=>chatControls.openFan('chat-settings',$('settings-button'),'gear');$('open-preset').onclick=()=>action(()=>openPreset());$('open-persona').onclick=$('active-persona').onclick=()=>action(()=>openPersonaPicker());$('open-connection').onclick=()=>action(openConnection);$('open-memory').onclick=()=>{$('chat-settings').close();action(async()=>{await memoryPanel.open();navigate('memory');});};$('open-history').onclick=()=>{const rows=recents.filter(r=>r.characterKey===snapshot.characterKey);$('chat-list').replaceChildren(...rows.map(chatRow));$('history').showModal();};$('character-chats').onclick=()=>{$('asset-editor').close();$('library-panel').close();$('open-history').click();};$('close-history').onclick=()=>$('history').close();$('new-chat').onclick=()=>action(async()=>{const origin=target(snapshot);const card=await raw('assets',{kind:'characters',action:'read',key:origin.characterKey});await newChatPanel.open({key:origin.characterKey,name:card.draft.name,cardRevision:card.revision,target:origin},()=>same(snapshot,origin));});$('rename-chat').hidden=true;$('delete-chat').onclick=()=>action(()=>confirmChatDelete(snapshot));

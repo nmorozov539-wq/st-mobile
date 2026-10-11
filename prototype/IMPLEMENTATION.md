@@ -117,3 +117,14 @@ Every write goes through verified Summaryception extension actions, never the pa
 The in-chat bar shows Summarizing/Waiting with Stop, the inline catch-up choice card, “Summarization stopped · Progress saved” and “Memory saved · Summarization complete”. Cancel in a catch-up card stops the pending operation. Background polling never redraws while a field has focus.
 
 Not implemented, by design: a separate summarizer endpoint/API key/model and Test connection. Pocket summarizes only through the main ST connection (the existing proxy rule) and never stores another provider's key; a non-default source can be switched back to Default from the page. Native import/cancellation/skip semantics are unchanged. Settings schema remains v3; no data migration. The vendored extension needs a restart of the engine to expose the new actions; an older extension degrades to read-only sections with an explanatory note.
+
+
+## World Info — 0.7.10
+
+World Info is a three-screen feature (library, entry editor, Activation) over a `worldinfo` bridge method. Reads (`list`, `activation`, `book`, `entry`, `export`) work while the engine is busy; writes take the same exclusive lock as other bridge writes and fail with BUSY during generation or Memory work.
+
+Rules live in `extension/worldinfo-data.js` (pure, unit-tested): book-name and folder validation, per-field entry validation, a book revision fingerprint, activation ranges, and the Min Activations / Max Recursion Steps exclusion. `worldinfo.js` performs the ST calls (`saveWorldInfo`, `createWorldInfoEntry`, `duplicateWorldInfoEntry`, `deleteWorldInfoEntry`, `deleteWorldInfo`, `updateWorldInfoSettings`) and verifies by reading back, because ST's own save ignores HTTP failures.
+
+Entry saves send only changed fields. Unknown native fields, `uid`, `displayIndex` and `characterFilter.tags` are preserved; `originalData` (the character-book mirror) is kept in sync. The editor never writes an entry without the revision it was opened from; a stale revision returns STALE_BOOK instead of overwriting.
+
+Renaming saves the new book, deletes the old one, then moves the global selection, additional-character, chat and persona links. Character primary links are updated only after explicit confirmation. Deleting a folder keeps its books. Empty folders are remembered in browser storage (`pocket-tavern.wi-folders.v1`); non-empty ones exist only as book metadata.

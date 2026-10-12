@@ -1,4 +1,4 @@
-# Pocket Tavern — v0.7.10
+# Pocket Tavern — v0.7.11
 
 Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
 
@@ -6,7 +6,7 @@ For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern
 
 ## Current release
 
-`pocket-tavern-combined-v0.7.10.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.7.11.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -37,6 +37,8 @@ Characters and Chats 0.7.8 add the approved three-column library, separate Impor
 Memory 0.7.9 replaces the old dialog with the full Summaryception page: saved memories with edit/regenerate/delete, injection preview, global turns/prompt/connection settings, import/export/repair/clear, and the in-chat working, stopped, complete and catch-up states. Writes use verified extension actions; a separate summarizer connection stays in full ST.
 
 World Info 0.7.10 replaces the placeholder with a library of folders and books (source labels such as Global or Character · Primary, entry enable toggles, add entry), a full entry editor, and a global Activation page. Books can be created, imported (native ST or character-book JSON), renamed, duplicated, exported, moved between folders and deleted. Folders are stored as `extensions.folder` inside each book, compatible with WorldInfoDrawer, and never change activation. Every save is revision-guarded and verified by reading the book back.
+
+Settings 0.7.11 adds a full Settings page from the Home gear (and from the model picker): a Connection tab (engine status and Reconnect, Use proxy, endpoint, API key, global model with refresh/manual ID, Connect and a separate Test message) and an Appearance & reading tab (text size, line spacing, Plain/Gradient background, generation time / clock / model icon / token count, with a live preview). The proxy switch changes the saved endpoint and reports whether the proxy answers; starting and stopping the proxy process itself is left to the launcher and the Android package. Reading preferences are stored on this device only.
 
 Browsing and drafting in another chat does not switch the generating ST chat. One generation runs at a time. Committed scoped settings and history edits can wait in a durable queue, with visible Pending/Applied states and explicit restart review. Message actions include editing, copy, deletion, multi-delete and forks. Existing alternatives loop; another reply requires a deliberate gesture or named action. Deletion has brief Undo.
 

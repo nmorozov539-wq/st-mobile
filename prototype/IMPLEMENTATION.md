@@ -128,3 +128,12 @@ Rules live in `extension/worldinfo-data.js` (pure, unit-tested): book-name and f
 Entry saves send only changed fields. Unknown native fields, `uid`, `displayIndex` and `characterFilter.tags` are preserved; `originalData` (the character-book mirror) is kept in sync. The editor never writes an entry without the revision it was opened from; a stale revision returns STALE_BOOK instead of overwriting.
 
 Renaming saves the new book, deletes the old one, then moves the global selection, additional-character, chat and persona links. Character primary links are updated only after explicit confirmation. Deleting a folder keeps its books. Empty folders are remembered in browser storage (`pocket-tavern.wi-folders.v1`); non-empty ones exist only as book metadata.
+
+
+## Settings — 0.7.11
+
+Settings is a page (`settings-page.js`) rather than the old dialog; the gear on Home and the model picker's connection link open it, and Back returns to where it was opened from. The legacy dialog markup remains for tests and unused controls.
+
+**Connection** reuses the verified `configure` bridge actions (`endpoint`, `model`, `providerKey`, `connect`, `test`, `source`). Nothing is saved until Connect or Test message; the API key field is cleared as soon as it is sent and a blank field keeps the saved key. Use proxy toggles the draft endpoint between `http://127.0.0.1:8001/api/v1` and the last direct endpoint (remembered locally, default OpenRouter). The status line comes from a short no-CORS probe of the proxy port, so it can say "Proxy not detected" instead of pretending. Test message is the only control that sends a generation request and names the model it uses.
+
+**Appearance & reading** (`appearance.js`) stores text size 13–24 px, line spacing, background and four message-detail switches in browser storage (`pocket-tavern.appearance.v1`) and applies them as CSS variables. Generation time is the only detail on by default. Clock, model icon and token count appear only when the saved message actually has a `send_date`, `extra.model` or `extra.token_count`; nothing is fabricated.

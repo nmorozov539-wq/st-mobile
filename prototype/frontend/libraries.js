@@ -1,4 +1,4 @@
-import {icon} from './icons.js?build=0.7.10';
+import {icon} from './icons.js?build=0.7.11';
 
 export function characterStatus(card){
     const missing=[['name','name'],['description','description'],['first_mes','main greeting']].filter(([key])=>!String(card?.[key]??'').trim()).map(([,label])=>label);

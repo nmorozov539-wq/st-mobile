@@ -1,5 +1,11 @@
 # Verification report
 
+## 0.7.11 — Settings
+
+- **222 automated tests pass** (5 new appearance tests: defaults, clamping, storage round-trip and corruption, real-metadata-only details, CSS application).
+- **19 phone-viewport checks pass** (`tests/settings-ui.cjs`) against a real ST 1.19.0 fixture: real endpoint loaded, proxy switch both ways with the honest "not detected" message, Test message reply, Connect, all reading controls with live preview, persistence after reload, Back to Home; zero page errors. Screenshots inspected at 390×844.
+- Not yet verified on the phone: keyboard/IME in the key field, the proxy status against a really running proxy, long model lists.
+
 ## 0.7.10 — World Info
 
 - **215 automated tests pass** (9 new World Info rule tests in `tests/worldinfo.test.js`; the syntax test now parses every new module).

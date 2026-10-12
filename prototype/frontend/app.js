@@ -1,25 +1,25 @@
-import {createLibraryViews,characterStatus} from './libraries.js?build=0.7.12';
-import {createNewChatPanel} from './new-chat-panel.js?build=0.7.12';
-import {createEngineMonitor} from './engine-monitor.js?build=0.7.12';
-import {checkBridgeBuild} from './build.js?build=0.7.12';
-import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.12';
-import {createJournal,revision,renderRange} from './journal.js?build=0.7.12';
-import {RuntimeConnection} from './transport.js?build=0.7.12';
+import {createLibraryViews,characterStatus} from './libraries.js?build=0.7.13';
+import {createNewChatPanel} from './new-chat-panel.js?build=0.7.13';
+import {createEngineMonitor} from './engine-monitor.js?build=0.7.13';
+import {checkBridgeBuild} from './build.js?build=0.7.13';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.13';
+import {createJournal,revision,renderRange} from './journal.js?build=0.7.13';
+import {RuntimeConnection} from './transport.js?build=0.7.13';
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.7.12';
-import {createSettingsPanel} from './settings.js?build=0.7.12';
-import {createLibrary} from './library.js?build=0.7.12';
-import {createMemoryPanel} from './memory.js?build=0.7.12';
-import {createWorldInfoPanel} from './world-info.js?build=0.7.12';
-import {renderHome,homeStatus,countText} from './home.js?build=0.7.12';
-import {createSettingsPage} from './settings-page.js?build=0.7.12';
-import {loadAppearance,saveAppearance,applyAppearance,clockText,modelName,tokenText} from './appearance.js?build=0.7.12';
-import {probeEngine} from './engine-health.js?build=0.7.12';
-import {createPresetPanel} from './preset-panel.js?build=0.7.12';
-import {icon} from './icons.js?build=0.7.12';
-import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.12';
-import {createModelPanel} from './model-panel.js?build=0.7.12';
-import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.12';
+import {createHTMLFormatter} from './html-format.js?build=0.7.13';
+import {createSettingsPanel} from './settings.js?build=0.7.13';
+import {createLibrary} from './library.js?build=0.7.13';
+import {createMemoryPanel} from './memory.js?build=0.7.13';
+import {createWorldInfoPanel} from './world-info.js?build=0.7.13';
+import {renderHome,homeStatus,countText} from './home.js?build=0.7.13';
+import {createSettingsPage} from './settings-page.js?build=0.7.13';
+import {loadAppearance,saveAppearance,applyAppearance,clockText,modelName,tokenText} from './appearance.js?build=0.7.13';
+import {probeEngine} from './engine-health.js?build=0.7.13';
+import {createPresetPanel} from './preset-panel.js?build=0.7.13';
+import {icon} from './icons.js?build=0.7.13';
+import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.13';
+import {createModelPanel} from './model-panel.js?build=0.7.13';
+import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.13';
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
@@ -55,7 +55,8 @@ function controls(){homeSync();const unavailable=!connected||review;const busy=f
 }
 function portrait(c){const span=el('span',c?.name?.slice(0,1)??'✦','avatar');if(c){const img=el('img');img.src=`/characters/${encodeURIComponent(c.key)}`;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();span.append(img);}return span;}
 function personaPortrait(p){const span=el('span',p?.name?.slice(0,1)??'✦','avatar');if(p){const img=el('img');img.src=`/User Avatars/${encodeURIComponent(p.id)}`;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();span.append(img);}return span;}
-async function refresh(){characters=await raw('characters');recents=await workspace('recent');configuration=await raw('settings');if(snapshot){try{scopes=projectedScopes(await workspace('scopes',{target:target(snapshot)}),snapshot);}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;snapshot=null;scopes=await workspace('scopes');}}else scopes=await workspace('scopes');renderPage();renderHeader();if(presetPanel&&$('preset-panel').open){const origin=presetPanelOrigin;const value=projectedScopes(await workspace('scopes',{target:origin}),origin);presetPanel.update(value,journal.read().some(i=>i.argument.action==='configure'));}}
+const typingInPage=()=>{const node=document.activeElement;return !!node&&$('page-content').contains(node)&&['INPUT','TEXTAREA','SELECT'].includes(node.tagName);};
+async function refresh(){characters=await raw('characters');recents=await workspace('recent');configuration=await raw('settings');if(snapshot){try{scopes=projectedScopes(await workspace('scopes',{target:target(snapshot)}),snapshot);}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;snapshot=null;scopes=await workspace('scopes');}}else scopes=await workspace('scopes');if(!typingInPage())renderPage();renderHeader();if(presetPanel&&$('preset-panel').open){const origin=presetPanelOrigin;const value=projectedScopes(await workspace('scopes',{target:origin}),origin);presetPanel.update(value,journal.read().some(i=>i.argument.action==='configure'));}}
 function button(text,fn){const b=el('button',text);b.onclick=()=>action(fn);return b;}
 function chatRow(row){return libraryViews.chat({...row,open:()=>openChat(row)},characters);}
 function windowList(parent,rows,makeRow,estimate=100,scroller=$('landing')){
@@ -78,7 +79,6 @@ function renderPage(){listRenderer=null;if(page==='chat')return;const content=$(
     else if(page==='wi'){wiPanel.renderLibrary(content);}
     else if(page==='wi-entry'){wiPanel.renderEntry(content);}
     else if(page==='wi-activation'){wiPanel.renderActivation(content);}
-    else {content.append(el('p','Native World Info activation remains global. Character and chat books keep their ST rules.'),button('Select global lorebooks',()=>openConnection()));for(const name of configuration?.lorebooks??[])content.append(el('div',`${configuration.selected.lorebooks.includes(name)?'●':'○'} ${name}`,'library-row'));content.append(el('a','Open the native World Info editor','native-link'));content.lastChild.href='/';content.lastChild.target='_blank';}
 }
 async function openPersonaEditor(p){
     if(p){const result=await raw('assets',{kind:'personas',action:'read',key:p.id});personaEdit={key:p.id,revision:result.revision,draft:result.draft};}
@@ -333,8 +333,8 @@ newChatPanel=createNewChatPanel({action,prepare:prepareNewChat,apply:applyNewCha
 library=createLibrary({rpc,action,onStartChat:(card,guard)=>newChatPanel.open(card,guard),onStartFresh:startFreshChat,readChat:()=>snapshot,onChat:(row,guard)=>openChat(row,{dismissPanels:false,guard}),refreshAvailability:async()=>{const activity=await raw('activity');engineBusy=activity.busy||!!operation;controls();},onDeleted:characterKey=>{if(snapshot?.characterKey===characterKey){navigate('characters',{dismissPanels:false});snapshot=null;selected.clear();}},format,converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),locked:()=>!connected||review,refresh,onEditor:(kind,key)=>{$('character-chats').hidden=page!=='chat'||kind!=='characters'||key!==snapshot?.characterKey;}});
 libraryViews=createLibraryViews({node:el,button,portrait,personaPortrait,windowList,editCharacter:c=>library.edit(c.key,{kind:'characters',fromLibrary:true}),createCharacter:()=>library.createCharacter(),importCharacters:()=>{importUncertain=false;$('character-import-file').value='';$('character-import-file').disabled=importWaiting;$('character-import-status').textContent='Choose a character card from your device.';$('character-import-confirm').showModal();},editPersona:p=>action(()=>openPersonaEditor(p)),createPersona:()=>action(()=>openPersonaEditor(null)),startFresh:startFreshChat,onDelete:confirmChatDelete,readCard:key=>raw('assets',{kind:'characters',action:'read',key}),availability:()=>connected&&!review&&!freshPreparing&&!engineBusy&&!working&&!memoryBusy&&!draining&&!startingGeneration});
 $('character-import-file').onchange=()=>action(async()=>{const file=$('character-import-file').files[0];if(!file||importWaiting||importUncertain)return;importWaiting=true;$('character-import-file').disabled=true;$('character-import-status').textContent='Importing and verifying the native card…';try{await library.importCharacter(file);$('character-import-confirm').close();status('Character imported and verified');}catch(e){importUncertain=true;$('character-import-status').textContent=e.message+' Inspect saved characters before another import.';throw e;}finally{importWaiting=false;if(!importUncertain)$('character-import-file').disabled=false;}});
-settingsPage=createSettingsPage({onChecked:()=>{apiChecked=true;if(page==='home')renderPage();},rpc,action,locked:()=>!connected||review||engineBusy||memoryBusy||working,notify:text=>toast(text),reconnect:()=>$('reconnect').click(),connected:()=>connected,adoptSnapshot:refresh,getAppearance:()=>appearance,setAppearance:value=>{appearance=applyAppearance(saveAppearance(localStorage,value));},probeProxy:()=>fetch('http://127.0.0.1:8001/',{mode:'no-cors',signal:AbortSignal.timeout(1500)}).then(()=>true,()=>false)});
-wiPanel=createWorldInfoPanel({rpc,action,locked:()=>!connected||review||engineBusy||working||memoryBusy,notify:text=>toast(text),navigate:value=>navigate(value),setSubtitle:text=>{$('page-subtitle').textContent=text;$('page-subtitle').hidden=!text;}});
+settingsPage=createSettingsPage({visible:()=>page==='settings',onChecked:()=>{apiChecked=true;if(page==='home')renderPage();},rpc,action,locked:()=>!connected||review||engineBusy||memoryBusy||working,notify:text=>toast(text),reconnect:()=>$('reconnect').click(),connected:()=>connected,adoptSnapshot:refresh,getAppearance:()=>appearance,setAppearance:value=>{appearance=applyAppearance(saveAppearance(localStorage,value));},probeProxy:async()=>{try{const stop=new AbortController();const timer=setTimeout(()=>stop.abort(),2000);try{await fetch('http://127.0.0.1:8001/',{mode:'no-cors',signal:stop.signal});return true;}finally{clearTimeout(timer);}}catch{return false;}}});
+wiPanel=createWorldInfoPanel({onPage:name=>page===name,rpc,action,locked:()=>!connected||review||engineBusy||working||memoryBusy,connected:()=>connected,notify:text=>toast(text),navigate:value=>navigate(value),setSubtitle:text=>{$('page-subtitle').textContent=text;$('page-subtitle').hidden=!text;}});
 memoryPanel=createMemoryPanel({rpc,action,locked:()=>!connected||review||engineBusy||working,connected:()=>connected,onState:value=>{if(value.busy&&!memoryWasBusy)memoryStopAsked=false;if(memoryWasBusy&&!value.busy&&!value.failure){memoryResult=memoryStopAsked?'stopped':'done';clearTimeout(memoryResultTimer);memoryResultTimer=setTimeout(()=>{memoryResult=null;renderMemoryNotice();},6000);}if(value.busy)memoryResult=null;memoryWasBusy=value.busy;memoryState=value;renderMemoryNotice(value);},onStopRequested:()=>{memoryStopAsked=true;},notify:text=>toast(text),onBusy:value=>{memoryBusy=value;controls();if(!value)drain();},refresh:async()=>{await refresh();if(snapshot&&!engineBusy){snapshot=await workspace('read',{target:target(snapshot)});render(true);}}});
 for(const id of ['setting-preset','edit-active-preset','setting-thinking','setting-tools','setting-model','setting-custom-model','apply-custom-model']){const n=$(id);n.hidden=true;const label=document.querySelector(`label[for="${id}"]`);if(label)label.hidden=true;if(n.parentNode.tagName==='LABEL')n.parentNode.hidden=true;}
 // The skeleton exposes global pause and frequency. Existing advanced controls stay in ST.

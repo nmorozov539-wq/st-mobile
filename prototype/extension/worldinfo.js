@@ -8,7 +8,7 @@ import { saveSettings, saveMetadata } from '/script.js';
 import {
     bookRevision, validBookName, validFolderName, folderOf, ENTRY_RULES, checkEntryChanges, applyEntryChanges, nextDisplayIndex,
     summarizeBook, checkActivationChanges, checkImportedBook, ACTIVATION_RULES,
-} from './worldinfo-data.js?build=0.7.12';
+} from './worldinfo-data.js?build=0.7.13';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const clone = value => structuredClone(value);
@@ -82,9 +82,12 @@ export function createWorldInfoRuntime(getContext) {
         });
         return { books: items.map((item, index) => ({ ...item, ...counts[index] })), sources: sources(), activation: activation(), globalBooks: [...selected_world_info] };
     }
+    const LIST_FIELDS = ['key', 'keysecondary', 'triggers'];
     function fullEntry(entry) {
         const fields = {};
         for (const field of Object.keys(ENTRY_RULES)) fields[field] = clone(entry[field] ?? newWorldInfoEntryTemplate[field] ?? null);
+        for (const field of LIST_FIELDS) fields[field] = Array.isArray(fields[field]) ? fields[field].filter(item => typeof item === 'string') : [];
+        for (const field of ['comment', 'content', 'group', 'automationId', 'outletName']) if (typeof fields[field] !== 'string') fields[field] = '';
         fields.delayUntilRecursion = typeof entry.delayUntilRecursion === 'boolean' ? Number(entry.delayUntilRecursion) : (entry.delayUntilRecursion ?? 0);
         const filter = entry.characterFilter && typeof entry.characterFilter === 'object' ? entry.characterFilter : {};
         fields.characterFilterNames = [...(filter.names ?? [])];
@@ -218,6 +221,7 @@ export function createWorldInfoRuntime(getContext) {
                 }
                 case 'deleteBook': {
                     await existing(name); await openBook(name, argument.revision);
+                    await updateWorldInfoList();
                     if (!await deleteWorldInfo(name)) fail('DELETE_FAILED', 'ST could not delete that book.');
                     if ((await files()).some(item => item.name === name)) fail('DELETE_FAILED', 'The book is still saved. Reload the library.');
                     await saveSettings();

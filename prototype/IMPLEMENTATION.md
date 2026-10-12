@@ -142,3 +142,12 @@ Settings is a page (`settings-page.js`) rather than the old dialog; the gear on 
 ## Home — 0.7.12
 
 `home.js` renders the page and owns the pure status rules (`homeStatus`, `countText`), so they are unit-tested. Engine: Connecting / Connected / Working / Not connected from the bridge state. API: from ST's own `onlineStatus`; Pocket never probes the provider for this, and `no_connection` reads as Not checked until a Connect or Test message in Settings has actually finished. Counts come from the already loaded character, recent-chat and persona lists (chats cap at 1,000 and show `1,000+`). Home re-renders only when one of those values changes (`homeSync`), so it stays current as the engine connects without redrawing on every control update.
+
+
+## Review pass — 0.7.13
+
+Two rules came out of re-reading the new pages. A control that is being dragged or typed into must never be re-created underneath the person: sliders now re-render on `change` (pointer up), not on `input`, and the Settings endpoint updates its own label instead of redrawing the form. And a page must survive a background re-render: `refresh()` skips `renderPage()` while the focus is inside a field in `#page-content`, so a draining queued change cannot wipe unsaved typing.
+
+A third rule came from an intermittent test failure: every page renders into the same `#page-content` element, so each panel is given a `visible()`/`onPage()` predicate and refuses to paint unless its own page is current. Without it, an in-flight reload could overwrite a page the person had already navigated to.
+
+Settings also loads defensively: a failed `settings` read leaves the page open with the error and a Try again button, because the Appearance tab is device-local and must stay usable while the engine is down.

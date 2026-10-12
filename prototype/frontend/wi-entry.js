@@ -1,5 +1,5 @@
 // Phase 6c: World Info entry editor. Sends only the fields the person changed, guarded by the book revision.
-import {el, btn, checkbox, field, select, numberInput, section, modal, confirmDialog} from './wi-ui.js?build=0.7.12';
+import {el, btn, checkbox, field, select, numberInput, section, modal, confirmDialog} from './wi-ui.js?build=0.7.13';
 
 export const POSITIONS = [[0, 'Before character definitions'], [1, 'After character definitions'], [2, 'Top of Author’s Note'], [3, 'Bottom of Author’s Note'], [4, 'At depth'], [5, 'Before example messages'], [6, 'After example messages'], [7, 'Outlet']];
 export const LOGIC = [[0, 'AND ANY'], [3, 'AND ALL'], [1, 'NOT ALL'], [2, 'NOT ANY']];
@@ -11,7 +11,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 export function strategyOf(fields) { return fields.constant ? 'constant' : fields.vectorized ? 'vectorized' : 'keyword'; }
 
-export function createEntryEditor({request, action, notify, locked, back, setSubtitle, changed}) {
+const clampInput = (node, value, min, max) => { const clamped = Math.min(max, Math.max(min, value)); if (clamped !== value) node.value = clamped; return clamped; };
+
+export function createEntryEditor({request, action, notify, locked, back, setSubtitle, changed, visible = () => true}) {
  let state = null, container = null, saving = false;
 
  async function open(name, uid) {
@@ -37,7 +39,7 @@ export function createEntryEditor({request, action, notify, locked, back, setSub
 
  function render(content) {
   if (content) container = content;
-  if (!container?.isConnected) return;
+  if (!container?.isConnected || !visible()) return;
   if (!state) { container.replaceChildren(el('p', 'Choose an entry from a World Info book.', 'wi-note')); return; }
   setSubtitle(`${state.name} · UID ${state.uid}`);
   const d = state.draft, page = el('div', '', 'wi-page wi-editor');
@@ -45,12 +47,12 @@ export function createEntryEditor({request, action, notify, locked, back, setSub
   const title = el('input'); title.value = d.comment; title.maxLength = 5000; title.oninput = () => set('comment', title.value);
   page.append(field('Title / memo', title));
 
-  const strategy = select([['keyword', '● Keyword'], ['constant', '◆ Always on'], ['vectorized', '▲ Vectorized']], strategyOf(d), value => { d.constant = value === 'constant'; d.vectorized = value === 'vectorized'; render(); });
+  const strategy = select([['keyword', '● Keyword'], ['constant', '◆ Always on'], ['vectorized', '▲ Vectorized']], strategyOf(d), value => { d.constant = value === 'constant'; d.vectorized = value === 'vectorized'; state.error = ''; render(); });
   const position = select(POSITIONS, d.position, value => set('position', Number(value), true));
   const row1 = el('div', '', 'wi-row'); row1.append(field('Strategy', strategy), field('Position', position)); page.append(row1);
   if (d.position === 4) { const depth = el('div', '', 'wi-row'); depth.append(field('Depth', numberInput(d.depth, v => set('depth', v), {min: 0, max: 10000})), field('Role', select(ROLES, d.role, v => set('role', Number(v))))); page.append(depth); }
   if (d.position === 7) { const outlet = el('input'); outlet.value = d.outletName; outlet.maxLength = 200; outlet.oninput = () => set('outletName', outlet.value); page.append(field('Outlet name', outlet, 'Used by {{outlet::name}} macros.')); }
-  const row2 = el('div', '', 'wi-row'); row2.append(field('Order', numberInput(d.order, v => set('order', v), {min: -100000000, max: 100000000})), field('Trigger %', numberInput(d.probability, v => set('probability', Math.min(100, Math.max(0, v))), {min: 0, max: 100}))); page.append(row2);
+  const row2 = el('div', '', 'wi-row'); row2.append(field('Order', numberInput(d.order, v => set('order', v), {min: -100000000, max: 100000000})), field('Trigger %', (() => { const node = numberInput(d.probability, v => set('probability', clampInput(node, v, 0, 100)), {min: 0, max: 100}); return node; })())); page.append(row2);
   page.append(checkbox('Enabled', !d.disable, on => set('disable', !on)));
 
   if (strategyOf(d) !== 'constant') {

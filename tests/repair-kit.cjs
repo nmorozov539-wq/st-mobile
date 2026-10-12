@@ -5,7 +5,7 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-check-'));
  try{
   const destination=path.join(root,'extracted');fs.mkdirSync(destination);
-  const archive=path.resolve('pocket-tavern-combined-v0.7.12.zip');
+  const archive=path.resolve('pocket-tavern-combined-v0.7.13.zip');
   const bundle=await extractKit(archive,destination,fixture);
   assert.ok(fs.existsSync(path.join(bundle,'prepare.cjs')));
   for(const file of ['frontend/libraries.js','frontend/libraries.css','extension/workspace.js','extension/new-chat.js','frontend/new-chat-panel.js','frontend/character-chats.js','extension/workspace-data.js','frontend/journal.js','frontend/engine-monitor.js','extension/alternative.js','frontend/chat-controls.js','frontend/model-panel.js','frontend/scoped-settings.js','frontend/icons.js','frontend/chat.css','frontend/preset.css','frontend/preset-panel.js','frontend/preset-state.js','extension/preset-state.js'])assert.ok(fs.existsSync(path.join(bundle,file)),`Missing foundation module ${file}`);
@@ -13,8 +13,8 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   assert.ok(fs.existsSync(path.join(bundle,'summaryception/LICENSE')));
   assert.match(fs.readFileSync(path.join(bundle,'frontend/index.html'),'utf8'),/setting-endpoint/);
   assert.match(fs.readFileSync(path.join(bundle,'start.cjs'),'utf8'),/--proxy/);
-  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.7.12 (1).zip'));
-  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.7.12 (1).zip'));
+  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.7.13 (1).zip'));
+  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.7.13 (1).zip'));
   fs.mkdirSync(path.join(root,'working/node_modules/wreq-js'),{recursive:true});fs.writeFileSync(path.join(root,'working/node_modules/wreq-js/package.json'),'{}');
   assert.equal(locateProxy([path.join(root,'missing'),path.join(root,'working')]),path.join(root,'working'));
   const malicious=path.join(root,'bad.zip');

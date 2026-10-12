@@ -1,6 +1,6 @@
 // Home: a calm landing page. Status comes from known state only; nothing here sends a paid request.
-import {icon} from './icons.js?build=0.7.12';
-import {FRONTEND_BUILD} from './build.js?build=0.7.12';
+import {icon} from './icons.js?build=0.7.13';
+import {FRONTEND_BUILD} from './build.js?build=0.7.13';
 
 export function homeStatus({connected, initializing, generating, onlineStatus, apiChecked}) {
  const engine = initializing ? {label: 'Connecting…', tone: 'wait'} : !connected ? {label: 'Not connected', tone: 'bad'} : generating ? {label: 'Working', tone: 'ok'} : {label: 'Connected', tone: 'ok'};

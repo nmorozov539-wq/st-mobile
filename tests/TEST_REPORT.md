@@ -1,5 +1,14 @@
 # Verification report
 
+## 0.7.13 — Review pass before phone testing
+
+Re-read all 0.7.10–0.7.12 code against the ST 1.19.0 source. Twelve issues found and fixed; two got dedicated regression checks, and a third was caught by an intermittent failure in the World Info UI suite.
+
+- **Fixed, would have shown up on the phone:** the Activation sliders re-rendered on every input event, so a finger drag was cancelled the moment it moved (Min activations / Max recursion steps); the Settings endpoint field re-rendered on blur, so tapping from it into the API key field lost the tap and the keyboard.
+- **Fixed, found by a flaky suite:** every page paints into the same `#page-content` node, so a slow reload (for example the library refreshing after an activation save) could repaint over whichever page the person had moved to. Each panel now refuses to render unless its page is the current one; the World Info UI suite went from intermittent to 18/18 three runs in a row.
+- **Fixed, correctness:** `deleteWorldInfo` refuses books missing from ST's in-memory `world_names`, so deletion now refreshes that list first; the entry editor could crash on a book whose entry lacked `triggers` or held a non-string list, so the bridge now coerces list and text fields; a background drain called `renderPage()` and wiped unsaved typing on form pages; Trigger % clamped silently behind the field; Settings was unreachable (and with it the device-only reading preferences) whenever the engine was down; `AbortSignal.timeout` in the proxy probe could raise an unhandled rejection on older WebViews; folder moves could outrun the 60 s transport timeout; plus a dead World Info placeholder branch, a duplicate book fetch after creation, and a hardcoded version string in the Settings footer.
+- **229 automated tests pass**, and the four browser suites pass against a real ST 1.19.0 fixture: World Info bridge 22, World Info UI 18 (+ slider-drag regression, stable across repeat runs), Settings 21 (+ focus regression), Home 10.
+
 ## 0.7.12 — Home
 
 - **226 automated tests pass** (3 new Home status/count tests).

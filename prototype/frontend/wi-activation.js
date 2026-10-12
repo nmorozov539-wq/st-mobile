@@ -1,10 +1,10 @@
 // Phase 6d: global World Info activation settings. Shared across all chats; saved only after ST confirms them.
-import {el, btn, checkbox, field, select, section, confirmDialog} from './wi-ui.js?build=0.7.12';
+import {el, btn, checkbox, field, select, section, confirmDialog} from './wi-ui.js?build=0.7.13';
 
 const STRATEGIES = [[0, 'Sorted evenly'], [1, 'Character lore first'], [2, 'Global lore first']];
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-export function createActivationPage({request, action, notify, locked, back, changed}) {
+export function createActivationPage({request, action, notify, locked, back, changed, visible = () => true}) {
  let orig = null, draft = null, container = null, error = '', saving = false;
 
  async function open() { const result = await request({action: 'activation'}); orig = result.activation; draft = structuredClone(orig); error = ''; }
@@ -17,21 +17,34 @@ export function createActivationPage({request, action, notify, locked, back, cha
   if (key === 'world_info_max_recursion_steps' && value > 0) draft.world_info_min_activations = 0;
   if (refresh) render(); else sync();
  }
+ const HARD_MAX = {world_info_depth: 1000, world_info_budget_cap: 65536};
  function slider(key, label, min, max, hint) {
   const wrap = el('div', '', 'wi-field wi-slider'); wrap.append(el('span', label));
-  const range = el('input'); range.type = 'range'; range.min = min; range.max = max; range.value = Math.min(max, draft[key]);
-  const exact = el('input'); exact.type = 'number'; exact.inputMode = 'numeric'; exact.min = min; exact.max = key === 'world_info_depth' ? 1000 : key === 'world_info_budget_cap' ? 65536 : max; exact.value = draft[key]; exact.setAttribute('aria-label', `${label} exact value`);
-  const clamp = value => Math.max(min, Math.min(Number(exact.max), Math.round(value)));
+  const limit = HARD_MAX[key] ?? max;
+  const current = Number.isFinite(draft[key]) ? draft[key] : min;
+  const range = el('input'); range.type = 'range'; range.min = min;
+  // A value saved in SillyTavern above the comfortable range still has to be reachable on the slider.
+  range.max = Math.max(max, Math.min(limit, current)); range.value = current;
+  const exact = el('input'); exact.type = 'number'; exact.inputMode = 'numeric'; exact.min = min; exact.max = limit; exact.value = current;
+  exact.setAttribute('aria-label', `${label} exact value`);
+  const clamp = value => Math.max(min, Math.min(limit, Math.round(value)));
   const exclusive = key === 'world_info_min_activations' || key === 'world_info_max_recursion_steps';
-  range.oninput = () => { exact.value = range.value; set(key, Number(range.value), exclusive); };
-  exact.onchange = () => { if (exact.value === '' || !Number.isFinite(Number(exact.value))) exact.value = draft[key]; const value = clamp(Number(exact.value)); exact.value = value; range.value = Math.min(max, value); set(key, value, exclusive); };
+  // Never re-render while a finger is on the slider: replacing the node cancels the drag.
+  range.oninput = () => { exact.value = range.value; set(key, Number(range.value)); };
+  range.onchange = () => { if (exclusive) render(); };
+  exact.onchange = () => {
+   if (exact.value === '' || !Number.isFinite(Number(exact.value))) exact.value = draft[key];
+   const value = clamp(Number(exact.value)); exact.value = value;
+   range.max = Math.max(max, value); range.value = value;
+   set(key, value, exclusive);
+  };
   const row = el('div', '', 'wi-slider-row'); row.append(range, exact); wrap.append(row);
   if (hint) wrap.append(el('small', hint, 'wi-hint'));
   return wrap;
  }
  function render(content) {
   if (content) container = content;
-  if (!container?.isConnected) return;
+  if (!container?.isConnected || !visible()) return;
   if (!draft) { container.replaceChildren(el('p', 'Open World Info activation from the library.', 'wi-note')); return; }
   const page = el('div', '', 'wi-page wi-editor');
   page.append(el('p', 'Global · shared across all chats and characters', 'wi-scope'));

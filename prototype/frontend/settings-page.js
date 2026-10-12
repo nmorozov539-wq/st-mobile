@@ -1,7 +1,8 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.7.12';
-import {icon} from './icons.js?build=0.7.12';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.12';
+import {el, btn} from './wi-ui.js?build=0.7.13';
+import {icon} from './icons.js?build=0.7.13';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.13';
+import {FRONTEND_BUILD} from './build.js?build=0.7.13';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
@@ -9,27 +10,31 @@ const DIRECT_KEY = 'pocket-tavern.direct-endpoint.v1';
 const MANUAL = '\u0000manual';
 export const sameEndpoint = (a, b) => String(a ?? '').trim().replace(/\/+$/, '') === String(b ?? '').trim().replace(/\/+$/, '');
 
-export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy}) {
+export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy, visible = () => true}) {
  let tab = 'connection', config = null, container = null;
- let form = null, message = '', messageKind = '', working = false, proxyUp = null, showKey = false;
+ let form = null, message = '', messageKind = '', working = false, proxyUp = null, showKey = false, failure = '';
 
  const saveDirect = value => { try { if (value && !sameEndpoint(value, PROXY_ENDPOINT)) localStorage.setItem(DIRECT_KEY, value); } catch {} };
  const directEndpoint = () => { try { return localStorage.getItem(DIRECT_KEY) || DEFAULT_DIRECT; } catch { return DEFAULT_DIRECT; } };
  const say = (text, kind = '') => { message = text; messageKind = kind; };
 
  async function load() {
-  config = await rpc('settings');
-  const selected = config.selected;
-  form = {endpoint: selected.endpoint ?? '', key: '', model: selected.model ?? '', manual: false};
+  failure = '';
+  try {
+   config = await rpc('settings');
+   const selected = config.selected;
+   form = {endpoint: selected.endpoint ?? '', key: '', model: selected.model ?? '', manual: false};
+  } catch (error) { config = null; failure = error.message; }
   say('');
   render();
   refreshProxy();
  }
- async function refreshProxy() { proxyUp = await probeProxy(); render(); }
+ async function refreshProxy() { try { proxyUp = await probeProxy(); } catch { proxyUp = false; } render(); }
 
  const proxyOn = () => sameEndpoint(form.endpoint, PROXY_ENDPOINT);
  function fieldBlock(label, control, side, hint) {
-  const wrap = el('label', '', 'sp-field'); const head = el('span', '', 'sp-field-head'); head.append(el('span', label)); if (side) head.append(el('small', side));
+  const wrap = el('label', '', 'sp-field'); const head = el('span', '', 'sp-field-head'); head.append(el('span', label));
+  if (side) head.append(typeof side === 'string' ? el('small', side) : side);
   wrap.append(head, control); if (hint) wrap.append(el('small', hint, 'sp-note'));
   return wrap;
  }
@@ -38,6 +43,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   return config;
  }
  async function run(label, work) {
+  if (!connected()) { notify('Reconnect to the SillyTavern engine first.'); return; }
   if (locked()) { notify('Wait for the engine to finish before changing the connection.'); return; }
   working = true; say(label); render();
   try { await work(); await adoptSnapshot(); }
@@ -83,9 +89,14 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   page.append(el('p', proxyUp === null ? 'Checking proxy…' : proxyOn() ? (proxyUp ? 'Proxy running' : 'Proxy not detected. Start Pocket Tavern with the proxy, then Connect.') : (proxyUp ? 'Proxy available' : 'Proxy stopped'), `sp-note ${proxyOn() && proxyUp === false ? 'warn' : ''}`));
 
   const endpoint = el('input'); endpoint.type = 'url'; endpoint.value = form.endpoint; endpoint.autocomplete = 'off'; endpoint.spellcheck = false;
-  endpoint.oninput = () => { form.endpoint = endpoint.value; };
-  endpoint.onchange = () => { saveDirect(endpoint.value); render(); };
-  page.append(fieldBlock('API endpoint', endpoint, proxyOn() ? 'Proxy' : 'Direct', 'Base URL, without /chat/completions.'));
+  const side = el('small', proxyOn() ? 'Proxy' : 'Direct');
+  endpoint.oninput = () => {
+   form.endpoint = endpoint.value;
+   side.textContent = proxyOn() ? 'Proxy' : 'Direct';
+   toggle.setAttribute('aria-checked', String(proxyOn()));
+  };
+  endpoint.onchange = () => saveDirect(endpoint.value);
+  page.append(fieldBlock('API endpoint', endpoint, side, 'Base URL, without /chat/completions.'));
 
   const key = el('input'); key.type = showKey ? 'text' : 'password'; key.autocomplete = 'off'; key.value = form.key;
   key.placeholder = config.hasProviderKey ? 'Saved key · Leave blank to keep' : 'Paste API key'; key.oninput = () => { form.key = key.value; };
@@ -113,7 +124,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   const test = btn('', testMessage, 'sp-secondary', working ? {disabled: ''} : {}); test.append(icon('chat'), ' Test message');
   page.append(test, el('p', `Using ${form.model || config.selected.model || 'no model selected'}`, 'sp-note'), el('p', 'Sends a small generation request. Provider charges may apply.', 'sp-note'));
   if (form.reply) page.append(el('div', `Test reply · ${form.reply.model} ${form.reply.text}`, 'sp-reply'));
-  const build = el('p', `Pocket Tavern 0.7.12 · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'); page.append(build);
+  page.append(el('p', `Pocket Tavern ${FRONTEND_BUILD} · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'));
  }
 
  function appearanceTab(page) {
@@ -148,12 +159,13 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
  }
  function render(content) {
   if (content) container = content;
-  if (!container?.isConnected) return;
+  if (!container?.isConnected || !visible()) return;
   const page = el('div', '', 'sp-page');
   const tabs = el('div', '', 'sp-tabs'); tabs.setAttribute('role', 'tablist');
   for (const [id, label] of [['connection', 'Connection'], ['appearance', 'Appearance & reading']]) tabs.append(btn(label, () => { tab = id; render(); }, '', {role: 'tab', 'aria-selected': String(tab === id)}));
   page.append(tabs);
   if (tab === 'appearance') appearanceTab(page);
+  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'sp-secondary'), el('p', 'Reading preferences on the other tab work without the engine.', 'sp-note')); }
   else if (!config) page.append(el('p', 'Loading connection settings…', 'sp-note'));
   else connectionTab(page);
   container.replaceChildren(page);

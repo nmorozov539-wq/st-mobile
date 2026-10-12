@@ -34,6 +34,13 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  await page.locator('.sp-primary').click();
  await page.waitForFunction(()=>/Connected|Not connected/.test(document.querySelector('.sp-page').innerText)&&!document.querySelector('.sp-primary')?.disabled,null,{timeout:60000});
  ok(true,'connect finished');
+ // editing the endpoint must not steal the next tap (regression: full re-render on change)
+ await endpoint.click(); await endpoint.fill(original);
+ const keyField=page.locator('.sp-field input[type=password]');
+ await keyField.click(); await page.keyboard.type('abc');
+ ok(await page.evaluate(()=>document.activeElement?.type)==='password','focus stays in the key field after editing the endpoint');
+ ok(await keyField.inputValue()==='abc','typed key text survives');
+ await keyField.fill('');
  // appearance
  await page.getByRole('tab',{name:'Appearance & reading'}).click();
  ok(await page.getByRole('switch',{name:'Generation time'}).getAttribute('aria-checked')==='true','generation time default on');

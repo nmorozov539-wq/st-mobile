@@ -1,4 +1,4 @@
-# Pocket Tavern — v0.7.12
+# Pocket Tavern — v0.7.13
 
 Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
 
@@ -6,7 +6,7 @@ For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern
 
 ## Current release
 
-`pocket-tavern-combined-v0.7.12.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.7.13.zip` and matching `repair-pocket.cjs` are in the project root. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -41,6 +41,8 @@ World Info 0.7.10 replaces the placeholder with a library of folders and books (
 Settings 0.7.11 adds a full Settings page from the Home gear (and from the model picker): a Connection tab (engine status and Reconnect, Use proxy, endpoint, API key, global model with refresh/manual ID, Connect and a separate Test message) and an Appearance & reading tab (text size, line spacing, Plain/Gradient background, generation time / clock / model icon / token count, with a live preview). The proxy switch changes the saved endpoint and reports whether the proxy answers; starting and stopping the proxy process itself is left to the launcher and the Android package. Reading preferences are stored on this device only.
 
 Home 0.7.12 is the approved lightweight landing page: Pocket Tavern header with the Settings gear, the tagline, Engine and API connection status, and Characters / Chats / Personas counts. API shows Connected only when ST reports a connection, Not connected after a failed check, and otherwise Not checked; opening Home never sends a request. The old Continue/Recent shortcuts and the stop button are gone from Home (Chats and the chat screen keep them).
+
+0.7.13 is a review pass over the three new screens before phone testing: activation sliders no longer cancel a drag under the finger, the Settings endpoint field no longer steals the next tap, Settings and its reading preferences stay reachable while the engine is down, book deletion refreshes SillyTavern’s own book list first, and the entry editor tolerates books with missing or malformed fields. `PHONE_TEST_CHECKLIST_0.7.13.md` is the testing checklist for World Info, Settings and Home.
 
 Browsing and drafting in another chat does not switch the generating ST chat. One generation runs at a time. Committed scoped settings and history edits can wait in a durable queue, with visible Pending/Applied states and explicit restart review. Message actions include editing, copy, deletion, multi-delete and forks. Existing alternatives loop; another reply requires a deliberate gesture or named action. Deletion has brief Undo.
 

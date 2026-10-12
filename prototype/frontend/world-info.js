@@ -1,7 +1,7 @@
 // Phase 6: World Info library page (folders, books, entries). Entry editor and Activation live in their own modules.
-import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.12';
-import {createEntryEditor} from './wi-entry.js?build=0.7.12';
-import {createActivationPage} from './wi-activation.js?build=0.7.12';
+import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.13';
+import {createEntryEditor} from './wi-entry.js?build=0.7.13';
+import {createActivationPage} from './wi-activation.js?build=0.7.13';
 
 const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
 const MARKERS = {keyword: ['●', 'Keyword'], constant: ['◆', 'Always on'], vectorized: ['▲', 'Vector']};
@@ -21,14 +21,14 @@ function readRegistry() {
 }
 function writeRegistry(list) { try { localStorage.setItem(REGISTRY_KEY, JSON.stringify([...new Set(list)])); } catch {} }
 
-export function createWorldInfoPanel({rpc, action, locked, notify, navigate, setSubtitle}) {
+export function createWorldInfoPanel({rpc, action, locked, connected = () => true, notify, navigate, setSubtitle, onPage = () => true}) {
  const request = (arg, timeout = 60000) => rpc('worldinfo', arg, timeout);
  let lib = null, loading = false, failure = '', container = null, loadedAt = 0;
  const expanded = new Set(), openFolders = new Set(), details = new Map(), pending = new Set();
  let registry = readRegistry();
 
  const busy = () => locked();
- const guard = () => { if (busy()) { notify('Wait for the engine to finish before changing World Info.'); return false; } return true; };
+ const guard = () => { if (busy()) { notify(connected() ? 'Wait for the engine to finish before changing World Info.' : 'Reconnect to the SillyTavern engine first.'); return false; } return true; };
 
  async function load() {
   if (loading) return;
@@ -84,7 +84,7 @@ export function createWorldInfoPanel({rpc, action, locked, notify, navigate, set
   return wrap;
  };
  function render() {
-  if (!container?.isConnected) return;
+  if (!container?.isConnected || !onPage('wi')) return;
   const page = el('div', '', 'wi-page');
   const bar = el('div', '', 'wi-toolbar');
   bar.append(btn('Import', () => importInput.click(), 'wi-btn'), btn('+ Book', () => action(createBook), 'wi-btn wi-primary'), btn('Folder', () => action(createFolder), 'wi-btn'));
@@ -120,8 +120,8 @@ export function createWorldInfoPanel({rpc, action, locked, notify, navigate, set
   const result = await request({action: 'importBook', name: file.name.replace(/\.[^.]+$/, ''), data});
   notify(`Imported “${result.name}”.`); expanded.add(result.name); await load();
  });
- const entry = createEntryEditor({request, action, notify, locked, back: () => navigate('wi'), setSubtitle, changed: name => { details.delete(name); if (expanded.has(name)) loadBook(name); }});
- const activation = createActivationPage({request, action, notify, locked, back: () => navigate('wi'), changed: () => load()});
+ const entry = createEntryEditor({request, action, notify, locked, visible: () => onPage('wi-entry'), back: () => navigate('wi'), setSubtitle, changed: name => { details.delete(name); if (expanded.has(name)) loadBook(name); }});
+ const activation = createActivationPage({request, action, notify, locked, visible: () => onPage('wi-activation'), back: () => navigate('wi'), changed: () => load()});
 
  async function toggleEntry(name, row, check) {
   if (!guard()) { check.checked = !row.disabled; return; }
@@ -150,7 +150,7 @@ export function createWorldInfoPanel({rpc, action, locked, notify, navigate, set
   const names = lib.books.map(book => book.name);
   const name = await promptDialog({title: 'New book', label: 'Book name', confirm: 'Create', validate: value => names.some(item => item.toLocaleLowerCase() === value.toLocaleLowerCase()) ? 'A book with that name already exists.' : (!value.trim() || value !== value.trim() || /[\\/<>:"|?*\x00-\x1f]/.test(value) ? 'Use a name without slashes or special characters.' : '')});
   if (name === null) return;
-  await request({action: 'createBook', name}); expanded.add(name); await load(); await loadBook(name);
+  await request({action: 'createBook', name}); expanded.add(name); await load();
  }
  async function createFolder() {
   const name = await promptDialog({title: 'New folder', label: 'Folder name', confirm: 'Create', validate: value => !value.trim() || value.includes('/') || value.trim().length > 80 ? 'Use a name up to 80 characters without slashes.' : folders().some(item => item.toLocaleLowerCase() === value.trim().toLocaleLowerCase()) ? 'That folder already exists.' : ''});
@@ -158,7 +158,7 @@ export function createWorldInfoPanel({rpc, action, locked, notify, navigate, set
   registry = [...registry, name.trim()]; writeRegistry(registry); openFolders.add(name.trim()); render();
  }
  async function bookMenu(book) {
-  const detail = details.get(book.name), isGlobal = lib.globalBooks.includes(book.name);
+  const isGlobal = lib.globalBooks.includes(book.name);
   const choice = await menuDialog(book.name, [
    {id: 'global', label: isGlobal ? 'Stop using globally' : 'Use globally'}, {id: 'move', label: 'Move to folder'}, {id: 'rename', label: 'Rename'},
    {id: 'duplicate', label: 'Duplicate'}, {id: 'export', label: 'Export'}, {id: 'delete', label: 'Delete', danger: true}]);
@@ -198,7 +198,7 @@ export function createWorldInfoPanel({rpc, action, locked, notify, navigate, set
    folder = await promptDialog({title: 'New folder', label: 'Folder name', confirm: 'Create and move', validate: value => !value.trim() || value.includes('/') || value.trim().length > 80 ? 'Use a name up to 80 characters without slashes.' : ''});
    if (folder === null) return; folder = folder.trim();
   }
-  await request({action: 'setFolder', names: [book.name], folder});
+  await request({action: 'setFolder', names: [book.name], folder}, 120000);
   if (folder) { openFolders.add(folder); registry = [...registry, folder]; writeRegistry(registry); }
   await load();
  }
@@ -208,12 +208,12 @@ export function createWorldInfoPanel({rpc, action, locked, notify, navigate, set
   if (choice === 'rename') {
    const next = await promptDialog({title: 'Rename folder', label: 'Folder name', value: name, confirm: 'Rename', validate: value => !value.trim() || value.includes('/') || value.trim().length > 80 ? 'Use a name up to 80 characters without slashes.' : value.trim() !== name && folders().some(item => item.toLocaleLowerCase() === value.trim().toLocaleLowerCase()) ? 'That folder already exists.' : ''});
    if (next === null || next.trim() === name) return;
-   if (inside.length) await request({action: 'setFolder', names: inside.map(book => book.name), folder: next.trim()});
+   if (inside.length) await request({action: 'setFolder', names: inside.map(book => book.name), folder: next.trim()}, 120000);
    registry = registry.filter(item => item !== name).concat(next.trim()); writeRegistry(registry); openFolders.delete(name); openFolders.add(next.trim()); await load();
   } else {
    const ok = await confirmDialog({title: `Delete folder “${name}”?`, text: inside.length ? `Its ${inside.length} book${inside.length === 1 ? '' : 's'} will stay in your library without a folder. Nothing inside any book changes.` : 'The folder is empty.', confirm: 'Delete folder', danger: true});
    if (!ok) return;
-   if (inside.length) await request({action: 'setFolder', names: inside.map(book => book.name), folder: null});
+   if (inside.length) await request({action: 'setFolder', names: inside.map(book => book.name), folder: null}, 120000);
    registry = registry.filter(item => item !== name); writeRegistry(registry); openFolders.delete(name); await load();
   }
  }

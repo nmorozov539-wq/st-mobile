@@ -56,6 +56,12 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  const dup=await good({action:'duplicateBook',name:N,revision:book.revision});ok(dup.name!==N&&dup.entries.length===2,'book duplicated');
  const imp=await good({action:'importBook',name:N,data:{entries:[{keys:['k'],content:'cb',enabled:true,extensions:{},id:1}],name:'CB'}});ok(imp.name!==N&&imp.entries.length===1,'character-book import converted and renamed');
  await bad({action:'importBook',data:{nope:1}},'INVALID_ARGUMENT');
+ // a hand-made or converted book may be missing fields the editor relies on
+ const rough=await good({action:'importBook',name:'Rough '+stamp,data:{entries:{0:{uid:0,content:'x',key:'not-a-list',comment:null}}}});
+ const roughEntry=await good({action:'entry',name:rough.name,uid:0});
+ ok(Array.isArray(roughEntry.fields.key)&&Array.isArray(roughEntry.fields.triggers)&&Array.isArray(roughEntry.fields.keysecondary),'malformed entry fields come back as lists');
+ ok(roughEntry.fields.comment===''&&typeof roughEntry.fields.content==='string','missing text fields come back as text');
+ { const b=await good({action:'book',name:rough.name}); await good({action:'deleteBook',name:rough.name,revision:b.revision}); }
  // activation
  const before=(await good({action:'activation'})).activation;
  await bad({action:'configureActivation',changes:{world_info_depth:5000}},'INVALID_ARGUMENT');

@@ -1,24 +1,25 @@
-import {createLibraryViews,characterStatus} from './libraries.js?build=0.7.11';
-import {createNewChatPanel} from './new-chat-panel.js?build=0.7.11';
-import {createEngineMonitor} from './engine-monitor.js?build=0.7.11';
-import {checkBridgeBuild} from './build.js?build=0.7.11';
-import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.11';
-import {createJournal,revision,renderRange} from './journal.js?build=0.7.11';
-import {RuntimeConnection} from './transport.js?build=0.7.11';
+import {createLibraryViews,characterStatus} from './libraries.js?build=0.7.12';
+import {createNewChatPanel} from './new-chat-panel.js?build=0.7.12';
+import {createEngineMonitor} from './engine-monitor.js?build=0.7.12';
+import {checkBridgeBuild} from './build.js?build=0.7.12';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.7.12';
+import {createJournal,revision,renderRange} from './journal.js?build=0.7.12';
+import {RuntimeConnection} from './transport.js?build=0.7.12';
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.7.11';
-import {createSettingsPanel} from './settings.js?build=0.7.11';
-import {createLibrary} from './library.js?build=0.7.11';
-import {createMemoryPanel} from './memory.js?build=0.7.11';
-import {createWorldInfoPanel} from './world-info.js?build=0.7.11';
-import {createSettingsPage} from './settings-page.js?build=0.7.11';
-import {loadAppearance,saveAppearance,applyAppearance,clockText,modelName,tokenText} from './appearance.js?build=0.7.11';
-import {probeEngine} from './engine-health.js?build=0.7.11';
-import {createPresetPanel} from './preset-panel.js?build=0.7.11';
-import {icon} from './icons.js?build=0.7.11';
-import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.11';
-import {createModelPanel} from './model-panel.js?build=0.7.11';
-import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.11';
+import {createHTMLFormatter} from './html-format.js?build=0.7.12';
+import {createSettingsPanel} from './settings.js?build=0.7.12';
+import {createLibrary} from './library.js?build=0.7.12';
+import {createMemoryPanel} from './memory.js?build=0.7.12';
+import {createWorldInfoPanel} from './world-info.js?build=0.7.12';
+import {renderHome,homeStatus,countText} from './home.js?build=0.7.12';
+import {createSettingsPage} from './settings-page.js?build=0.7.12';
+import {loadAppearance,saveAppearance,applyAppearance,clockText,modelName,tokenText} from './appearance.js?build=0.7.12';
+import {probeEngine} from './engine-health.js?build=0.7.12';
+import {createPresetPanel} from './preset-panel.js?build=0.7.12';
+import {icon} from './icons.js?build=0.7.12';
+import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.7.12';
+import {createModelPanel} from './model-panel.js?build=0.7.12';
+import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.7.12';
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
@@ -30,7 +31,7 @@ let freshPreparing=false;
 let snapshot,characters=[],recents=[],configuration,scopes,sessionId,connected=false,initializing=false,engineBusy=false,working=false,memoryBusy=false,review=false,draining=false;
 let page='home',entryPage='home',operation=null,streamText='',streamReasoning='',streamFrame,streamNode,renderedKey,menuIndex,editorTarget,selected=new Set(),selecting=false,undoRecord,undoTimer,draftTimer;
 let newChatPanel,libraryViews,navVersion=0,chatDeleteArgument=null,chatDeleteToken=0,importWaiting=false,importUncertain=false;
-let settingsPanel,settingsPage,settingsFrom='home',appearance=applyAppearance(loadAppearance(localStorage)),library,memoryPanel,wiPanel,presetPanel,chatControls,modelPanel,inlineDraft='',deleteArgument,memoryState,statusTimer,startingGeneration=false;
+let settingsPanel,settingsPage,settingsFrom='home',apiChecked=false,appearance=applyAppearance(loadAppearance(localStorage)),library,memoryPanel,wiPanel,presetPanel,chatControls,modelPanel,inlineDraft='',deleteArgument,memoryState,statusTimer,startingGeneration=false;
 let presetPanelOrigin=null;
 let personaEdit=null,personaPortraitFile=null;
 let memoryWasBusy=false,memoryStopAsked=false,memoryResult=null,memoryResultTimer;
@@ -41,7 +42,9 @@ const toast=(text,undo,duration=undo?12000:5000)=>{clearTimeout(undoTimer);undoR
 function error(value){status(value.message);toast(value.message);if(['DISCONNECTED','TIMEOUT','ENGINE_UNAVAILABLE'].includes(value.code))disconnected(value.message);}
 async function action(fn){try{return await fn();}catch(e){error(e);}}
 function saveDraft(){clearTimeout(draftTimer);if(snapshot&&$('draft').value!==state.draft(snapshot))state.saveDraft(snapshot,$('draft').value);}
-function controls(){const unavailable=!connected||review;const busy=freshPreparing||engineBusy||working||memoryBusy||startingGeneration||draining;
+let homeSignature='';
+function homeSync(){if(page!=='home')return;const signature=JSON.stringify([connected,initializing,engineBusy||working||!!operation,configuration?.onlineStatus,apiChecked,characters.length,recents.length,configuration?.personas?.length]);if(signature!==homeSignature){homeSignature=signature;renderPage();}}
+function controls(){homeSync();const unavailable=!connected||review;const busy=freshPreparing||engineBusy||working||memoryBusy||startingGeneration||draining;
     $('draft').disabled=!snapshot||unavailable;
     $('send').disabled=unavailable||busy||!snapshot||!$('draft').value.trim();$('send').hidden=!!operation;
     $('stop').hidden=!operation;$('stop').disabled=unavailable||operation?.state!=='running';
@@ -61,12 +64,9 @@ function windowList(parent,rows,makeRow,estimate=100,scroller=$('landing')){
     if(scroller===$('landing'))listRenderer=render;else{let frame;scroller.onscroll=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=null;render();});};}
     render();return render;
 }
-function renderPage(){listRenderer=null;if(page==='chat')return;const content=$('page-content');content.replaceChildren();const titles={home:'Pocket Tavern',chats:'Chats',characters:'Characters',personas:'Personas',wi:'World Info','new-chat':'New chat','persona-editor':personaEdit?.key?'Edit persona':'New persona','persona-picker':'Persona',memory:'Memory','wi-entry':'Entry','wi-activation':'Activation',settings:'Settings'};$('page-title').textContent=titles[page];$('page-subtitle').hidden=page!=='memory';$('page-subtitle').textContent=page==='memory'?'Summaryception':'';$('landing').classList.toggle('library-screen',['characters','chats','new-chat','personas','persona-editor','persona-picker','memory','wi','wi-entry','wi-activation','settings'].includes(page));$('page-wi-activation').hidden=page!=='wi';$('app-settings').hidden=page!=='home';$('page-back').hidden=page!=='new-chat'&&page!=='persona-editor'&&page!=='persona-picker'&&page!=='memory'&&page!=='wi-entry'&&page!=='wi-activation'&&page!=='settings';$('page-new-chat').hidden=page!=='chats';for(const b of $('bottom-nav').querySelectorAll('button'))b.classList.toggle('current',b.dataset.page===(page==='new-chat'?'chats':page));
+function renderPage(){listRenderer=null;if(page==='chat')return;const content=$('page-content');content.replaceChildren();const titles={home:'Pocket Tavern',chats:'Chats',characters:'Characters',personas:'Personas',wi:'World Info','new-chat':'New chat','persona-editor':personaEdit?.key?'Edit persona':'New persona','persona-picker':'Persona',memory:'Memory','wi-entry':'Entry','wi-activation':'Activation',settings:'Settings'};$('page-title').textContent=titles[page];$('page-subtitle').hidden=page!=='memory';$('page-subtitle').textContent=page==='memory'?'Summaryception':'';$('landing').classList.toggle('home-screen',page==='home');$('landing').classList.toggle('library-screen',['characters','chats','new-chat','personas','persona-editor','persona-picker','memory','wi','wi-entry','wi-activation','settings'].includes(page));$('page-wi-activation').hidden=page!=='wi';$('app-settings').hidden=page!=='home';$('page-back').hidden=page!=='new-chat'&&page!=='persona-editor'&&page!=='persona-picker'&&page!=='memory'&&page!=='wi-entry'&&page!=='wi-activation'&&page!=='settings';$('page-new-chat').hidden=page!=='chats';for(const b of $('bottom-nav').querySelectorAll('button'))b.classList.toggle('current',b.dataset.page===(page==='new-chat'?'chats':page));
     if(page==='home'){
-        const card=el('section','','status-card');card.append(el('small',connected?'ENGINE ONLINE':'ENGINE OFFLINE'),el('h2',configuration?.onlineStatus==='no_connection'?'API not connected':configuration?.onlineStatus??'Connecting…'));
-        if(operation)card.append(button('Stop current reply',()=>$('stop').click()));const global=scopes?.global;card.append(button(`Model · ${global?.model??configuration?.selected.model??'Choose'}`,()=>openModels(true)),button(`Preset · ${global?.preset??configuration?.selected.preset??'Choose'}`,()=>openPreset(true)));content.append(card);
-        const last=state.target(),continueRow=recents.find(r=>same(r,last))??recents[0];if(continueRow)content.append(el('h2','Continue'),chatRow(continueRow));
-        content.append(el('h2','Recent conversations'));for(const row of recents.slice(0,5))content.append(chatRow(row));if(!recents.length)content.append(el('p','Choose a character to start your first conversation.'));
+        renderHome(content,{status:homeStatus({connected,initializing,generating:engineBusy||working||!!operation,onlineStatus:configuration?.onlineStatus,apiChecked}),counts:{characters:countText(characters.length),chats:countText(recents.length,recents.length>=1000),personas:countText(configuration?.personas?.length)}});
     }else if(page==='chats'){if(!recents.length)content.append(el('p','No chats yet. Tap + to choose a character and start fresh.','library-empty'));windowList(content,recents,chatRow,124);if(recents.length===1000)content.append(el('p','Showing the most recent 1,000 conversations. The Character selector has its complete saved history.','library-caption'));}
     else if(page==='characters'){libraryViews.characters(content,characters);}
     else if(page==='new-chat'){libraryViews.picker(content,characters);}
@@ -333,7 +333,7 @@ newChatPanel=createNewChatPanel({action,prepare:prepareNewChat,apply:applyNewCha
 library=createLibrary({rpc,action,onStartChat:(card,guard)=>newChatPanel.open(card,guard),onStartFresh:startFreshChat,readChat:()=>snapshot,onChat:(row,guard)=>openChat(row,{dismissPanels:false,guard}),refreshAvailability:async()=>{const activity=await raw('activity');engineBusy=activity.busy||!!operation;controls();},onDeleted:characterKey=>{if(snapshot?.characterKey===characterKey){navigate('characters',{dismissPanels:false});snapshot=null;selected.clear();}},format,converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),locked:()=>!connected||review,refresh,onEditor:(kind,key)=>{$('character-chats').hidden=page!=='chat'||kind!=='characters'||key!==snapshot?.characterKey;}});
 libraryViews=createLibraryViews({node:el,button,portrait,personaPortrait,windowList,editCharacter:c=>library.edit(c.key,{kind:'characters',fromLibrary:true}),createCharacter:()=>library.createCharacter(),importCharacters:()=>{importUncertain=false;$('character-import-file').value='';$('character-import-file').disabled=importWaiting;$('character-import-status').textContent='Choose a character card from your device.';$('character-import-confirm').showModal();},editPersona:p=>action(()=>openPersonaEditor(p)),createPersona:()=>action(()=>openPersonaEditor(null)),startFresh:startFreshChat,onDelete:confirmChatDelete,readCard:key=>raw('assets',{kind:'characters',action:'read',key}),availability:()=>connected&&!review&&!freshPreparing&&!engineBusy&&!working&&!memoryBusy&&!draining&&!startingGeneration});
 $('character-import-file').onchange=()=>action(async()=>{const file=$('character-import-file').files[0];if(!file||importWaiting||importUncertain)return;importWaiting=true;$('character-import-file').disabled=true;$('character-import-status').textContent='Importing and verifying the native card…';try{await library.importCharacter(file);$('character-import-confirm').close();status('Character imported and verified');}catch(e){importUncertain=true;$('character-import-status').textContent=e.message+' Inspect saved characters before another import.';throw e;}finally{importWaiting=false;if(!importUncertain)$('character-import-file').disabled=false;}});
-settingsPage=createSettingsPage({rpc,action,locked:()=>!connected||review||engineBusy||memoryBusy||working,notify:text=>toast(text),reconnect:()=>$('reconnect').click(),connected:()=>connected,adoptSnapshot:refresh,getAppearance:()=>appearance,setAppearance:value=>{appearance=applyAppearance(saveAppearance(localStorage,value));},probeProxy:()=>fetch('http://127.0.0.1:8001/',{mode:'no-cors',signal:AbortSignal.timeout(1500)}).then(()=>true,()=>false)});
+settingsPage=createSettingsPage({onChecked:()=>{apiChecked=true;if(page==='home')renderPage();},rpc,action,locked:()=>!connected||review||engineBusy||memoryBusy||working,notify:text=>toast(text),reconnect:()=>$('reconnect').click(),connected:()=>connected,adoptSnapshot:refresh,getAppearance:()=>appearance,setAppearance:value=>{appearance=applyAppearance(saveAppearance(localStorage,value));},probeProxy:()=>fetch('http://127.0.0.1:8001/',{mode:'no-cors',signal:AbortSignal.timeout(1500)}).then(()=>true,()=>false)});
 wiPanel=createWorldInfoPanel({rpc,action,locked:()=>!connected||review||engineBusy||working||memoryBusy,notify:text=>toast(text),navigate:value=>navigate(value),setSubtitle:text=>{$('page-subtitle').textContent=text;$('page-subtitle').hidden=!text;}});
 memoryPanel=createMemoryPanel({rpc,action,locked:()=>!connected||review||engineBusy||working,connected:()=>connected,onState:value=>{if(value.busy&&!memoryWasBusy)memoryStopAsked=false;if(memoryWasBusy&&!value.busy&&!value.failure){memoryResult=memoryStopAsked?'stopped':'done';clearTimeout(memoryResultTimer);memoryResultTimer=setTimeout(()=>{memoryResult=null;renderMemoryNotice();},6000);}if(value.busy)memoryResult=null;memoryWasBusy=value.busy;memoryState=value;renderMemoryNotice(value);},onStopRequested:()=>{memoryStopAsked=true;},notify:text=>toast(text),onBusy:value=>{memoryBusy=value;controls();if(!value)drain();},refresh:async()=>{await refresh();if(snapshot&&!engineBusy){snapshot=await workspace('read',{target:target(snapshot)});render(true);}}});
 for(const id of ['setting-preset','edit-active-preset','setting-thinking','setting-tools','setting-model','setting-custom-model','apply-custom-model']){const n=$(id);n.hidden=true;const label=document.querySelector(`label[for="${id}"]`);if(label)label.hidden=true;if(n.parentNode.tagName==='LABEL')n.parentNode.hidden=true;}

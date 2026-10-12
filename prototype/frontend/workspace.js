@@ -1,14 +1,14 @@
-import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.11';
-import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.7.11';
-import {assertPersisted} from './persistence.js?build=0.7.11';
-import {readCharacterHistory} from './character-history.js?build=0.7.11';
-import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.11';
+import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.12';
+import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.7.12';
+import {assertPersisted} from './persistence.js?build=0.7.12';
+import {readCharacterHistory} from './character-history.js?build=0.7.12';
+import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.12';
 import { saveSettings,system_message_types } from '/script.js';
 import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
 import { user_avatar } from '/scripts/personas.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { selectSavedChat } from './chat-selection.js?build=0.7.11';
-import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.11';
+import { selectSavedChat } from './chat-selection.js?build=0.7.12';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.12';
 
 export function createWorkspace({getContext,isBusy,configuration}) {
     let mutating=false;

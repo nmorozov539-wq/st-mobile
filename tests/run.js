@@ -39,3 +39,4 @@ import './libraries.test.js';
 import './syntax.test.js';
 import './worldinfo.test.js';
 import './appearance.test.js';
+import './home.test.js';

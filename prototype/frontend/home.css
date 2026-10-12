@@ -1,0 +1,25 @@
+/* Home */
+#landing.home-screen{background:radial-gradient(ellipse 160% 110% at 0% 65%,#2d476466,transparent 90%),radial-gradient(ellipse 160% 110% at 100% 15%,#39334966,transparent 85%),#171a21}
+html[data-background=plain] #landing.home-screen{background:#17191e}
+#landing.home-screen .page-heading{background:transparent;border:0;padding:14px 20px 0;gap:8px}
+#landing.home-screen .page-heading h1{font-size:13px;font-weight:400;letter-spacing:.32em;text-transform:uppercase;color:#aeb7c8;flex:1}
+#landing.home-screen #app-settings{width:48px;height:48px;border-radius:14px;background:#2a3040;border:0;color:#cdd7e5;font-size:22px}
+.home-page{display:flex;flex-direction:column;min-height:calc(100dvh - 200px);padding:36px 24px 16px;max-width:760px;margin:0 auto}
+.home-badge{width:56px;height:56px;display:grid;place-items:center;border-radius:18px;background:#272e3d;color:#8bc2ea}
+.home-badge svg{width:30px;height:30px}
+#page-content .home-title{font:400 clamp(34px,10vw,46px)/1.12 Georgia,"Times New Roman",serif;color:#e8ebf4;margin:34px 0 18px;letter-spacing:-.01em}
+.home-lead{color:#aeb7c8;font-size:17px;margin:0 0 44px}
+.home-status{margin-bottom:26px}
+.home-row{display:flex;align-items:center;justify-content:space-between;min-height:52px;font-size:17px;color:#d3dbe8}
+.home-row>span:first-child{display:flex;align-items:center;gap:14px}
+.home-row svg{width:22px;height:22px;color:#9aa6b8}
+.home-state{display:inline-flex;align-items:center;gap:10px;font-size:16px}
+.home-state::before{content:'';width:8px;height:8px;border-radius:50%;background:#8a93a5}
+.home-state.ok{color:#9fd8bd}.home-state.ok::before{background:#7fcfa8}
+.home-state.bad{color:#e8a0a0}.home-state.bad::before{background:#d98a8a}
+.home-state.wait{color:#e6c07b}.home-state.wait::before{background:#e6c07b}
+.home-state.idle{color:#aeb7c8}
+.home-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid #414a5e;padding-top:26px}
+.home-counts strong{display:block;font:400 34px/1.1 Georgia,'Times New Roman',serif;color:#e8ebf4}
+.home-counts span{color:#aeb7c8;font-size:15px}
+.home-foot{margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;color:#8a99b0;font-size:15px}

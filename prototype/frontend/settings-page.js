@@ -1,7 +1,7 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.7.11';
-import {icon} from './icons.js?build=0.7.11';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.11';
+import {el, btn} from './wi-ui.js?build=0.7.12';
+import {icon} from './icons.js?build=0.7.12';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.12';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
@@ -9,7 +9,7 @@ const DIRECT_KEY = 'pocket-tavern.direct-endpoint.v1';
 const MANUAL = '\u0000manual';
 export const sameEndpoint = (a, b) => String(a ?? '').trim().replace(/\/+$/, '') === String(b ?? '').trim().replace(/\/+$/, '');
 
-export function createSettingsPage({rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy}) {
+export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy}) {
  let tab = 'connection', config = null, container = null;
  let form = null, message = '', messageKind = '', working = false, proxyUp = null, showKey = false;
 
@@ -52,7 +52,7 @@ export function createSettingsPage({rpc, action, locked, notify, reconnect, conn
  }
  const connect = () => run('Saving and checking the connection…', async () => {
   await saveConnection(); const key = form.key; form.key = '';
-  await persist('connect', key);
+  await persist('connect', key); onChecked();
   say(`Connected · ${config.models.length} models loaded`, config.onlineStatus === 'no_connection' ? 'err' : 'ok');
   if (config.onlineStatus === 'no_connection') say('Not connected. Check the endpoint, key and that the proxy is running.', 'err');
   form.endpoint = config.selected.endpoint ?? ''; form.model = config.selected.model ?? '';
@@ -60,7 +60,7 @@ export function createSettingsPage({rpc, action, locked, notify, reconnect, conn
  const testMessage = () => run('Sending a tiny test message (up to 16 output tokens)…', async () => {
   await saveConnection();
   if (form.key.trim()) { await persist('providerKey', form.key); form.key = ''; }
-  await persist('test');
+  await persist('test'); onChecked();
   say('', ''); form.reply = config.testResult ? {model: config.selected.model, text: config.testResult.reply} : null;
  });
  const refreshModels = () => run('Refreshing the model list…', async () => {
@@ -113,7 +113,7 @@ export function createSettingsPage({rpc, action, locked, notify, reconnect, conn
   const test = btn('', testMessage, 'sp-secondary', working ? {disabled: ''} : {}); test.append(icon('chat'), ' Test message');
   page.append(test, el('p', `Using ${form.model || config.selected.model || 'no model selected'}`, 'sp-note'), el('p', 'Sends a small generation request. Provider charges may apply.', 'sp-note'));
   if (form.reply) page.append(el('div', `Test reply · ${form.reply.model} ${form.reply.text}`, 'sp-reply'));
-  const build = el('p', `Pocket Tavern 0.7.11 · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'); page.append(build);
+  const build = el('p', `Pocket Tavern 0.7.12 · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'); page.append(build);
  }
 
  function appearanceTab(page) {

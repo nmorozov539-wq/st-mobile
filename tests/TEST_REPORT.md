@@ -1,5 +1,11 @@
 # Verification report
 
+## 0.7.12 — Home
+
+- **226 automated tests pass** (3 new Home status/count tests).
+- **10 phone-viewport checks pass** (`tests/home-ui.cjs`) against a real ST 1.19.0 fixture: tagline, Engine Connected, real counts, no duplicate shortcuts, nav highlight, version footer, gear → Settings → Back, zero page errors. Screenshot inspected at 390×844 (a heading-size override was found and fixed).
+- Not yet verified on the phone: safe-area padding on notched devices and very small screens.
+
 ## 0.7.11 — Settings
 
 - **222 automated tests pass** (5 new appearance tests: defaults, clamping, storage round-trip and corruption, real-metadata-only details, CSS application).

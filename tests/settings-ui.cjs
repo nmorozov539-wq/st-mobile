@@ -11,7 +11,8 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  await page.goto(origin+'/st-mobile/');
  await page.waitForFunction(()=>document.querySelector('#status').textContent==='Engine ready',null,{timeout:90000});
  const shot=n=>page.screenshot({path:`${out}/${n}.png`});
- await page.locator('[data-page="home"]').click();
+ // The app opens on Home; tapping Home again would resume the latest chat.
+ await page.waitForSelector('.home-page');
  await page.locator('#app-settings').click();
  await page.waitForSelector('.sp-page');
  ok(await page.locator('#page-title').textContent()==='Settings','settings title');
@@ -61,7 +62,8 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  ok(kept.line==='1.95'&&kept.bg==='plain'&&kept.font==='20px','preferences persist after reload');
  // restore defaults for later runs
  await page.evaluate(()=>localStorage.removeItem('pocket-tavern.appearance.v1'));
- await page.locator('[data-page="home"]').click();await page.locator('#app-settings').click();await page.waitForSelector('.sp-page');
+ // The app opens on Home; tapping Home again would resume the latest chat.
+ await page.waitForSelector('.home-page');await page.locator('#app-settings').click();await page.waitForSelector('.sp-page');
  await page.locator('#page-back').click();
  ok(await page.locator('#page-title').textContent()==='Pocket Tavern','back returns to Home');
  ok(errors.length===0,'no page errors '+errors.join('|'));

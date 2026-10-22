@@ -1,5 +1,13 @@
 # Verification report
 
+## 0.7.14 — Fixes from the first phone test
+
+Every critical and major item in the 0.7.13 phone test was reproduced against a fresh ST 1.19.0 mock fixture before it was fixed, except the Android-only ones (the Chrome history intervention behind Back, and the browser freezing a backgrounded tab), which were simulated.
+
+- **Root causes:** the Memory page kept the `memory-page` class on `#page-content`, so its 2-second poll repainted over any page; Memory actions ran on whichever chat the engine last had open; Android Back mapped every page to Home, and Chrome skips history entries pushed without a user gesture, so repeated Back left the app; `characterId===index` compared ST's string id with a number, so a fresh chat for the open character reused the old chat array; persona save nulled its draft before the refresh redrew the editor; the "This chat" persona link existed only in an unused frontend copy of the bridge.
+- **New suite `tests/phone-fixes-ui.cjs`, 13 checks:** fresh chat for the open character holds only its greeting; Memory names the chat on screen and never paints over World Info; Back asks before discarding an entry, Cancel keeps the typing, and Back from Entry, Activation and tab pages lands on the right page; a persona with a portrait saves; a card's embedded lorebook imports and links as primary; the engine reconnects without pressing Reconnect.
+- **228 unit tests pass** (the unused `frontend/workspace.js` copy was removed). Home 10, Settings 21, World Info UI 18, Memory page 40 and Character 34 browser checks pass. `libraries-ui`, `preset-ui` and `new-chat-ui` need the seeded Moss fixture and were not run; `character-associations-ui` stops at the same multi-persona sheet step on 0.7.13, so that is a fixture difference rather than a 0.7.14 change.
+
 ## 0.7.13 — Review pass before phone testing
 
 Re-read all 0.7.10–0.7.12 code against the ST 1.19.0 source. Twelve issues found and fixed; two got dedicated regression checks, and a third was caught by an intermittent failure in the World Info UI suite.

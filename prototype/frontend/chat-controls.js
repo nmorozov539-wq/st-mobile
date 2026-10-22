@@ -1,4 +1,4 @@
-import {icon} from './icons.js?build=0.7.13';
+import {icon} from './icons.js?build=0.7.14';
 
 export function generationDuration(message) {
     if(message.is_user||!message.gen_started||!message.gen_finished)return null;
@@ -49,7 +49,18 @@ export function createChatControls({onBack}) {
     window.visualViewport?.addEventListener('resize',resize);window.visualViewport?.addEventListener('scroll',resize);window.addEventListener('resize',resize);
     // A browser-history sentinel lets Android/browser Back dismiss UI before
     // leaving the app. Keyboard Back may first be handled by Android's IME.
-    if(!history.state?.pocketNavigation){history.replaceState({pocketNavigation:'base'},'');history.pushState({pocketNavigation:'app'},'');}
-    window.addEventListener('popstate',()=>{const handled=dismiss()||onBack();if(handled)history.pushState({pocketNavigation:'app'},'');else if(history.state?.pocketNavigation==='base')history.back();});
-    return {openFan,close,dismiss};
+    // Chrome skips history entries that were added without a user gesture, so
+    // entries are only pushed while the user is interacting: on each forward
+    // navigation, each opened dialog, and (owed) on the next tap after a Back
+    // that stayed inside the app. Extra entries are harmless; missing ones
+    // would let Back leave the app from a sub-page.
+    let backing=false,owed=0;
+    const push=()=>history.pushState({pocketNavigation:'app'},'');
+    const pay=()=>{for(;owed>0;owed--)push();};
+    for(const type of ['pointerdown','keydown'])window.addEventListener(type,pay,true);
+    const showModal=HTMLDialogElement.prototype.showModal;
+    HTMLDialogElement.prototype.showModal=function(...args){const result=showModal.apply(this,args);if(!backing)push();return result;};
+    if(!history.state?.pocketNavigation)history.replaceState({pocketNavigation:'base'},'');
+    window.addEventListener('popstate',()=>{backing=true;let handled;try{handled=dismiss()||onBack();}finally{backing=false;}if(handled)owed++;else history.back();});
+    return {openFan,close,dismiss,step(){if(!backing)push();}};
 }

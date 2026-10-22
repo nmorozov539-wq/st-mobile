@@ -151,3 +151,13 @@ Two rules came out of re-reading the new pages. A control that is being dragged 
 A third rule came from an intermittent test failure: every page renders into the same `#page-content` element, so each panel is given a `visible()`/`onPage()` predicate and refuses to paint unless its own page is current. Without it, an in-flight reload could overwrite a page the person had already navigated to.
 
 Settings also loads defensively: a failed `settings` read leaves the page open with the error and a Try again button, because the Appearance tab is device-local and must stay usable while the engine is down.
+
+
+## Phone-test fixes — 0.7.14
+
+Back is driven by real history entries. Chrome skips entries that a page pushed without a user gesture, so `chat-controls.js` pushes one on each forward `navigate()` and each `showModal()`, both of which follow a tap. A Back that stays inside the app pays its entry back on the next tap. Back runs the same handler as the on-screen arrow (`#page-back`), so unsaved-change prompts apply to both. Extra entries are harmless: at Home an unhandled Back keeps stepping back until the browser leaves.
+
+Panels must also reset what they leave behind. `renderPage()` clears `#page-content`'s class, and the Memory panel checks `visible()` as the other panels do. Memory writes first activate the chat on screen, the way Send does, because Summaryception only sees the engine's active chat.
+
+The engine frame is treated as disposable. Android freezes a backgrounded tab, so on return (or every 3 s while disconnected) `autoReconnect()` reloads the frame once the local server answers, at most every 15 s and never in the first 45 s after a load. Before a send, `ensureApiConnection()` repeats Settings → Connect if ST's `onlineStatus` dropped. Nothing has been sent at that point, so a failure keeps the draft.
+

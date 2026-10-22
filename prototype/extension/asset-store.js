@@ -1,6 +1,6 @@
-import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.7.13';
-import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.7.13';
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.13';
+import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.7.14';
+import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.7.14';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.14';
 export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
@@ -159,10 +159,32 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
         return thisRead(key);
     }
     async function thisRead(key){return store.run({kind:'characters',action:'read',key});}
+    // ST keeps an imported card's character_book on the card only; its native
+    // "Import Card Lore" turns it into a World Info book and links it as primary.
+    // A taken book name gets a numbered copy instead of being overwritten.
+    async function importCardLore({key,revision}){
+        const before=await read('characters',key);assertUnchanged(before,revision);
+        const book=before.character_book;
+        if(!book||!Array.isArray(book.entries))throw Error('This character has no embedded lorebook.');
+        const names=new Set((await post('/api/worldinfo/list',{})).map(row=>row.file_id));
+        if(before.extensions?.world&&names.has(before.extensions.world))throw Error(`This character already uses the lorebook “${before.extensions.world}”.`);
+        const base=String(book.name||`${before.name}'s Lorebook`).replace(/[\\/<>:"|?*\x00-\x1f]/g,'-').slice(0,110).replace(/[. ]+$/,'')||'Card lorebook';
+        let name=base;for(let n=2;names.has(name);n++)name=`${base} (${n})`;
+        const wi=await import('/scripts/world-info.js');
+        await wi.saveWorldInfo(name,wi.convertCharacterBook(structuredClone(book)),true);
+        const saved=safeObject(await post('/api/worldinfo/get',{name}));
+        if(Object.keys(saved.entries??{}).length!==book.entries.length)throw Error('The imported lorebook could not be verified. Check World Info before trying again.');
+        await wi.updateWorldInfoList();
+        await post('/api/characters/merge-attributes',{avatar:key,data:{extensions:{world:name}}});
+        if((await read('characters',key)).extensions?.world!==name)throw Error(`The lorebook “${name}” was imported, but linking it to the character could not be verified.`);
+        await getContext().getCharacters();
+        return {...await thisRead(key),lorebook:name};
+    }
     const store={async run(arg){
         const {action,kind,key}=arg;
         if(kind==='characters'&&action==='lorebooks')return post('/api/worldinfo/list',{});
         if(kind==='characters'&&action==='association')return changeAssociation(arg);
+        if(kind==='characters'&&action==='importLore')return importCardLore(arg);
         if(kind==='characters'&&['export','duplicate','delete'].includes(action))return characterAction(arg);
         if(action==='list')return list(kind);
         if(action==='read'){const draft=await read(kind,key);const result={draft,revision:JSON.stringify(draft)};if(kind==='characters'&&getAssociationState){try{result.associationRevision=associationRevision(getContext().powerUserSettings,getAssociationState().worldInfo);result.associations=characterAssociations({key,card:draft,power:getContext().powerUserSettings,...getAssociationState(),fileName:characterFileName(key)});}catch(error){result.associationError=error.message;}}return result;}

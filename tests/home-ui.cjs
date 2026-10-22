@@ -10,7 +10,8 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/st-mobile/');
  await page.waitForFunction(()=>document.querySelector('#status').textContent==='Engine ready',null,{timeout:90000});
- await page.locator('[data-page="home"]').click();
+ // The app opens on Home; tapping Home again would resume the latest chat.
+ await page.waitForSelector('.home-page');
  await page.waitForSelector('.home-page');
  const text=await page.locator('.home-page').innerText();
  ok(/A little place\.\s*A lot of stories\./.test(text)&&/Make yourself at home\./.test(text),'tagline and welcome');

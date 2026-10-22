@@ -1,7 +1,7 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.7.13';
-import { connectThroughST } from './connection-check.js?build=0.7.13';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.7.13';
-import { testConnection } from './connection-test.js?build=0.7.13';
+import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.7.14';
+import { connectThroughST } from './connection-check.js?build=0.7.14';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.7.14';
+import { testConnection } from './connection-test.js?build=0.7.14';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { model_list, getChatCompletionModel, getPresetApplicationPromise, sendOpenAIRequest } from '/scripts/openai.js';
@@ -20,11 +20,11 @@ export function createConfigurationRuntime(getContext) {
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts, toolCalling: !!settings.function_calling };
-        return { bridgeBuild: '0.7.13', selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.7.14', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
-            onlineStatus: ctx.onlineStatus, keySource: selected.source, hasProviderKey: ['custom','openrouter'].includes(selected.source) && hasActiveSecret(secret_state[providerSecretKey(selected.source)]), hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]) };
+            onlineStatus: ctx.onlineStatus, keySource: selected.source, hasProviderKey: ['custom','openrouter'].includes(selected.source) && hasActiveSecret(secret_state[providerSecretKey(selected.source)]), hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]), tokenCounts: !!ctx.powerUserSettings?.message_token_count_enabled };
     }
     async function verify(check) {
         await saveSettings();
@@ -62,6 +62,12 @@ export function createConfigurationRuntime(getContext) {
                 const element=document.querySelector('#openai_function_calling');
                 element.checked=value; element.dispatchEvent(new Event('input', {bubbles:true}));
                 await verify(saved => saved.oai_settings?.function_calling === value);
+            } else if (kind === 'tokenCounts') {
+                if (typeof value !== 'boolean') fail('INVALID_ARGUMENT', 'Token counts must be on or off.');
+                const element = document.querySelector('#messageTokensEnabled');
+                if (element) { element.checked = value; element.dispatchEvent(new Event('input', { bubbles:true })); element.dispatchEvent(new Event('change', { bubbles:true })); }
+                ctx.powerUserSettings.message_token_count_enabled = value;
+                await verify(saved => saved.power_user?.message_token_count_enabled === value);
             } else if (kind === 'thinking') {
                 if (typeof value !== 'boolean') fail('INVALID_ARGUMENT', 'Thinking visibility must be on or off.');
                 settings.show_thoughts = value;

@@ -1,7 +1,7 @@
 // Phase 6: World Info library page (folders, books, entries). Entry editor and Activation live in their own modules.
-import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.13';
-import {createEntryEditor} from './wi-entry.js?build=0.7.13';
-import {createActivationPage} from './wi-activation.js?build=0.7.13';
+import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.14';
+import {createEntryEditor} from './wi-entry.js?build=0.7.14';
+import {createActivationPage} from './wi-activation.js?build=0.7.14';
 
 const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
 const MARKERS = {keyword: ['●', 'Keyword'], constant: ['◆', 'Always on'], vectorized: ['▲', 'Vector']};
@@ -24,7 +24,11 @@ function writeRegistry(list) { try { localStorage.setItem(REGISTRY_KEY, JSON.str
 export function createWorldInfoPanel({rpc, action, locked, connected = () => true, notify, navigate, setSubtitle, onPage = () => true}) {
  const request = (arg, timeout = 60000) => rpc('worldinfo', arg, timeout);
  let lib = null, loading = false, failure = '', container = null, loadedAt = 0;
- const expanded = new Set(), openFolders = new Set(), details = new Map(), pending = new Set();
+ // Which books and folders are open is remembered on this device, like empty folders.
+ const VIEW_KEY = 'pocket-tavern.wi-view.v1';
+ const savedView = (() => { try { const value = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}'); return {books: Array.isArray(value.books) ? value.books : [], folders: Array.isArray(value.folders) ? value.folders : []}; } catch { return {books: [], folders: []}; } })();
+ const remember = set => { const add = set.add.bind(set), remove = set.delete.bind(set), save = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify({books: [...expanded], folders: [...openFolders]})); } catch {} }; set.add = value => { add(value); save(); return set; }; set.delete = value => { const had = remove(value); save(); return had; }; return set; };
+ const expanded = remember(new Set(savedView.books)), openFolders = remember(new Set(savedView.folders)), details = new Map(), pending = new Set();
  let registry = readRegistry();
 
  const busy = () => locked();

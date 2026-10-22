@@ -1,0 +1,28 @@
+/* 0.7.14: the redesigned slate palette as the base for every screen, so no
+   older warm colours show on Home, in notifications, dialogs or while loading. */
+:root,html,body{background:#17191e;color:#e2e7ed}
+main,.pocket-shell{background:#17191e;box-shadow:none}
+.page-heading{background:#292d3e}
+button{background:#2a3142;border-color:#4d536c;color:#e2e7ed}
+button:hover{background:#35425b}
+textarea,input,select{accent-color:#73b7eb}
+textarea{background:#1d2230;border-color:#4d536c;color:#e2e7ed}
+textarea:focus{border-color:#73b7eb}
+a{color:#8bc2ea}
+dialog{background:#222938;border-color:#3d4c68;color:#e2e7ed}
+dialog::backdrop{background:#0b0d12b3}
+#settings-panel .dialog-heading,#asset-editor .dialog-heading,#memory-panel .dialog-heading,#library-panel .dialog-heading{background:#222938}
+
+#bottom-nav{background:#292d3e;border-color:#414359;color:#aeb7c8}
+#bottom-nav button{color:#aeb7c8;background:transparent;border-color:transparent}
+#bottom-nav button.current{background:#35425b;color:#73b7eb}
+
+/* Notifications: compact, centred, above the tab bar and the home indicator. */
+#toast{left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;padding:10px 12px 10px 14px;gap:10px;border-radius:14px;background:#2a3142;border:1px solid #3d4c68;color:#e2e7ed;box-shadow:0 8px 24px #0008;font-size:13px;line-height:1.4;max-height:30vh;overflow:auto;cursor:pointer}
+#toast span{overflow-wrap:anywhere}
+#toast button{flex-shrink:0;background:#35425b;border-color:#4d536c;color:#9ecdf0;padding:6px 12px;border-radius:10px;font-size:12px}
+body:has(#chat-screen:not([hidden])) #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
+#recovery{background:#2f2b22;border-bottom-color:#6b5c3b;color:#e8dcc0}
+#recovery button{background:#3a3426;border-color:#6b5c3b;color:#e6c07b}
+#send-error{background:#3a2a31;border-color:#a8656b;color:#f2cfd2}
+.sp-manual{display:block;margin:4px 0 2px;padding:6px 0;font-size:13px}

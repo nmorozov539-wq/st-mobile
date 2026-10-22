@@ -5,7 +5,7 @@ import {safeObject,characterUpdate,assertUnchanged,personaRecord} from '../proto
 test('health message caps output, omits conversation, and restores settings',async()=>{
  const settings={openai_max_tokens:2048,n:3};
  const result=await testConnection({settings,request:async(type,messages)=>{
- assert.equal(type,'quiet');assert.deepEqual(messages,[{role:'user',content:'Reply with OK.'}]);assert.equal(settings.openai_max_tokens,16);assert.equal(settings.n,1);
+ assert.equal(type,'quiet');assert.deepEqual(messages,[{role:'user',content:'Reply with OK.'}]);assert.equal(settings.openai_max_tokens,64);assert.equal(settings.n,1);
  return {model:'fixture',choices:[{message:{content:'OK'}}]};}});
  assert.equal(result.reply,'OK');assert.deepEqual(settings,{openai_max_tokens:2048,n:3});
 });

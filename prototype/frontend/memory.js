@@ -3,7 +3,7 @@
 // verified extension actions (settings, snippet, clear, import, repair, reset).
 const EDITABLE = ['enabled', 'pauseSummarization', 'verbatimTurns', 'turnsPerSummary', 'snippetsPerLayer', 'snippetsPerPromotion', 'maxLayers', 'disableGhosting', 'summarizerResponseLength', 'promptPreset', 'summarizerUserPrompt', 'summarizerSystemPrompt', 'injectionTemplate', 'stripPatterns', 'savedCustomPrompts', 'debugMode', 'traceMode'];
 
-export function createMemoryPanel({rpc, action, connected, onBusy, onState = () => {}, onStopRequested = () => {}, notify = () => {}, refresh, locked}) {
+export function createMemoryPanel({visible = () => true, rpc, action, connected, onBusy, onState = () => {}, onStopRequested = () => {}, notify = () => {}, refresh, locked}) {
  let current, loaded = false, wasBusy = false, pendingSettings = null, lastPolled = '', lastLocked = null, activeLayer = 0, promptName = '';
  const request = arg => rpc('extensions', {id: 'summaryception', ...arg}, 180000);
  const sectionStates = new Map();
@@ -444,7 +444,7 @@ export function createMemoryPanel({rpc, action, connected, onBusy, onState = () 
 
  function renderIfVisible(value) {
   const content = document.getElementById('page-content');
-  if (content?.classList.contains('memory-page') && value) render(content, value);
+  if (visible() && content?.classList.contains('memory-page') && value) render(content, value);
  }
  const typing = () => {
   const content = document.getElementById('page-content');
@@ -482,8 +482,8 @@ export function createMemoryPanel({rpc, action, connected, onBusy, onState = () 
     content.replaceChildren();
     content.className = 'memory-page';
     content.append(el('p', 'Loading memory state…', 'memory-status'));
-    request({action: 'read'}).then(value => { loaded = true; adopt(value); render(content, value); })
-     .catch(e => { content.replaceChildren(); content.append(el('p', e.message, 'memory-status')); });
+    request({action: 'read'}).then(value => { loaded = true; adopt(value); if (visible()) render(content, value); })
+     .catch(e => { if (!visible()) return; content.replaceChildren(); content.append(el('p', e.message, 'memory-status')); });
     return;
    }
    render(content, current);

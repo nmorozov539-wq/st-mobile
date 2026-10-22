@@ -1,14 +1,14 @@
-import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.13';
-import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.7.13';
-import {assertPersisted} from './persistence.js?build=0.7.13';
-import {readCharacterHistory} from './character-history.js?build=0.7.13';
-import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.13';
+import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.7.14';
+import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.7.14';
+import {assertPersisted} from './persistence.js?build=0.7.14';
+import {readCharacterHistory} from './character-history.js?build=0.7.14';
+import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.7.14';
 import { saveSettings,system_message_types } from '/script.js';
 import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
 import { user_avatar } from '/scripts/personas.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { selectSavedChat } from './chat-selection.js?build=0.7.13';
-import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.13';
+import { selectSavedChat } from './chat-selection.js?build=0.7.14';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard } from './workspace-data.js?build=0.7.14';
 
 export function createWorkspace({getContext,isBusy,configuration}) {
     let mutating=false;
@@ -93,7 +93,7 @@ export function createWorkspace({getContext,isBusy,configuration}) {
                     const index=ctx().characters.findIndex(c=>c.avatar===target.characterKey);
                     await post('/api/characters/merge-attributes',{avatar:target.characterKey,chat:target.chatId});
                     ctx().characters[index].chat=target.chatId;
-                    if(ctx().characterId===index)await ctx().reloadCurrentChat();
+                    if(String(ctx().characterId)===String(index))await ctx().reloadCurrentChat();
                     else await ctx().selectCharacterById(index,{switchMenu:false});
                 }
                 const runtime=ctx();
@@ -113,6 +113,26 @@ export function createWorkspace({getContext,isBusy,configuration}) {
                 await ctx().eventSource.emit(ctx().eventTypes.CHAT_DELETED,target.chatId);
             }});
     }
+    // A chat-locked persona lives in the chat's metadata, as ST's own lock button stores it.
+    async function linkPersonaToChat(arg){
+        if(!arg.target)fail('INVALID_ARGUMENT','Open a chat first.');
+        valid(arg.target);
+        const personaKey=arg.personaKey??null;
+        if(personaKey&&!Object.hasOwn(ctx().powerUserSettings.personas??{},personaKey))fail('INVALID_ARGUMENT','Choose an existing persona.');
+        const snapshot=await read(arg.target);
+        if((snapshot.metadata.persona??null)===personaKey)return {changed:false,snapshot};
+        if(same(active(),arg.target)){
+            const runtime=ctx();
+            if(personaKey===null)delete runtime.chatMetadata.persona;else runtime.chatMetadata.persona=personaKey;
+            await runtime.saveChat();
+        }else{
+            if(personaKey===null)delete snapshot.metadata.persona;else snapshot.metadata.persona=personaKey;
+            await write(snapshot);
+        }
+        const saved=await read(arg.target);
+        if((saved.metadata.persona??null)!==personaKey)fail('SETTINGS_UNVERIFIED','The chat persona link could not be verified. Reopen the chat before trying again.');
+        return {changed:true,snapshot:saved};
+    }
     async function undo({before,after}){if(after){const current=await read(before);assertRevision({messages:current.messages,metadata:current.metadata},after);}else {try{await read(before);fail('CONFLICT','A chat with this name already exists.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}}await write(before);if(same(active(),before))await ctx().reloadCurrentChat();await activate(before);const loaded=await read(before);await write({...loaded,header:clone(before.header??loaded.header)});return read(before);}
-    return {read,recent,history,scopes,presetData,async initialize(){const namespace=baseline();if(namespace.version>3)fail('UNSUPPORTED_SETTINGS','These Pocket settings need a newer build.');namespace.version=3;ctx().chatCompletionSettings.bind_preset_to_connection=false;await saveGlobal();},async run(arg){if(mutating||isBusy())fail('BUSY','Changes are pending until the engine finishes.');mutating=true;try{if(arg.action==='activate')return await activate(arg.target);if(arg.action==='configure')return await configure(arg);if(arg.action==='undo')return await undo(arg.value);if(arg.action==='newChat')return await newChat(arg);return await mutate(arg);}finally{mutating=false;}},busy:()=>mutating};
+    return {read,recent,history,scopes,presetData,async initialize(){const namespace=baseline();if(namespace.version>3)fail('UNSUPPORTED_SETTINGS','These Pocket settings need a newer build.');namespace.version=3;ctx().chatCompletionSettings.bind_preset_to_connection=false;await saveGlobal();},async run(arg){if(mutating||isBusy())fail('BUSY','Changes are pending until the engine finishes.');mutating=true;try{if(arg.action==='activate')return await activate(arg.target);if(arg.action==='configure')return await configure(arg);if(arg.action==='undo')return await undo(arg.value);if(arg.action==='newChat')return await newChat(arg);if(arg.action==='linkPersonaToChat')return await linkPersonaToChat(arg);return await mutate(arg);}finally{mutating=false;}},busy:()=>mutating};
 }

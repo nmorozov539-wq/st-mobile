@@ -1,8 +1,8 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.7.13';
-import {icon} from './icons.js?build=0.7.13';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.13';
-import {FRONTEND_BUILD} from './build.js?build=0.7.13';
+import {el, btn} from './wi-ui.js?build=0.7.14';
+import {icon} from './icons.js?build=0.7.14';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.14';
+import {FRONTEND_BUILD} from './build.js?build=0.7.14';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
@@ -59,16 +59,34 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
  const connect = () => run('Saving and checking the connection…', async () => {
   await saveConnection(); const key = form.key; form.key = '';
   await persist('connect', key); onChecked();
-  say(`Connected · ${config.models.length} models loaded`, config.onlineStatus === 'no_connection' ? 'err' : 'ok');
+  say(`Endpoint answered · ${config.models.length} models loaded`, config.onlineStatus === 'no_connection' ? 'err' : 'ok');
   if (config.onlineStatus === 'no_connection') say('Not connected. Check the endpoint, key and that the proxy is running.', 'err');
+  else {
+   // A model list is public on OpenRouter, so a wrong key still "connects".
+   const verdict = await checkKey(form.endpoint, key);
+   if (verdict === false) say('The endpoint answered, but the provider rejected this API key. Paste the correct key and press Connect again.', 'err');
+   else if (verdict === true) say(`Connected · key accepted · ${config.models.length} models loaded`, 'ok');
+   else if (!key) say(`Endpoint answered · ${config.models.length} models loaded. Test message checks the saved key.`, 'ok');
+  }
   form.endpoint = config.selected.endpoint ?? ''; form.model = config.selected.model ?? '';
  });
- const testMessage = () => run('Sending a tiny test message (up to 16 output tokens)…', async () => {
+ const testMessage = () => run('Sending a tiny test message (up to 64 output tokens)…', async () => {
   await saveConnection();
   if (form.key.trim()) { await persist('providerKey', form.key); form.key = ''; }
   await persist('test'); onChecked();
   say('', ''); form.reply = config.testResult ? {model: config.selected.model, text: config.testResult.reply} : null;
  });
+ // OpenRouter (directly or through the local proxy) has a free key check; other
+ // providers return null and keep the plain result. Only a newly typed key can be checked.
+ async function checkKey(endpoint, key) {
+  if (!key?.trim() || !(/openrouter\.ai/.test(endpoint) || sameEndpoint(endpoint, PROXY_ENDPOINT))) return null;
+  const stop = new AbortController(), timer = setTimeout(() => stop.abort(), 8000);
+  try {
+   const response = await fetch(`${String(endpoint).trim().replace(/\/+$/, '')}/key`, {headers: {Authorization: `Bearer ${key.trim()}`}, signal: stop.signal, cache: 'no-store'});
+   if (response.status === 401 || response.status === 403) return false;
+   return response.ok ? true : null;
+  } catch { return null; } finally { clearTimeout(timer); }
+ }
  const refreshModels = () => run('Refreshing the model list…', async () => {
   await saveConnection(); const key = form.key; form.key = ''; await persist('connect', key);
   say(config.onlineStatus === 'no_connection' ? 'Not connected. The model list could not be refreshed.' : `Models refreshed · ${config.models.length} available`, config.onlineStatus === 'no_connection' ? 'err' : 'ok');
@@ -101,7 +119,11 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   const key = el('input'); key.type = showKey ? 'text' : 'password'; key.autocomplete = 'off'; key.value = form.key;
   key.placeholder = config.hasProviderKey ? 'Saved key · Leave blank to keep' : 'Paste API key'; key.oninput = () => { form.key = key.value; };
   const keyRow = el('div', '', 'sp-with-button'); keyRow.append(fieldBlock('API key', key));
-  keyRow.append(btn('👁', () => { showKey = !showKey; render(); }, 'sp-icon-btn', {'aria-label': showKey ? 'Hide API key' : 'Show API key'})); page.append(keyRow);
+  const eye = btn('', () => {
+   if (!form.key && config.hasProviderKey) { notify('The saved key stays hidden inside SillyTavern. The eye shows a key you type here.'); return; }
+   showKey = !showKey; render();
+  }, 'sp-icon-btn', {'aria-label': showKey ? 'Hide API key' : 'Show API key', 'aria-pressed': String(showKey)});
+  eye.append(icon(showKey ? 'eyeOff' : 'eye')); keyRow.append(eye); page.append(keyRow);
 
   const models = [...config.models]; if (form.model && !models.some(item => item.id === form.model)) models.unshift({id: form.model, name: form.model});
   const picker = el('select');
@@ -110,11 +132,13 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   picker.value = form.manual ? MANUAL : (form.model || (models[0]?.id ?? MANUAL));
   picker.onchange = () => { if (picker.value === MANUAL) form.manual = true; else { form.manual = false; form.model = picker.value; } render(); };
   const modelRow = el('div', '', 'sp-with-button'); modelRow.append(fieldBlock('Global model', picker));
-  modelRow.append(btn('', () => refreshModels(), 'sp-icon-btn', {'aria-label': 'Refresh model list'})); modelRow.lastChild.append(icon('reply')); page.append(modelRow);
+  modelRow.append(btn('', () => refreshModels(), 'sp-icon-btn', {'aria-label': 'Refresh model list'})); modelRow.lastChild.append(icon('refresh')); page.append(modelRow);
   if (form.manual || (!models.length)) {
    const id = el('input'); id.value = form.model; id.placeholder = 'Provider’s exact model ID'; id.autocomplete = 'off'; id.spellcheck = false; id.oninput = () => { form.model = id.value; };
    page.append(fieldBlock('Model ID', id));
   }
+  // The manual entry also sits at the end of the model list, which is easy to miss on a long list.
+  if (models.length) page.append(btn(form.manual ? 'Choose from the list instead' : 'Type a model ID instead', () => { form.manual = !form.manual; if (!form.manual && !models.some(item => item.id === form.model)) form.model = models[0].id; render(); }, 'sp-link sp-manual'));
   page.append(el('p', 'Default model for chats without their own selection.', 'sp-note'));
 
   const connectButton = btn('', connect, 'sp-primary', working ? {disabled: ''} : {}); connectButton.append(icon('link'), ' Connect');
@@ -127,6 +151,13 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   page.append(el('p', `Pocket Tavern ${FRONTEND_BUILD} · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'));
  }
 
+ // SillyTavern stores a reply's token count only when its own "Message token
+ // count" option is on, so switching the detail on here turns that on too.
+ async function enableTokenCounts() {
+  if (!connected() || locked()) { notify('Token counts start once the engine is idle. Switch the detail off and on again then.'); return; }
+  try { config = await rpc('settings'); if (config.tokenCounts) return; await persist('tokenCounts', true); notify('New replies will include their token count.'); }
+  catch (error) { notify(`Could not turn on token counts in SillyTavern: ${error.message}`); }
+ }
  function appearanceTab(page) {
   const value = getAppearance();
   const commit = next => { setAppearance(normalizeAppearance({...value, ...next, details: {...value.details, ...(next.details ?? {})}})); render(); };
@@ -143,17 +174,17 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   segmented('Line spacing', 'spacing', [['compact', 'Compact'], ['normal', 'Normal'], ['spacious', 'Spacious']]);
   segmented('Background', 'background', [['plain', 'Plain'], ['gradient', 'Gradient']]);
   page.append(el('hr', '', 'sp-rule'), el('p', 'Message details', 'sp-label'));
-  const flags = [['time', 'Generation time', 'Time taken to finish each reply.'], ['clock', 'Clock timestamp', ''], ['model', 'Model icon', 'Tap the icon to see the full model name.'], ['tokens', 'Token count', 'Shown only when the saved reply has one.']];
+  const flags = [['time', 'Generation time', 'Time taken to finish each reply.'], ['clock', 'Clock timestamp', ''], ['model', 'Model icon', 'Tap the icon to see the full model name.'], ['tokens', 'Token count', 'SillyTavern saves counts only on replies written while this is on.']];
   for (const [name, label, hint] of flags) {
-   const row = el('div', '', 'sp-switch-row'); row.append(el('span', label), btn('', () => commit({details: {[name]: !value.details[name]}}), 'sp-switch', {role: 'switch', 'aria-checked': String(value.details[name]), 'aria-label': label}));
+   const row = el('div', '', 'sp-switch-row'); row.append(el('span', label), btn('', () => { const on = !value.details[name]; commit({details: {[name]: on}}); if (name === 'tokens' && on) enableTokenCounts(); }, 'sp-switch', {role: 'switch', 'aria-checked': String(value.details[name]), 'aria-label': label}));
    page.append(row); if (hint) page.append(el('p', hint, 'sp-note'));
   }
   page.append(el('p', 'Live preview', 'sp-preview-title'));
   const preview = el('div', '', 'sp-preview');
   const detailBits = () => { const d = getAppearance().details; return [d.time && '⏱ 8.4s', d.clock && '9:41 PM', d.model && '✦', d.tokens && '312 tokens'].filter(Boolean).join('  ·  '); };
   const line = el('p', '', 'sp-note');
-  preview.append(el('p', 'Seraphina', 'who'), Object.assign(el('p', 'She smiles, tracing a faded line through the mountains.', 'bubble'), {style: 'font-style:italic'}), el('p', '“Here. But we should leave before dawn. We have a long road ahead.”', 'bubble'), line);
-  const you = el('div', '', 'user-bubble'); you.append(el('p', 'You', 'who'), el('p', '“Then we’d better get some sleep.”', 'bubble')); preview.append(you);
+  preview.append(el('p', 'Seraphina', 'who'), Object.assign(el('p', 'She smiles, tracing a faded line through the mountains.', 'bubble'), {style: 'font-style:italic'}), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Here. But we should leave before dawn. We have a long road ahead.”</span>'}), line);
+  const you = el('div', '', 'user-bubble'); you.append(el('p', 'You', 'who'), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Then we’d better get some sleep.”</span>'})); preview.append(you);
   function updatePreview() { line.textContent = detailBits() || 'No message details'; }
   updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }

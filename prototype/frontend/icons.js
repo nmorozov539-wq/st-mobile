@@ -1,7 +1,7 @@
 // A small local SVG set; no icon font/network or full reference-viewer bundle.
 const paths={
     home:'<path d="m3 11 9-8 9 8M5 10v11h5v-7h4v7h5V10"/>',chat:'<path d="M21 15a3 3 0 0 1-3 3H9l-6 3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3Z"/>',book:'<path d="M12 5v16M12 5C8 2 4 3 2 4v16c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/>',characters:'<circle cx="9" cy="7" r="4"/><path d="M2 21v-3a7 7 0 0 1 14 0v3M17 3a4 4 0 0 1 0 8m2 3a6 6 0 0 1 3 4v3"/>',
-    plus:'<path d="M12 5v14M5 12h14"/>',upload:'<path d="M12 16V3m-5 5 5-5 5 5M4 14v7h16v-7"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',eyeOff:'<path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',refresh:'<path d="M20 11a8 8 0 0 0-14.9-3.9L3 9M3 4v5h5M4 13a8 8 0 0 0 14.9 3.9L21 15M21 20v-5h-5"/>',upload:'<path d="M12 16V3m-5 5 5-5 5 5M4 14v7h16v-7"/>',
     right:'<path d="m9 6 6 6-6 6"/>',back:'<path d="m15 18-6-6 6-6"/>',down:'<path d="m6 9 6 6 6-6"/>',up:'<path d="m6 15 6-6 6 6"/>',
     send:'<path d="M12 19V5m-7 7 7-7 7 7"/>',stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',
     gear:'<path d="m9 3-.6 2.5-2.2 1.3L3.8 6l-2 3.5 1.8 1.8v2L1.8 15l2 3.5 2.4-.8L8.4 19 9 21h6l.6-2.5 2.2-1.3 2.4.8 2-3.5-1.8-1.8v-2L22.2 9l-2-3.5-2.4.8-2.2-1.3L15 3Z"/><circle cx="12" cy="12" r="3"/>',

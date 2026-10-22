@@ -1,6 +1,6 @@
-import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.7.14';
-import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.7.14';
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.14';
+import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.7.15';
+import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.7.15';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.7.15';
 export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
@@ -42,7 +42,7 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
         await getContext().getCharacters();
         const key=result.file_name+'.png';await read('characters',key);return key;
     }
-    async function write({kind,key,revision,draft,file}) {
+    async function write({kind,key,revision,draft,file,apply=true}) {
         draft=safeObject(draft);
         if(key)assertUnchanged(await read(kind,key),revision);
         if(kind==='characters') {
@@ -71,11 +71,14 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
             const name=assetName(draft.name); const data=validatePreset(draft.preset);
             if(name!==key && (await list(kind)).some(row=>row.key.toLowerCase()===name.toLowerCase()))throw Error('That preset name already exists. Choose another name.');
             if(Object.hasOwn(data,'preset_settings_openai'))data.preset_settings_openai=name;
+            // An imported preset is only added; choosing it stays with the Preset page's scopes.
+            const before=apply?null:getContext().chatCompletionSettings?.preset_settings_openai;
             await manager().savePreset(name,data);await getPresetApplicationPromise();
-            if(applyPreset)await applyPreset(name);
+            if(apply&&applyPreset)await applyPreset(name);
+            if(!apply&&before!==undefined&&getContext().chatCompletionSettings?.preset_settings_openai!==before&&applyPreset)await applyPreset(before);
             await saveSettings();
             const stored=await saved(),index=stored.openai_setting_names.indexOf(name);
-            if(JSON.parse(stored.settings).oai_settings?.preset_settings_openai!==name)throw Error('The preset was saved but ST did not apply it. Reopen settings before continuing.');
+            if(apply&&JSON.parse(stored.settings).oai_settings?.preset_settings_openai!==name)throw Error('The preset was saved but ST did not apply it. Reopen settings before continuing.');
             if(index<0)throw Error('Saved preset was not found. Refresh before saving again.');
             assertUnchanged(JSON.parse(stored.openai_settings[index]),JSON.stringify(data));key=name;
         } else throw Error('Unknown library type.');
@@ -193,7 +196,13 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
             if(kind==='characters')return {key:await importCharacter(arg.file),rows:await list(kind)};
             if(!(arg.file instanceof Blob) || arg.file.size>10*1024*1024)throw Error('Choose a JSON file under 10 MB.');
             const data=safeObject(JSON.parse(await arg.file.text()));
-            if(kind==='presets')return write({kind,draft:{name:assetName(arg.file.name.replace(/\.json$/i,'')),preset:data}});
+            if(kind==='presets'){
+                // Like ST's own import: name it after the file, numbering a copy instead of overwriting.
+                validatePreset(data);
+                const base=assetName(String(data.name??'').trim()||arg.file.name.replace(/\.json$/i,'')),taken=new Set((await list(kind)).map(row=>row.key.toLowerCase()));
+                let name=base;for(let n=2;taken.has(name.toLowerCase());n++)name=`${base} (${n})`;
+                return {...await write({kind,draft:{name,preset:data},apply:false}),imported:name};
+            }
             if(kind==='personas'){
                 safeObject(data.personas);safeObject(data.persona_descriptions??{});
                 let imported=0,skipped=0;

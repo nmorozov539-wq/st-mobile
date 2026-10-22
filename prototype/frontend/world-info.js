@@ -1,7 +1,7 @@
 // Phase 6: World Info library page (folders, books, entries). Entry editor and Activation live in their own modules.
-import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.14';
-import {createEntryEditor} from './wi-entry.js?build=0.7.14';
-import {createActivationPage} from './wi-activation.js?build=0.7.14';
+import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.15';
+import {createEntryEditor} from './wi-entry.js?build=0.7.15';
+import {createActivationPage} from './wi-activation.js?build=0.7.15';
 
 const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
 const MARKERS = {keyword: ['●', 'Keyword'], constant: ['◆', 'Always on'], vectorized: ['▲', 'Vector']};
@@ -48,7 +48,9 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
  async function loadBook(name) {
   pending.add(name); render();
   try { details.set(name, await request({action: 'book', name})); }
-  catch (error) { notify(error.message); expanded.delete(name); await load(); }
+  // Keep the book marked open: a failed read (engine still starting) must
+  // not forget it. Books that no longer exist are simply not drawn.
+  catch (error) { notify(error.message); await load(); }
   finally { pending.delete(name); render(); }
  }
  function folders() {

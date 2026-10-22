@@ -1,4 +1,4 @@
-import {icon} from './icons.js?build=0.7.14';
+import {icon} from './icons.js?build=0.7.15';
 
 export function generationDuration(message) {
     if(message.is_user||!message.gen_started||!message.gen_finished)return null;
@@ -14,7 +14,7 @@ export function alternativeIntent(message,index,count,direction) {
     return {swipeId:(current+direction+total)%total};
 }
 
-export function createChatControls({onBack}) {
+export function createChatControls({onBack,atRoot=()=>false}) {
     const $=id=>document.getElementById(id);
     const dialogs=[...document.querySelectorAll('dialog')];
     let restoreFocus,explanationTimer;
@@ -54,13 +54,39 @@ export function createChatControls({onBack}) {
     // navigation, each opened dialog, and (owed) on the next tap after a Back
     // that stayed inside the app. Extra entries are harmless; missing ones
     // would let Back leave the app from a sub-page.
+    //
+    // Where the browser has CloseWatcher (Chrome 120+, so every current
+    // Android Chrome), Back is taken by a watcher instead: Chrome still marks
+    // pushed entries as skippable on its own heuristics, and one Back could
+    // then jump past several pages and leave the app. A watcher is armed
+    // whenever the app is off Home or a dialog is open, and re-armed after
+    // each Back it handles. Back closes the top dialog first, as before.
+    const watching=typeof window.CloseWatcher==='function';
+    let watcher=null,syncQueued=false;
+    function sync(){
+        if(!watching||syncQueued)return;
+        syncQueued=true;
+        queueMicrotask(()=>{
+            syncQueued=false;
+            if(atRoot()&&!dialogs.some(d=>d.open)){watcher?.destroy();watcher=null;return;}
+            if(watcher)return;
+            try{watcher=new CloseWatcher();}catch{watcher=null;return;}
+            const own=watcher;
+            // A dialog opened without a tap shares this watcher's group, so
+            // one Back closes both; that Back belongs to the dialog alone.
+            // Its native close runs first, before the dialog's close event.
+            own.onclose=()=>{if(watcher===own)watcher=null;if([...shown].some(d=>!d.open)){sync();return;}backing=true;try{dismiss()||onBack();}finally{backing=false;}sync();};
+        });
+    }
+    const shown=new Set();
+    for(const dialog of dialogs)dialog.addEventListener('close',sync);
     let backing=false,owed=0;
-    const push=()=>history.pushState({pocketNavigation:'app'},'');
+    const push=()=>{if(!watching)history.pushState({pocketNavigation:'app'},'');};
     const pay=()=>{for(;owed>0;owed--)push();};
     for(const type of ['pointerdown','keydown'])window.addEventListener(type,pay,true);
     const showModal=HTMLDialogElement.prototype.showModal;
-    HTMLDialogElement.prototype.showModal=function(...args){const result=showModal.apply(this,args);if(!backing)push();return result;};
+    HTMLDialogElement.prototype.showModal=function(...args){const result=showModal.apply(this,args);if(!shown.has(this)){shown.add(this);this.addEventListener('close',()=>shown.delete(this),{once:true});}if(!backing)push();sync();return result;};
     if(!history.state?.pocketNavigation)history.replaceState({pocketNavigation:'base'},'');
     window.addEventListener('popstate',()=>{backing=true;let handled;try{handled=dismiss()||onBack();}finally{backing=false;}if(handled)owed++;else history.back();});
-    return {openFan,close,dismiss,step(){if(!backing)push();}};
+    return {openFan,close,dismiss,sync,step(){if(!backing)push();}};
 }

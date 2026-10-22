@@ -41,3 +41,4 @@ html:not([data-background=plain]) .sp-preview{background:radial-gradient(ellipse
 .sp-link svg,.sp-primary svg,.sp-secondary svg,.sp-icon-btn svg{width:20px;height:20px;flex:none;vertical-align:middle}
 .sp-link{display:inline-flex;align-items:center;gap:6px}
 .sp-tabs button{border-radius:0}
+.sp-segmented{display:flex;gap:4px;padding:4px;margin:4px 0 14px;border-radius:14px;background:#252a37}.sp-segment{flex:1;min-height:44px;border:0;border-radius:10px;background:transparent;color:#a9b3c5;font-size:14px}.sp-segment[aria-checked="true"]{background:#2e3a52;color:#dce6f3;font-weight:600}

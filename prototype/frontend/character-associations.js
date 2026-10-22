@@ -1,4 +1,4 @@
-export function createCharacterAssociations({rpc,action,readState,onSaved,editPersona}) {
+export function createCharacterAssociations({rpc,action,readState,onSaved,editPersona,chatPersona=()=>null}) {
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     let loadingFor=null,captured=null,waiting=false,uncertain=false,mutationButtons=[],primaryButtons=[],status=null;
     const dialogs=[];
@@ -35,15 +35,20 @@ export function createCharacterAssociations({rpc,action,readState,onSaved,editPe
     }
     function confirmation(title,text,extra){open(confirm,title);confirm.classList.add('confirm-compact');confirm.append(node('p',text));const actions=node('div');actions.className='confirm-actions';const actionBtn=mutateButton(actions,extra.operation==='persona-unlink'?'Remove link':'Unattach',()=>perform(extra),{primary:extra.type==='primary'});actionBtn.classList.add('destructive');actions.append(button('Cancel',()=>confirm.close()));confirm.append(actions);}
     function showPersonas(personas){
-        const title=personas.length>1?'Linked personas':`Linked persona · ${personas[0]?.name??''}`;
+        const title=personas.length>1?`${personas.length} linked personas`:`Linked persona · ${personas[0]?.name??''}`;
         open(personaSheet,title,{closeButton:true});const list=node('ul');
-        for(const persona of personas){const row=node('li',persona.name);row.append(node('small',persona.available?'Linked to this character':`Saved link · persona unavailable (${persona.key})`));list.append(row);}personaSheet.append(list);
-        if(personas.length>1)personaSheet.append(node('p','Several native links exist. All are preserved. Manage multiple links in SillyTavern.'));
-        else if(personas[0]?.available){
-            const persona=personas[0];personaSheet.append(button('Edit persona',async()=>{personaSheet.close();await action(()=>editPersona(persona.key));}));
-            const removeBtn=mutateButton(personaSheet,'Remove link',()=>confirmation(`Remove ${persona.name}’s link to ${captured.name}?`,`Remove ${persona.name}’s character link to ${captured.name}? The persona and its other links are kept.`,{operation:'persona-unlink',personaKey:persona.key}));
-            removeBtn.classList.add('destructive');
+        for(const persona of personas){
+            const row=node('li',persona.name);row.append(node('small',persona.available?'Linked to this character':`Saved link · persona unavailable (${persona.key})`));
+            if(persona.available){
+                const actions=node('div');actions.className='persona-link-actions';
+                actions.append(button('Edit',async()=>{personaSheet.close();await action(()=>editPersona(persona.key));}));
+                const removeBtn=mutateButton(actions,'Remove link',()=>confirmation(`Remove ${persona.name}’s link to ${captured.name}?`,`Remove ${persona.name}’s character link to ${captured.name}? The persona and its other links are kept.`,{operation:'persona-unlink',personaKey:persona.key}));
+                removeBtn.classList.add('destructive');row.append(actions);
+            }
+            list.append(row);
         }
+        personaSheet.append(list);
+        if(personas.length>1)personaSheet.append(node('p','A chat without its own persona asks which one to use.'));
         update();
     }
     async function connect(){
@@ -60,8 +65,11 @@ export function createCharacterAssociations({rpc,action,readState,onSaved,editPe
         }catch(error){if(captured!==origin||!picker.open)return;loadingFor=null;status.textContent=error.message;}
     }
     return {update,identity({parent,key,associations,error}){
-        const personas=associations?.personas??[],label=!key?'Save to view persona links':error||!associations?'Persona links unavailable':personas.length>1?`${personas.length} persona links`:personas.length?`Linked ${personas[0].name}`:'No linked persona';
+        const personas=associations?.personas??[],label=!key?'Save to view persona links':error||!associations?'Persona links unavailable':personas.length>1?`${personas.length} personas · ${personas.map(p=>p.name).join(', ')}`:personas.length?`Linked ${personas[0].name}`:'No linked persona';
         const line=button(label,()=>showPersonas(personas));line.className='character-persona-line';line.title=label;line.setAttribute('aria-label',label);line.disabled=!personas.length;line.setAttribute('aria-haspopup','dialog');parent.append(line);
+        // The persona locked to the open chat, which wins over character links.
+        const chat=key?chatPersona():null;
+        if(chat){const chatLine=node('small',`This chat · ${chat.name}`);chatLine.className='character-chat-persona';chatLine.title=`This chat uses ${chat.name}`;parent.append(chatLine);}
     },lorebooks({parent,key,associations,error}){
         const section=node('section');section.className='character-lorebooks';section.setAttribute('aria-label','Saved character lorebooks');
         if(error){const p=node('p',error);p.setAttribute('role','status');section.append(p);}

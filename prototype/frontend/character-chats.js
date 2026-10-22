@@ -1,4 +1,4 @@
-import {renderRange} from './journal.js?build=0.7.14';
+import {renderRange} from './journal.js?build=0.7.15';
 
 // History is read without activating ST. A captured editor session owns each read.
 export function createCharacterChats({rpc,action,readChat,onChat,readState}) {

@@ -24,7 +24,9 @@ import {associationRevision,removeCharacterPersona,changeAdditionalBooks} from '
 test('targeted persona unlink retains every unrelated connection and opaque descriptor field',()=>{
  const power={personas:{one:'First'},persona_descriptions:{one:{description:'Keep',opaque:{keep:42},connections:[{type:'chat',id:'Keep'},{type:'group',id:'Keep'},{type:'character',id:'card.png',opaque:1},{type:'character',id:'other.png'}]}},default_persona:'one'};
  const before=structuredClone(power),next=removeCharacterPersona(power,'card.png','one');assert.deepEqual(next,{...power.persona_descriptions.one,connections:[power.persona_descriptions.one.connections[0],power.persona_descriptions.one.connections[1],power.persona_descriptions.one.connections[3]]});assert.deepEqual(power,before);
- power.persona_descriptions.two={connections:[{type:'character',id:'card.png'}]};assert.throws(()=>removeCharacterPersona(power,'card.png','one'),/Multiple/);
+ // Several personas may share one character; removing one leaves the others linked.
+ power.persona_descriptions.two={connections:[{type:'character',id:'card.png'}]};assert.deepEqual(removeCharacterPersona(power,'card.png','one').connections.map(c=>c.id),['Keep','Keep','other.png']);assert.deepEqual(power.persona_descriptions.two.connections,[{type:'character',id:'card.png'}]);
+ assert.throws(()=>removeCharacterPersona(power,'other2.png','one'),/changed/);
 });
 test('additional detach removes one explicit duplicate and preserves opaque and unrelated native rows',()=>{
  const world={charLore:[{name:'card',extraBooks:['A','A','B'],opaque:42},{name:'other',extraBooks:['Other'],opaque:9}]},before=structuredClone(world);

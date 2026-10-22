@@ -31,7 +31,8 @@ test('preset copies preserve manual prompts and foreign fields, and never overwr
  const data=structuredClone(a.draft);data.prompt_order[0].order[0].enabled=false;data.prompts[0].content='Under 50 words.';
  await f.store.run({action:'write',kind:'presets',key:'Original preset',revision:a.revision,draft:{name:'New preset',preset:data}});
  assert.equal(f.presets[0].prompts[0].content,'Under 100 words.');assert.equal(f.presets[1].foreign.keep,7);assert.equal(f.presets[1].prompt_order[0].order[0].enabled,false);
- await assert.rejects(f.store.run({action:'import',kind:'presets',file:new File([JSON.stringify(data)],'New preset.json')}),/already exists/);
+ const copy=await f.store.run({action:'import',kind:'presets',file:new File([JSON.stringify(data)],'New preset.json')});
+ assert.equal(copy.imported,'New preset (2)');assert.equal(f.presets[1].foreign.keep,7);assert.equal(f.presets[1].prompt_order[0].order[0].enabled,false);
 });
 test('malformed preset input is rejected before native saving',async()=>{
  const f=fixture();await assert.rejects(f.store.run({action:'import',kind:'presets',file:new File(['{"prompts":"broken"}'],'Broken.json')}),/prompts/);assert.equal(f.presets.length,1);

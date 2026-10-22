@@ -3,6 +3,11 @@
 // verified extension actions (settings, snippet, clear, import, repair, reset).
 const EDITABLE = ['enabled', 'pauseSummarization', 'verbatimTurns', 'turnsPerSummary', 'snippetsPerLayer', 'snippetsPerPromotion', 'maxLayers', 'disableGhosting', 'summarizerResponseLength', 'promptPreset', 'summarizerUserPrompt', 'summarizerSystemPrompt', 'injectionTemplate', 'stripPatterns', 'savedCustomPrompts', 'debugMode', 'traceMode'];
 
+// Summarize now always says what it did; a short chat has nothing to summarize yet.
+export function summaryNotice({replies, verbatim, changed}) {
+ if (replies <= verbatim) return `Nothing to summarize yet. Memory keeps the latest ${verbatim} replies word for word and summarizes older ones; this chat has ${replies}.`;
+ return changed ? 'Older replies summarized into memory.' : 'No new summary was written. Check Saved memories or the summarizer connection.';
+}
 export function createMemoryPanel({visible = () => true, rpc, action, connected, onBusy, onState = () => {}, onStopRequested = () => {}, notify = () => {}, refresh, locked}) {
  let current, loaded = false, wasBusy = false, pendingSettings = null, lastPolled = '', lastLocked = null, activeLayer = 0, promptName = '';
  const request = arg => rpc('extensions', {id: 'summaryception', ...arg}, 180000);
@@ -179,7 +184,10 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   summarizeBtn.innerHTML = '<span class="memory-zap">⚡</span> Summarize now';
   summarizeBtn.disabled = off;
   summarizeBtn.onclick = () => action(async () => {
-   try { await request({action: 'summarize'}); await refresh(); await reread(); }
+   try {
+    const result = (await request({action: 'summarize'}))?.summaryResult; await refresh(); await reread();
+    if (result) notify(summaryNotice(result));
+   }
    catch (e) { await reread().catch(() => {}); throw e; }
   });
   content.append(summarizeBtn);

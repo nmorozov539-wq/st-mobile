@@ -155,6 +155,8 @@ Settings also loads defensively: a failed `settings` read leaves the page open w
 
 ## Phone-test fixes — 0.7.14
 
+- Portrait lock: `manifest.webmanifest` (standalone, `orientation: portrait`, 192/512 icons) makes the app installable; `app.js` also calls `screen.orientation.lock('portrait')`, which browsers honour only for the installed app or fullscreen.
+
 Back is driven by real history entries. Chrome skips entries that a page pushed without a user gesture, so `chat-controls.js` pushes one on each forward `navigate()` and each `showModal()`, both of which follow a tap. A Back that stays inside the app pays its entry back on the next tap. Back runs the same handler as the on-screen arrow (`#page-back`), so unsaved-change prompts apply to both. Extra entries are harmless: at Home an unhandled Back keeps stepping back until the browser leaves.
 
 Panels must also reset what they leave behind. `renderPage()` clears `#page-content`'s class, and the Memory panel checks `visible()` as the other panels do. Memory writes first activate the chat on screen, the way Send does, because Summaryception only sees the engine's active chat.

@@ -1,0 +1,21 @@
+/* Base parts every screen is built from. Linked right after tokens.css; screen
+   stylesheets add layout only. Colours, corners and sizes come from tokens. */
+
+/* Icons: Lucide line icons from icons.js, 20px by default, 22px in the tab bar. */
+.icon{width:20px;height:20px;flex:none}
+#bottom-nav .icon{width:22px;height:22px}
+:is(button,a,span)>.icon:not(:only-child){vertical-align:middle}
+
+/* Disclosure caret for every <details>, matching the icon set. */
+summary{list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'';display:inline-block;width:14px;height:14px;margin-right:6px;vertical-align:-2px;background:currentColor;-webkit-mask:var(--icon-chevron) center/contain no-repeat;mask:var(--icon-chevron) center/contain no-repeat;transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+
+/* Icon placement inside existing screens */
+.wi-mark .icon,.wi-caret .icon{width:14px;height:14px}
+.wi-folder-icon .icon{width:18px;height:18px;color:var(--muted)}
+.wi-mark,.wi-caret,.wi-folder-icon{display:inline-grid;place-items:center}
+.character-chat-line .icon{width:16px;height:16px;margin-left:6px;vertical-align:-3px}
+.persona-check .icon,.model-row>span:last-child>.icon,.preset-choice>span:last-child>.icon{color:var(--brass)}
+#jump .icon,#new-chat .icon,.memory-secondary .icon{width:18px;height:18px;margin-right:6px;vertical-align:-4px}

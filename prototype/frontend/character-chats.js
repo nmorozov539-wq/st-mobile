@@ -1,3 +1,4 @@
+import {icon} from './icons.js?build=0.7.15';
 import {renderRange} from './journal.js?build=0.7.15';
 
 // History is read without activating ST. A captured editor session owns each read.
@@ -24,7 +25,7 @@ export function createCharacterChats({rpc,action,readChat,onChat,readState}) {
         const chat=readChat(),same=chat?.characterKey===origin.key;
         line.hidden=!same||(!loading&&!error&&rows.length<2);
         line.disabled=loading||readState().unavailable;
-        line.textContent=loading?'Reading conversations…':error?'Conversations unavailable · retry':(chat?.chatId??'Choose conversation')+'  ⌄';
+        line.textContent=loading?'Reading conversations…':error?'Conversations unavailable · retry':chat?.chatId??'Choose conversation';if(!loading&&!error)line.append(icon('down'));
         line.setAttribute('aria-label',error?'Retry reading conversations':`Choose conversation · ${chat?.chatId??''}`);
         if(dialog.open)for(const b of list.querySelectorAll('button'))b.disabled=switching||readState().unavailable;
     }

@@ -223,11 +223,11 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   }
   page.append(el('p', 'Live preview', 'sp-preview-title'));
   const preview = el('div', '', 'sp-preview');
-  const detailBits = () => { const d = getAppearance().details; return [d.time && '⏱ 8.4s', d.clock && '9:41 PM', d.model && '✦', d.tokens && '312 tokens'].filter(Boolean).join('  ·  '); };
+  const detailBits = () => { const d = getAppearance().details; return [d.time && [icon('timer'), '8.4s'], d.clock && ['9:41 PM'], d.model && [icon('model')], d.tokens && ['312 tokens']].filter(Boolean); };
   const line = el('p', '', 'sp-note');
   preview.append(el('p', 'Seraphina', 'who'), Object.assign(el('p', 'She smiles, tracing a faded line through the mountains.', 'bubble'), {style: 'font-style:italic'}), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Here. But we should leave before dawn. We have a long road ahead.”</span>'}), line);
   const you = el('div', '', 'user-bubble'); you.append(el('p', 'You', 'who'), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Then we’d better get some sleep.”</span>'})); preview.append(you);
-  function updatePreview() { line.textContent = detailBits() || 'No message details'; }
+  function updatePreview() { const bits = detailBits(); line.replaceChildren(...(bits.length ? bits.flatMap((bit, i) => i ? ['  ·  ', ...bit] : bit) : ['No message details'])); }
   updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }
  function render(content) {

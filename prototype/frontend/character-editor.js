@@ -1,3 +1,4 @@
+import {icon} from './icons.js?build=0.7.15';
 import {createCharacterAssociations} from './character-associations.js?build=0.7.15';
 import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.7.15';
 
@@ -19,7 +20,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         document.getElementById('character-savebar').hidden=mode!=='edit';
         document.getElementById('asset-portrait-label').hidden=mode!=='edit';
         document.getElementById('asset-json').closest('details').hidden=mode!=='edit';
-        const back=document.getElementById('close-asset');back.textContent='‹';back.setAttribute('aria-label',mode==='edit'?'Cancel character edits':'Back from character');panel.querySelector('.dialog-heading').prepend(back);
+        const back=document.getElementById('close-asset');back.replaceChildren(icon('back'));back.setAttribute('aria-label',mode==='edit'?'Cancel character edits':'Back from character');panel.querySelector('.dialog-heading').prepend(back);
         const tabs=node('div');tabs.className='character-modes';tabs.setAttribute('aria-label','Character view');
         for(const view of ['read','edit']){const b=button(view==='read'?'Read':'Edit',()=>{mode=view;organizing=false;try{if(cardKey)storage.setItem(`pocket-character-mode:${cardKey}`,mode);}catch{}rerender();});b.setAttribute('aria-pressed',String(mode===view));tabs.append(b);}panel.querySelector('.character-modes')?.remove();panel.querySelector('.dialog-heading').append(tabs);panel.querySelector('.character-actions-trigger')?.remove();if(key){const overflow=button('…',onActions);overflow.className='character-actions-trigger';overflow.setAttribute('aria-label','Character actions');overflow.setAttribute('aria-controls','character-actions');overflow.setAttribute('aria-expanded',String(!document.getElementById('character-actions').hidden));panel.querySelector('.dialog-heading').append(overflow);}
         chats?.render(body,key);
@@ -43,8 +44,8 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         const greeting=node('section');greeting.className='character-greeting';greeting.append(node('h4','Greeting'));body.append(greeting);
         const items=characterGreetings(draft);selected=Math.min(selected,items.length-1);
         const navigation=node('div');navigation.className='character-greeting-nav';
-        const previous=button('‹',()=>{selected--;rerender();});previous.setAttribute('aria-label','Previous greeting');previous.disabled=selected===0;
-        const next=button('›',()=>{selected++;rerender();});next.setAttribute('aria-label','Next greeting');next.disabled=selected===items.length-1;
+        const previous=button('',()=>{selected--;rerender();});previous.append(icon('back'));previous.setAttribute('aria-label','Previous greeting');previous.disabled=selected===0;
+        const next=button('',()=>{selected++;rerender();});next.append(icon('right'));next.setAttribute('aria-label','Next greeting');next.disabled=selected===items.length-1;
         const count=node('span',`${selected+1} / ${items.length}`);count.setAttribute('aria-live','polite');navigation.append(previous,count,next);
         if(mode==='edit')navigation.append(button(organizing?'Done':'Organize',()=>{organizing=!organizing;rerender();}));greeting.append(navigation);
         greeting.append(node('p',selected===0?'Main greeting':'Alternate greeting'));

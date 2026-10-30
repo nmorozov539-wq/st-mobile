@@ -1,4 +1,5 @@
 // Phase 6c: World Info entry editor. Sends only the fields the person changed, guarded by the book revision.
+import {icon} from './icons.js?build=0.7.15';
 import {el, btn, checkbox, field, select, numberInput, section, modal, confirmDialog} from './wi-ui.js?build=0.7.15';
 
 export const POSITIONS = [[0, 'Before character definitions'], [1, 'After character definitions'], [2, 'Top of Author’s Note'], [3, 'Bottom of Author’s Note'], [4, 'At depth'], [5, 'Before example messages'], [6, 'After example messages'], [7, 'Outlet']];
@@ -47,7 +48,7 @@ export function createEntryEditor({request, action, notify, locked, back, setSub
   const title = el('input'); title.value = d.comment; title.maxLength = 5000; title.oninput = () => set('comment', title.value);
   page.append(field('Title / memo', title));
 
-  const strategy = select([['keyword', '● Keyword'], ['constant', '◆ Always on'], ['vectorized', '▲ Vectorized']], strategyOf(d), value => { d.constant = value === 'constant'; d.vectorized = value === 'vectorized'; state.error = ''; render(); });
+  const strategy = select([['keyword', 'Keyword'], ['constant', 'Always on'], ['vectorized', 'Vectorized']], strategyOf(d), value => { d.constant = value === 'constant'; d.vectorized = value === 'vectorized'; state.error = ''; render(); });
   const position = select(POSITIONS, d.position, value => set('position', Number(value), true));
   const row1 = el('div', '', 'wi-row'); row1.append(field('Strategy', strategy), field('Position', position)); page.append(row1);
   if (d.position === 4) { const depth = el('div', '', 'wi-row'); depth.append(field('Depth', numberInput(d.depth, v => set('depth', v), {min: 0, max: 10000})), field('Role', select(ROLES, d.role, v => set('role', Number(v))))); page.append(depth); }
@@ -76,7 +77,7 @@ export function createEntryEditor({request, action, notify, locked, back, setSub
   page.append(flags);
 
   const text = el('textarea', '', 'wi-content'); text.rows = 8; text.value = d.content; text.oninput = () => set('content', text.value);
-  const head = el('div', '', 'wi-content-head'); head.append(el('span', 'Content'), btn('⤢', () => expand(text), 'wi-more', {'aria-label': 'Expand content'}));
+  const head = el('div', '', 'wi-content-head'); const expandButton = btn('', () => expand(text), 'wi-more', {'aria-label': 'Expand content'}); expandButton.append(icon('expand')); head.append(el('span', 'Content'), expandButton);
   const contentField = el('div', '', 'wi-field'); contentField.append(head, text); page.append(contentField);
 
   const timing = el('div', '', 'wi-section-body');

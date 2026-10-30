@@ -28,20 +28,20 @@ class Element {
 }
 test('delayed Character history cannot replace a newer editor session or reopen its selector',async()=>{
  const previous=globalThis.document,body=new Element('body'),line=new Element('button');let state={key:'a',editorSession:1,unavailable:false},resolve;
- globalThis.document={body,createElement:tag=>new Element(tag),querySelector:()=>line};
+ globalThis.document={body,createElement:tag=>new Element(tag),createElementNS:(ns,tag)=>new Element(tag),querySelector:()=>line};
  try{
   const chats=createCharacterChats({rpc:()=>new Promise(r=>resolve=r),action:fn=>fn(),readChat:()=>({characterKey:'b',chatId:'B'}),onChat:()=>assert.fail('history reads must not select'),readState:()=>state});
   const old=chats.load('a',1),resolveOld=resolve;state={key:'b',editorSession:2,unavailable:false};
   const newer=chats.load('b',2),resolveNew=resolve;
   resolveNew([{characterKey:'b',chatId:'B'},{characterKey:'b',chatId:'Other B'}]);await newer;
-  assert.equal(line.textContent,'B  ⌄');assert.equal(line.hidden,false);
+  assert.equal(line.textContent,'B');assert.equal(line.children.at(-1).tag,'svg');assert.equal(line.hidden,false);
   resolveOld([{characterKey:'a',chatId:'Wrong A'},{characterKey:'a',chatId:'Wrong again'}]);await old;
-  assert.equal(line.textContent,'B  ⌄');assert.equal(body.children[0].open,false);
+  assert.equal(line.textContent,'B');assert.equal(body.children[0].open,false);
  }finally{globalThis.document=previous;}
 });
 test('large history renders a bounded window and activity updates do not replace focused choices',async()=>{
  const previous=globalThis.document,body=new Element('body'),panel=new Element('section');let line,state={key:'a',editorSession:1,open:true,unavailable:false};
- globalThis.document={body,createElement:tag=>new Element(tag),querySelector:()=>line};
+ globalThis.document={body,createElement:tag=>new Element(tag),createElementNS:(ns,tag)=>new Element(tag),querySelector:()=>line};
  try{
   const rows=Array.from({length:1203},(_,i)=>({characterKey:'a',chatId:`Chat ${i}`}));
   const chats=createCharacterChats({rpc:async()=>rows,action:fn=>fn(),readChat:()=>({characterKey:'a',chatId:'Chat 0'}),onChat:()=>{},readState:()=>state});
@@ -55,18 +55,18 @@ test('large history renders a bounded window and activity updates do not replace
 });
 test('delayed selection owns its original session, rather than a subsequently opened Character pane',async()=>{
  const previous=globalThis.document,body=new Element('body'),panel=new Element('section');let line,state={key:'a',editorSession:1,open:true,unavailable:false},release,adopted=false;
- globalThis.document={body,createElement:tag=>new Element(tag),querySelector:()=>line};
+ globalThis.document={body,createElement:tag=>new Element(tag),createElementNS:(ns,tag)=>new Element(tag),querySelector:()=>line};
  try{
   const chats=createCharacterChats({rpc:async(_,arg)=>[{characterKey:arg.characterKey,chatId:'One'},{characterKey:arg.characterKey,chatId:'Two'}],action:fn=>fn(),readChat:()=>({characterKey:state.key,chatId:'One'}),onChat:async(_,guard)=>{await new Promise(r=>release=r);if(guard())adopted=true;},readState:()=>state});
   chats.render(panel,'a');line=panel.children[0];await chats.load('a',1);line.onclick();
   const selection=body.children[0].children[2].querySelectorAll('button')[1].onclick();
   state={key:'b',editorSession:2,open:true,unavailable:false};await chats.load('b',2);line.onclick();release();await selection;
-  assert.equal(adopted,false);assert.equal(body.children[0].open,true);assert.equal(line.textContent,'One  ⌄');
+  assert.equal(adopted,false);assert.equal(body.children[0].open,true);assert.equal(line.textContent,'One');assert.equal(line.children.at(-1).tag,'svg');
  }finally{globalThis.document=previous;}
 });
 test('Character management without a selected chat keeps its conversation line hidden and updates safely',async()=>{
  const previous=globalThis.document,body=new Element('body'),panel=new Element('section');let line;
- globalThis.document={body,createElement:tag=>new Element(tag),querySelector:()=>line};
+ globalThis.document={body,createElement:tag=>new Element(tag),createElementNS:(ns,tag)=>new Element(tag),querySelector:()=>line};
  try{
   const chats=createCharacterChats({rpc:async()=>[{characterKey:'a',chatId:'One'},{characterKey:'a',chatId:'Two'}],action:fn=>fn(),readChat:()=>undefined,onChat:()=>assert.fail('management must not select a chat'),readState:()=>({key:'a',editorSession:1,open:true,unavailable:false})});
   chats.render(panel,'a');line=panel.children[0];await chats.load('a',1);assert.doesNotThrow(()=>chats.update());assert.equal(line.hidden,true);assert.equal(body.children[0].open,false);

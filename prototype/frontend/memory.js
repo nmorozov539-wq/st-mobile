@@ -1,6 +1,7 @@
 // Phase 5: full-page Summaryception memory panel.
 // Renders into #page-content when page === 'memory'. All writes go through the
 // verified extension actions (settings, snippet, clear, import, repair, reset).
+import {icon} from './icons.js?build=0.7.15';
 const EDITABLE = ['enabled', 'pauseSummarization', 'verbatimTurns', 'turnsPerSummary', 'snippetsPerLayer', 'snippetsPerPromotion', 'maxLayers', 'disableGhosting', 'summarizerResponseLength', 'promptPreset', 'summarizerUserPrompt', 'summarizerSystemPrompt', 'injectionTemplate', 'stripPatterns', 'savedCustomPrompts', 'debugMode', 'traceMode'];
 
 // Summarize now always says what it did; a short chat has nothing to summarize yet.
@@ -181,7 +182,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   content.append(el('small', 'Pause new summaries; keep existing memories in use.', 'memory-hint'));
 
   const summarizeBtn = el('button', '', 'memory-summarize-btn');
-  summarizeBtn.innerHTML = '<span class="memory-zap">⚡</span> Summarize now';
+  summarizeBtn.append(icon('zap'), 'Summarize now');
   summarizeBtn.disabled = off;
   summarizeBtn.onclick = () => action(async () => {
    try {
@@ -210,7 +211,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    if (text === undefined) box.append(el('p', 'Preview needs the updated Summaryception extension. Restart the engine after updating.', 'memory-placeholder'));
    else if (!text) box.append(el('p', value.settings.enabled ? 'Nothing is injected yet: this chat has no summaries.' : 'Summaryception is disabled, so nothing is injected.', 'memory-placeholder'));
    else box.append(el('pre', text, 'memory-injection-text'));
-   const refreshBtn = el('button', '↻ Refresh', 'memory-secondary');
+   const refreshBtn = el('button', 'Refresh', 'memory-secondary'); refreshBtn.prepend(icon('refresh'));
    refreshBtn.disabled = offline;
    refreshBtn.onclick = () => action(async () => { await reread(); });
    box.append(refreshBtn);

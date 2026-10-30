@@ -1,10 +1,13 @@
 // Phase 6: World Info library page (folders, books, entries). Entry editor and Activation live in their own modules.
+import {icon} from './icons.js?build=0.7.15';
 import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.7.15';
 import {createEntryEditor} from './wi-entry.js?build=0.7.15';
 import {createActivationPage} from './wi-activation.js?build=0.7.15';
 
 const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
-const MARKERS = {keyword: ['●', 'Keyword'], constant: ['◆', 'Always on'], vectorized: ['▲', 'Vector']};
+const MARKERS = {keyword: 'Keyword', constant: 'Always on', vectorized: 'Vector'};
+const iconIn = (tag, name, className) => { const n = el(tag, '', className); n.append(icon(name)); return n; };
+const iconButton = (name, onclick, className, attrs) => { const b = btn('', onclick, className, attrs); b.append(icon(name)); return b; };
 
 export function sourceLines(sources = []) {
  const lines = [];
@@ -61,12 +64,12 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
   const wrap = el('div', '', 'wi-book'), open = expanded.has(book.name);
   const head = el('div', '', 'wi-book-head');
   const toggle = btn('', () => { if (open) expanded.delete(book.name); else { expanded.add(book.name); if (!details.has(book.name)) loadBook(book.name); } render(); }, 'wi-book-toggle', {'aria-expanded': String(open), 'aria-label': `${open ? 'Collapse' : 'Expand'} ${book.name}`});
-  const caret = el('span', open ? '▾' : '▸', 'wi-caret'), text = el('span', '', 'wi-book-text');
+  const caret = iconIn('span', open ? 'down' : 'right', 'wi-caret'), text = el('span', '', 'wi-book-text');
   text.append(el('strong', book.name), el('small', `${book.count} ${book.count === 1 ? 'entry' : 'entries'}${book.unreadable ? ' · unreadable' : ''}`, 'wi-count'));
   const lines = sourceLines(lib.sources[book.name]);
   if (lines.length) text.append(el('small', lines.join(' · '), 'wi-source'));
   toggle.append(caret, text);
-  head.append(toggle, btn('⋯', () => action(() => bookMenu(book)), 'wi-more', {'aria-label': `Actions for ${book.name}`}));
+  head.append(toggle, iconButton('more', () => action(() => bookMenu(book)), 'wi-more', {'aria-label': `Actions for ${book.name}`}));
   wrap.append(head);
   if (open) {
    const body = el('div', '', 'wi-entries'), detail = details.get(book.name);
@@ -74,16 +77,16 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
    else {
     for (const row of detail.entries) {
      const line = el('div', '', `wi-entry${row.disabled ? ' off' : ''}`);
-     const [mark, label] = MARKERS[row.strategy] ?? MARKERS.keyword;
+     const strategy = MARKERS[row.strategy] ? row.strategy : 'keyword', label = MARKERS[strategy];
      const open = btn('', () => action(() => openEntry(book.name, row.uid)), 'wi-entry-open', {'aria-label': `Edit ${row.title}`});
-     open.append(el('span', mark, `wi-mark ${row.strategy}`), el('span', row.title, 'wi-entry-title'), el('small', label, 'wi-entry-kind'));
+     open.append(iconIn('span', strategy, `wi-mark ${row.strategy}`), el('span', row.title, 'wi-entry-title'), el('small', label, 'wi-entry-kind'));
      const check = el('input'); check.type = 'checkbox'; check.checked = !row.disabled;
      check.setAttribute('aria-label', `${row.title} enabled`);
      check.onchange = () => action(() => toggleEntry(book.name, row, check));
      line.append(open, check); body.append(line);
     }
     if (!detail.entries.length) body.append(el('p', 'This book has no entries yet.', 'wi-note'));
-    body.append(btn('+ Add entry', () => action(() => addEntry(book.name)), 'wi-add'));
+    const add = btn('Add entry', () => action(() => addEntry(book.name)), 'wi-add'); add.prepend(icon('plus')); body.append(add);
    }
    wrap.append(body);
   }
@@ -93,7 +96,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
   if (!container?.isConnected || !onPage('wi')) return;
   const page = el('div', '', 'wi-page');
   const bar = el('div', '', 'wi-toolbar');
-  bar.append(btn('Import', () => importInput.click(), 'wi-btn'), btn('+ Book', () => action(createBook), 'wi-btn wi-primary'), btn('Folder', () => action(createFolder), 'wi-btn'));
+  bar.append(btn('Import', () => importInput.click(), 'wi-btn'), (() => { const b = btn('Book', () => action(createBook), 'wi-btn wi-primary'); b.prepend(icon('plus')); return b; })(), btn('Folder', () => action(createFolder), 'wi-btn'));
   page.append(bar);
   if (failure) { page.append(el('p', failure, 'wi-error'), btn('Retry', load)); }
   else if (!lib) page.append(el('p', 'Loading World Info…', 'wi-note'));
@@ -105,8 +108,8 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
     const head = el('div', '', 'wi-folder-head');
     const toggle = btn('', () => { if (open) openFolders.delete(name); else openFolders.add(name); render(); }, 'wi-book-toggle', {'aria-expanded': String(open), 'aria-label': `${open ? 'Collapse' : 'Expand'} folder ${name}`});
     const text = el('span', '', 'wi-book-text'); text.append(el('strong', name), el('small', `${inside.length} ${inside.length === 1 ? 'book' : 'books'}`, 'wi-count'));
-    toggle.append(el('span', open ? '▾' : '▸', 'wi-caret'), el('span', '📁', 'wi-folder-icon'), text);
-    head.append(toggle, btn('⋯', () => action(() => folderMenu(name, inside)), 'wi-more', {'aria-label': `Actions for folder ${name}`}));
+    toggle.append(iconIn('span', open ? 'down' : 'right', 'wi-caret'), iconIn('span', 'folder', 'wi-folder-icon'), text);
+    head.append(toggle, iconButton('more', () => action(() => folderMenu(name, inside)), 'wi-more', {'aria-label': `Actions for folder ${name}`}));
     row.append(head);
     if (open) { const body = el('div', '', 'wi-folder-books'); for (const book of inside) body.append(bookRow(book)); if (!inside.length) body.append(el('p', 'Empty folder. Move books here from a book’s menu.', 'wi-note')); row.append(body); }
     page.append(row);

@@ -48,7 +48,7 @@
 .wi-section{border-bottom:1px solid var(--line)}
 .wi-section summary{position:relative;display:block;min-height:56px;cursor:pointer;list-style:none;padding:14px 0 14px 20px;box-sizing:border-box}
 .wi-section summary::-webkit-details-marker{display:none}
-.wi-section summary::before{content:'\25B6';position:absolute;left:0;top:18px;font-size:11px;color:var(--muted);transition:transform .15s}
+.wi-section summary::before{content:'';position:absolute;left:0;top:19px;width:14px;height:14px;background:currentColor;-webkit-mask:var(--icon-chevron) center/contain no-repeat;mask:var(--icon-chevron) center/contain no-repeat;color:var(--muted);transition:transform .15s}
 .wi-section[open] summary::before{transform:rotate(90deg)}
 .wi-section summary strong{display:block;font-size:15px;font-weight:500}
 .wi-section summary small{display:block;color:var(--muted);font-size:13px;margin-top:2px}

@@ -22,7 +22,7 @@ export function createModelPanel({load,select,action,windowList,openConnection})
         list.replaceChildren();
         renderList=windowList(list,models,model=>{
             const b=document.createElement('button');b.className='model-row';b.disabled=loading||!!model.unavailable;b.setAttribute('aria-label',model.unavailable?`${model.id} · unavailable on this connection`:`Select ${model.name}`);b.setAttribute('aria-pressed',String(!!selection?.enabled&&model.id===selection.value));
-            const symbol=text('span','','model-symbol');symbol.append(icon('model'));const name=text('span',model.name,'model-row-text');name.append(text('small',model.id+(model.unavailable?' · saved, unavailable on this connection':'')));b.append(symbol,name,text('span',selection?.enabled&&model.id===selection.value?'✓':''));
+            const symbol=text('span','','model-symbol');symbol.append(icon('model'));const name=text('span',model.name,'model-row-text');name.append(text('small',model.id+(model.unavailable?' · saved, unavailable on this connection':'')));b.append(symbol,name,(()=>{const mark=text('span','');if(selection?.enabled&&model.id===selection.value)mark.append(icon('check'));return mark;})());
             b.onclick=()=>action(()=>choose('model',model.id));return b;
         },68,scroller);
         $('model-empty').hidden=!!configuration.models.length;

@@ -1,3 +1,5 @@
+import {icon} from './icons.js?build=0.7.15';
+
 export function createCharacterAssociations({rpc,action,readState,onSaved,editPersona,chatPersona=()=>null}) {
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     let loadingFor=null,captured=null,waiting=false,uncertain=false,mutationButtons=[],primaryButtons=[],status=null;
@@ -19,7 +21,7 @@ export function createCharacterAssociations({rpc,action,readState,onSaved,editPe
     function open(sheet,title,{closeButton=false}={}){
         for(const d of dialogs)if(d.open)d.close();sheet.replaceChildren();captured={...readState()};mutationButtons=[];primaryButtons=[];uncertain=false;sheet.setAttribute('aria-label',title);
         const header=node('div');header.className='sheet-header';header.append(node('h3',title));
-        if(closeButton){const x=button('×',()=>sheet.close());x.className='sheet-close';x.setAttribute('aria-label','Close');header.append(x);}
+        if(closeButton){const x=button('',()=>sheet.close());x.append(icon('close'));x.className='sheet-close';x.setAttribute('aria-label','Close');header.append(x);}
         sheet.append(header);status=node('p');status.setAttribute('role','status');sheet.append(status);sheet.showModal();update();
     }
     function mutateButton(sheet,label,fn,{primary=false}={}){const b=button(label,fn);mutationButtons.push(b);if(primary)primaryButtons.push(b);sheet.append(b);update();return b;}
@@ -77,7 +79,7 @@ export function createCharacterAssociations({rpc,action,readState,onSaved,editPe
         else if(!associations)section.append(node('p','Lorebook links unavailable. Reopen the character to try again.'));
         else {
             const books=[...(associations.primary?[{...associations.primary,type:'primary'}]:[]),...associations.additional.map((book,index)=>({...book,type:'additional',index}))];
-            for(const book of books){const row=node('div');row.className='character-lorebook';const content=node('div');content.append(node('span',book.name),node('small',`${book.type==='primary'?'Primary · included in card export':'Additional'}${book.available?'':' · unavailable'}`));const detach=button('⌁',()=>confirmation('Unattach lorebook',`Unattach “${book.name}” (${book.type}) from ${readState().name}?${book.type==='primary'?' Its embedded card copy is removed. Additional books will not be promoted.':''}`,{operation:'detach',type:book.type,name:book.name,index:book.index}));detach.setAttribute('aria-label',`Unattach ${book.type} lorebook ${book.name}`);row.append(content,detach);section.append(row);}
+            for(const book of books){const row=node('div');row.className='character-lorebook';const content=node('div');content.append(node('span',book.name),node('small',`${book.type==='primary'?'Primary · included in card export':'Additional'}${book.available?'':' · unavailable'}`));const detach=button('',()=>confirmation('Unattach lorebook',`Unattach “${book.name}” (${book.type}) from ${readState().name}?${book.type==='primary'?' Its embedded card copy is removed. Additional books will not be promoted.':''}`,{operation:'detach',type:book.type,name:book.name,index:book.index}));detach.append(icon('unlink'));detach.setAttribute('aria-label',`Unattach ${book.type} lorebook ${book.name}`);row.append(content,detach);section.append(row);}
             if(!books.length)section.append(node('p','No linked lorebooks'));
             if(associations.primary&&!associations.primary.available)section.append(node('p','The primary book is unavailable; export cannot fetch its current contents.'));
             if(associations.embedded&&!associations.primary)section.append(node('p','An embedded lorebook is saved in this card; no primary book is linked.'));

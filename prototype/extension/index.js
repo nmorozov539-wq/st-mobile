@@ -1,13 +1,13 @@
-import { createWorkspace } from './workspace.js?build=0.7.15';
-import { createAdapter } from './adapter.js?build=0.7.15';
-import { createGenerationRuntime } from './runtime.js?build=0.7.15';
+import { createWorkspace } from './workspace.js?build=0.8.0-phase1';
+import { createAdapter } from './adapter.js?build=0.8.0-phase1';
+import { createGenerationRuntime } from './runtime.js?build=0.8.0-phase1';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.7.15';
+import { createConfigurationRuntime } from './configuration.js?build=0.8.0-phase1';
 
-import { createAssetRuntime } from './assets.js?build=0.7.15';
-import { createWorldInfoRuntime } from './worldinfo.js?build=0.7.15';
-import { repairDoubledCards } from './card-repair.js?build=0.7.15';
+import { createAssetRuntime } from './assets.js?build=0.8.0-phase1';
+import { createWorldInfoRuntime } from './worldinfo.js?build=0.8.0-phase1';
+import { repairDoubledCards } from './card-repair.js?build=0.8.0-phase1';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -37,7 +37,7 @@ window.pocketSaveSettings = async expected => {
 // page into the Backgrounds tab, duplicating #form_create and doubling every saved character field.
 if (window.parent !== window && (window.name === 'pocket-engine' || new URLSearchParams(location.search).has('mobileRuntime'))) {
     let port;
-    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.15'};}, characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.8.0-phase1'};}, characters: () => adapter.listCharacters(),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),

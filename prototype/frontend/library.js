@@ -1,9 +1,9 @@
-import {icon} from './icons.js?build=0.7.15';
-import {characterStatus} from './libraries.js?build=0.7.15';
-import {createCharacterChats} from './character-chats.js?build=0.7.15';
-import {createCharacterActions} from './character-actions.js?build=0.7.15';
-import {createCharacterEditor} from './character-editor.js?build=0.7.15';
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.15';
+import {icon} from './icons.js?build=0.8.0-phase1';
+import {characterStatus} from './libraries.js?build=0.8.0-phase1';
+import {createCharacterChats} from './character-chats.js?build=0.8.0-phase1';
+import {createCharacterActions} from './character-actions.js?build=0.8.0-phase1';
+import {createCharacterEditor} from './character-editor.js?build=0.8.0-phase1';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.8.0-phase1';
 export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{},onStartChat=async()=>{},onStartFresh=async()=>{},personaName=id=>id}) {
     const $=id=>document.getElementById(id);
     const chats=createCharacterChats({rpc,action,readChat,onChat,readState:()=>({key,editorSession,open:$('asset-editor').open,unavailable:lastLocked&&!allowDrafts})});

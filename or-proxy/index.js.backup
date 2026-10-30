@@ -1,0 +1,40 @@
+const http = require('http');
+const { fetch } = require('wreq-js');
+
+const TARGET = 'https://openrouter.ai';
+const PORT = 8001;
+
+const server = http.createServer(async (req, res) => {
+  try {
+    const targetUrl = TARGET + req.url;
+
+    // Собираем тело запроса, если оно есть (POST/PUT)
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const body = chunks.length ? Buffer.concat(chunks) : undefined;
+
+    // Копируем заголовки, кроме host (его подставит fetch сам)
+    const headers = { ...req.headers };
+    delete headers.host;
+    delete headers['content-length'];
+
+    const upstream = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body,
+      impersonate: 'chrome',
+    });
+
+    res.writeHead(upstream.status, Object.fromEntries(upstream.headers));
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    res.end(buf);
+  } catch (err) {
+    console.error('Proxy error:', err);
+    res.writeHead(502, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'proxy_error', message: String(err) }));
+  }
+});
+
+server.listen(PORT, '127.0.0.1', () => {
+  console.log(`OpenRouter TLS-proxy listening on http://127.0.0.1:${PORT}`);
+});

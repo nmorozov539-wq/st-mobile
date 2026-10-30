@@ -1,0 +1,838 @@
+/* Tela, an Obsidian theme inspired by the Tela app's style guide.
+   https://github.com/rbartoli/obsidian-tela-theme (MIT)
+
+   Generated from src/ by scripts/build.mjs. Edit the partials, not theme.css.
+
+   Layers, in order:
+   10-tokens       the --tela-* palette, one block per colour scheme
+   20-foundation   Obsidian's base scale, extended colours, type and shape
+   30-chrome       sidebars, tabs, navigation, overlays
+   40-editor       headings and editor details
+   50-settings     Style Settings options */
+
+/* Tela's palette, copied from tela/shared/theme.ts (DARK / LIGHT) and the
+   values its derivations produce: deriveNeutrals() for panel/border/sunken,
+   railRecess() for the recess, onAccentInk() for the ink on the raw accent,
+   attention and warn fills.
+   The light neutrals sit DARKER than the base: Tela's ramp keeps elevation in
+   perceptual terms, so on a pale ground a raised panel steps down.
+
+   --tela-faint has no Tela counterpart: Tela has two text lanes and holds
+   both to WCAG AA. Obsidian sets real text in faint (tab titles, settings
+   headings, code comments, result counts), so faint is muted blended into
+   the base only as far as it still clears 4.5:1 on every ground it sits on:
+   bg, code blocks, panels, and the recess under Distinct sidebars. The
+   recess is the darkest light ground, so it sets the light value.
+
+   --tela-code-* is Tela's terminal palette (dark: Tomorrow Night, light:
+   GitHub Light, from theme.ts ansi), so code blocks read like Tela's
+   terminal. Every value clears 4.5:1 on --tela-panel2, the code ground. */
+
+.theme-dark {
+	--tela-bg: #0d0e11;
+	--tela-panel: #16171c;
+	--tela-panel2: #121317;
+	--tela-border: #23252b;
+	--tela-sunken: #0b0d12;
+	--tela-recess: #07080c;
+	--tela-fg: #e6e8ef;
+	--tela-muted: #8b90a3;
+	--tela-faint: #808497;
+	--tela-accent: #0091ff;
+	--tela-on-accent: #111318;
+	--tela-on-attention: #111318;
+	--tela-on-warn: #111318;
+	--tela-attention: #f76b15;
+	--tela-ok: #3fb950;
+	--tela-warn: #d29922;
+	--tela-err: #f85149;
+
+	/* Hues Tela has no status role for, from its terminal palette
+	   (Tomorrow Night bright cyan / magenta). */
+	--tela-cyan: #70c0b1;
+	--tela-purple: #c397d8;
+	--tela-yellow: var(--tela-warn);
+	--tela-code-keyword: #b294bb;
+	--tela-code-function: #81a2be;
+	--tela-code-string: #b5bd68;
+	--tela-code-value: #f0c674;
+	--tela-code-property: #c66;
+	--tela-code-tag: #c66;
+	--tela-code-operator: #8abeb7;
+	--tela-code-important: #f0c674;
+}
+
+.theme-light {
+	--tela-bg: #f7f8fa;
+	--tela-panel: #ebedf3;
+	--tela-panel2: #f1f2f6;
+	--tela-border: #d7d9e0;
+	--tela-sunken: #f5f7fb;
+	--tela-recess: #e6e7e9;
+	--tela-fg: #1f2328;
+	--tela-muted: #59636e;
+	--tela-faint: #5e6772;
+	--tela-accent: #0969da;
+	--tela-on-accent: #fff;
+	--tela-on-attention: #fff;
+	--tela-on-warn: #fff;
+	--tela-attention: #bc4c00;
+	--tela-ok: #116329;
+	--tela-warn: #7d4e00;
+	--tela-err: #cf222e;
+
+	/* GitHub Light family, which Tela's light terminal palette is built on.
+	   Yellow is not --tela-warn here: warn is tuned dark for text, and Obsidian
+	   tints highlights, callouts and canvas cards from --color-yellow, where
+	   that brown would read as mud. */
+	--tela-cyan: #1b7c83;
+	--tela-purple: #8250df;
+	--tela-yellow: #bf8700;
+	--tela-code-keyword: #cf222e;
+	--tela-code-function: #8250df;
+	--tela-code-string: #116329;
+	--tela-code-value: #0550ae;
+	--tela-code-property: #106068;
+	--tela-code-tag: #a40e26;
+	--tela-code-operator: #cf222e;
+	--tela-code-important: #0969da;
+}
+
+/* Tela's list-title ink (--title-ink): fg at 86%, built from fg as Tela
+   builds it, so each scheme gets its own. */
+.theme-dark,
+.theme-light {
+	--tela-title-ink: color-mix(in srgb, var(--tela-fg) 86%, transparent);
+}
+
+/* Colour: rebuild Obsidian's base scale from Tela's neutrals. Obsidian derives
+   its semantic layer from these steps (primary = 00, primary-alt = 10,
+   secondary = 20, border = 30, faint = 50, muted = 70, normal = 100), so most
+   of the app follows without per-component overrides. Steps Tela has no
+   neutral for are mixed from their neighbours. */
+.theme-dark,
+.theme-light {
+	--color-base-00: var(--tela-bg);
+	--color-base-05: color-mix(in srgb, var(--tela-bg) 50%, var(--tela-panel2));
+	--color-base-10: var(--tela-panel2);
+	--color-base-20: var(--tela-panel);
+	--color-base-25: color-mix(in srgb, var(--tela-panel) 50%, var(--tela-border));
+	--color-base-30: var(--tela-border);
+	--color-base-35: color-mix(in srgb, var(--tela-border) 80%, var(--tela-muted));
+	--color-base-40: color-mix(in srgb, var(--tela-border) 60%, var(--tela-muted));
+	--color-base-50: var(--tela-faint);
+	--color-base-60: color-mix(in srgb, var(--tela-faint) 50%, var(--tela-muted));
+	--color-base-70: var(--tela-muted);
+	--color-base-100: var(--tela-fg);
+
+	/* Extended colours feed callouts, canvas, graph and syntax highlighting. */
+	--color-red: var(--tela-err);
+	--color-orange: var(--tela-attention);
+	--color-yellow: var(--tela-yellow);
+	--color-green: var(--tela-ok);
+	--color-cyan: var(--tela-cyan);
+	--color-blue: var(--tela-accent);
+	--color-purple: var(--tela-purple);
+	--color-pink: color-mix(in oklch, var(--tela-err) 50%, var(--tela-purple));
+	--text-on-accent: var(--tela-on-accent);
+	--text-warning: var(--tela-warn);
+
+	/* Syntax highlighting from Tela's terminal palette. */
+	--code-normal: var(--text-normal);
+	--code-comment: var(--text-faint);
+	--code-punctuation: var(--text-muted);
+	--code-keyword: var(--tela-code-keyword);
+	--code-function: var(--tela-code-function);
+	--code-string: var(--tela-code-string);
+	--code-value: var(--tela-code-value);
+	--code-property: var(--tela-code-property);
+	--code-tag: var(--tela-code-tag);
+	--code-operator: var(--tela-code-operator);
+	--code-important: var(--tela-code-important);
+}
+
+/* Accent text sits on accent tints (tags, links in callouts, selected
+   rows). On the pale ground the raw accent lands near 4.1:1 there, so light
+   mode pulls accent text toward black: AA on tints, and still the user's
+   hue, since it is mixed from --color-accent. */
+.theme-light {
+	--text-accent: color-mix(in oklch, var(--color-accent) 82%, #000);
+	--text-accent-hover: color-mix(in oklch, var(--color-accent) 70%, #000);
+}
+
+/* Accent fills (primary buttons, toggles, the plugin browser's "Installed")
+   carry white text. Obsidian fills light mode with a lighter step of the
+   accent, where white is 4.3:1; the accent itself holds 5:1, and hover
+   darkens rather than lightens. The selection washes and accent-tinted ink
+   keep mixing from the lighter step (--tela-tint-accent), so text on and
+   near them is unchanged. */
+body {
+	--tela-tint-accent: var(--interactive-accent);
+}
+
+.theme-light {
+	--interactive-accent: var(--color-accent);
+	--interactive-accent-hover: color-mix(in srgb, var(--color-accent) 85%, #000);
+	--tela-tint-accent: var(--color-accent-1);
+}
+
+/* Obsidian's mobile CSS swaps in true black (.is-mobile.theme-dark) and pure
+   black ink (.is-mobile.theme-light), at a specificity that beats the block
+   above. Tela's mobile app keeps the desktop palette, so reassert it. */
+.is-mobile.theme-dark,
+.is-mobile.theme-light {
+	--color-base-00: var(--tela-bg);
+	--color-base-10: var(--tela-panel2);
+	--color-base-20: var(--tela-panel);
+	--color-base-100: var(--tela-fg);
+}
+
+/* Accent via h/s/l rather than --color-accent, so the user's own accent
+   setting keeps overriding it. Values are --tela-accent per scheme. */
+.theme-dark {
+	--accent-h: 206;
+	--accent-s: 100%;
+	--accent-l: 50%;
+}
+
+.theme-light {
+	--accent-h: 212;
+	--accent-s: 92%;
+	--accent-l: 45%;
+}
+
+/* Type and shape. Set on body: Obsidian's mobile sizes live on .is-mobile,
+   which outranks body, so phones keep their touch sizes. */
+body {
+	/* Obsidian bundles Inter as a variable font, so Tela's UI face needs no
+	   embedding. The mono stack is Tela's, with Windows and Obsidian fallbacks. */
+	--font-interface-theme: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-text-theme: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-monospace-theme: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", "Source Code Pro", monospace;
+
+	/* Tela's type roles: body 12, label 13, heading 14, display 16. */
+	--font-ui-smaller: 12px;
+	--font-ui-small: 13px;
+	--font-ui-medium: 14px;
+	--font-ui-large: 16px;
+
+	/* Tela's controls and cards are 6px; overlays stay at Obsidian's 8. */
+	--radius-s: 6px;
+	--input-radius: 6px;
+	--checkbox-radius: 4px;
+}
+
+/* Tela blends its chrome with the content's ground: rail, toolbar and tab
+   strip all sit on --bg, separated only by hairline borders. Obsidian puts
+   sidebars, ribbon and status bar on --background-secondary, so pointing that
+   at the base gives the same single-plane look. */
+.theme-dark,
+.theme-light {
+	--background-secondary: var(--tela-bg);
+	--tab-container-background: var(--background-primary);
+	--sidebar-tab-container-background: var(--background-secondary);
+	--titlebar-background: var(--background-primary);
+	--titlebar-background-focused: var(--background-primary);
+
+	/* Tela's buttons: panel fill, hairline border, accent border on hover. */
+	--interactive-normal: var(--tela-panel);
+	--interactive-hover: var(--color-base-25);
+	--input-shadow: inset 0 0 0 1px var(--background-modifier-border);
+	--input-shadow-hover: inset 0 0 0 1px var(--interactive-accent);
+
+	/* "You are here" is Tela's selected card: the accent at 16%, on the open
+	   note, a toggled button and the open settings page. Hover stays a
+	   neutral wash (wash-05), so a hovered row never reads as selected. */
+	--tela-selected: color-mix(in srgb, var(--tela-tint-accent) 16%, transparent);
+	--nav-item-background-hover: color-mix(in oklch, var(--mono-100) 5%, transparent);
+	--nav-item-background-active: var(--tela-selected);
+	--background-modifier-active-hover: var(--tela-selected);
+
+	/* Tree rows read like Tela's rail titles, not Obsidian's muted grey. */
+	--nav-item-color: var(--tela-title-ink);
+
+	/* Active tab: Tela's wash-04 over the base, flattened to a solid colour so
+	   the hairline outline doesn't show through. Mixed in sRGB, as the wash
+	   is: in oklch the grey picks up a red cast. */
+	--tab-background-active: color-mix(in srgb, var(--mono-100) 4%, var(--background-primary));
+
+	/* Overlays sit on the raised panel, as Tela's menus and popovers do. */
+	--menu-background: var(--tela-panel);
+	--menu-border-color: var(--background-modifier-border);
+	--prompt-background: var(--tela-panel);
+	--prompt-border-color: var(--background-modifier-border);
+	--modal-border-color: var(--background-modifier-border);
+}
+
+body {
+	--nav-item-radius: 6px;
+	--nav-item-weight-active: 550;
+
+	/* Flat tab strip: no curves, no rounded tops. */
+	--tab-curve: 0px;
+	--tab-radius-active: 0;
+	--status-bar-radius: 0;
+}
+
+/* Desktop document tabs meet the strip's edges, as in Tela. Keep the title
+   and close button's inner padding, and Obsidian's window-control offsets. */
+body:not(.is-mobile) .workspace-split.mod-root .workspace-tabs:not(.mod-stacked) {
+	--tab-container-padding-start: 0px;
+	--tab-container-padding-end: 0px;
+}
+
+body:not(.is-mobile) .workspace-split.mod-root .workspace-tabs:not(.mod-stacked) > .workspace-tab-header-container > .workspace-tab-header-container-inner {
+	margin: 0 0 calc(var(--tab-outline-width) * -1);
+	padding: 0;
+}
+
+body:not(.is-mobile) .workspace-split.mod-root .workspace-tabs:not(.mod-stacked) > .workspace-tab-header-container > .workspace-tab-header-container-inner > .workspace-tab-header {
+	padding: 0;
+}
+
+/* Inside the tab, the title and the close icon sit 10px from its edges, as
+   Tela's tabs do; the close button carries 2px of its own. */
+body:not(.is-mobile) .workspace-split.mod-root .workspace-tabs:not(.mod-stacked) > .workspace-tab-header-container > .workspace-tab-header-container-inner > .workspace-tab-header > .workspace-tab-header-inner {
+	padding-inline: 10px 8px;
+}
+
+/* With the left sidebar collapsed, the first tab starts at the ribbon's edge,
+   as the note does. Obsidian pads the window's top-left tabs by 8px plus the
+   room macOS keeps for its window buttons; keep only the room. Without the
+   ribbon the sidebar toggle sits in the strip and the 8px centres it, so
+   that stays, as does right to left, where macOS reserves its buttons. */
+body.show-ribbon:not(.mod-rtl).is-hidden-frameless:not(.is-fullscreen) .workspace-split.mod-root .workspace-tabs.mod-top-left-space:not(.mod-stacked) > .workspace-tab-header-container {
+	padding-left: var(--frame-left-space);
+}
+
+/* Faint text can't hold 4.5:1 under the hover and selection washes, so a
+   washed row lifts it to muted, as Obsidian already does for file-type
+   badges: result counts, row subtext, menu and list descriptions. */
+:is(.tree-item-self, .suggestion-item, .menu-item, .list-item, .vertical-tab-nav-item):is(:hover, .is-active, .is-selected, .selected, .mobile-tap),
+.cm-tooltip-autocomplete li[aria-selected] {
+	--text-faint: var(--text-muted);
+}
+
+/* Notebook Navigator draws dates, tags and other secondary text in body ink
+   at 50%, under 4.5:1 on the light ground. Muted ink holds AA in both modes.
+   Its selection keeps its focus cue: the focused pane's row stays the
+   text-selection blue, and an unfocused one takes the selected wash, not
+   grey, so the open note always reads as selected. */
+.theme-light,
+.theme-dark {
+	--nn-theme-foreground-faded: var(--text-muted);
+	--nn-theme-navitem-selected-inactive-bg: var(--tela-selected);
+	--nn-theme-file-selected-inactive-bg: var(--tela-selected);
+}
+
+/* Rows picked for a batch action (alt-click, shift-click) keep Obsidian's
+   accent selection. Obsidian leaves the open note out of the pick, so while
+   one is under way the open note steps back to the hover wash: in the
+   accent it would read as picked too. */
+/* stylelint-disable-next-line selector-pseudo-class-disallowed-list */
+.workspace-leaf-content:is([data-type="file-explorer"], [data-type="bookmarks"]):has(.tree-item-self.is-selected) .tree-item-self.is-active:not(.is-selected) {
+	background-color: var(--nav-item-background-hover);
+}
+
+/* A picked row's file-type badge (CANVAS, BASE) takes the row's ink, as
+   Obsidian does for a dragged row: muted ink on the selection is under
+   4.5:1, down to 3.8:1 with Distinct sidebars in light mode. */
+.tree-item-self.is-selected .nav-file-tag {
+	color: var(--nav-item-color-selected);
+}
+
+/* Menus highlight in the accent at 18%, the command palette and suggestions
+   at 16%, as Tela's context menu and palette do. A destructive item
+   highlights in red, its title ink moved toward the body ink: plain error
+   red on its own wash is 3.4:1 in light mode. */
+.menu {
+	--background-modifier-hover: color-mix(in srgb, var(--tela-tint-accent) 18%, transparent);
+}
+
+.menu-item.is-warning:not(.is-disabled):is(.selected, .mobile-tap) {
+	background-color: color-mix(in srgb, var(--text-error) 18%, transparent);
+	color: color-mix(in oklch, var(--text-error) 60%, var(--text-normal));
+}
+
+.prompt,
+.suggestion-container {
+	--background-modifier-hover: var(--tela-selected);
+}
+
+/* Obsidian draws a suggestion's action hint ("Enter to create") in the
+   interactive accent: 3:1 on the selected row in light mode. Moved toward
+   the body ink, it holds AA on the accent wash in both modes. */
+.suggestion-item.mod-complex .suggestion-action {
+	color: color-mix(in oklch, var(--tela-tint-accent) 60%, var(--text-normal));
+}
+
+/* Settings mark the open page as the file tree marks the open note.
+   Obsidian paints it with the hover wash, and not on phones, where the list
+   and the page never share the screen. */
+body:not(.is-phone) .vertical-tab-nav-item.is-active {
+	background-color: var(--tela-selected);
+}
+
+/* The active sidebar view and a toggled header button (sort, auto-reveal)
+   are Tela's active icon button: the accent on the selected wash, hovered
+   or not. Obsidian colours a focused view's icon through its tab variables,
+   so those carry the accent too. */
+:is(.mod-primary-split, .mod-secondary-split) .workspace-tab-header-container .workspace-tab-header.is-active,
+:is(.mod-primary-split, .mod-secondary-split) .workspace-tab-header-container .workspace-tab-header.is-active:hover {
+	--icon-color: var(--interactive-accent);
+	--icon-color-focused: var(--interactive-accent);
+	--tab-text-color-active: var(--interactive-accent);
+	--tab-text-color-focused-active: var(--interactive-accent);
+	--tab-text-color-focused-active-current: var(--interactive-accent);
+
+	background-color: var(--tela-selected);
+}
+
+.nav-buttons-container .nav-action-button.is-active {
+	background-color: var(--tela-selected);
+	color: var(--interactive-accent);
+}
+
+/* The focused pane's active tab gets Tela's 2px accent top line. No variable
+   covers this. */
+body.is-focused .workspace-split.mod-root .mod-active .workspace-tab-header.is-active {
+	box-shadow:
+		inset 0 2px 0 var(--interactive-accent),
+		0 0 0 var(--tab-outline-width) var(--tab-outline-color);
+}
+
+/* Tela is a dense app-chrome system with no reading scale, so the editor's
+   type is new design in Tela's idiom: one weight for every heading level
+   (Tela's heading role is 600) and a gentler ratio than Obsidian's
+   golden-section steps. Every pair of neighbouring levels differs by a cue of
+   its own: at least 11% in size down to h4, which keeps h4 clear of a bold
+   paragraph; the accent on h1 and h2 (many notes never use h1, so they share
+   a colour); a mix of that accent into body ink on h3; muted ink from h5,
+   which sits at body size; and h6 is a small capitalised label. */
+body {
+	--h1-size: 1.6em;
+	--h2-size: 1.4em;
+	--h3-size: 1.25em;
+	--h4-size: 1.125em;
+	--h5-size: 1em;
+	--h6-size: 0.875em;
+	--h1-weight: 600;
+	--h2-weight: 600;
+	--h3-weight: 600;
+	--h4-weight: 600;
+	--h5-weight: 600;
+	--h6-weight: 600;
+	--h1-color: var(--text-accent);
+	--h2-color: var(--text-accent);
+	--h3-color: color-mix(in oklch, var(--text-accent) 28%, var(--text-normal));
+	--h5-color: var(--text-muted);
+	--h6-color: var(--text-muted);
+	--h6-letter-spacing: 0.05em;
+
+	/* Bold: a whisper of accent, half of h3's mix, so a bold run is not a
+	   heading and not a link. */
+	--bold-color: color-mix(in oklch, var(--text-accent) 16%, var(--text-normal));
+
+	/* Hairlines, as everywhere else in Tela. */
+	--hr-thickness: 1px;
+	--callout-quote: var(--tela-muted);
+
+	/* Unresolved links: Obsidian fades them to 70%, which drops the accent
+	   under 4.5:1. Keep full ink and mark them with a dashed underline. */
+	--link-unresolved-opacity: 1;
+	--link-unresolved-decoration-style: dashed;
+	--link-unresolved-decoration-color: color-mix(in oklch, var(--interactive-accent) 60%, transparent);
+}
+
+/* Live preview paints a quote line as .cm-quote, which outranks .cm-strong,
+   so --bold-color never showed there. Same for the ** markers. */
+.markdown-rendered :is(strong, b),
+.cm-s-obsidian span.cm-strong,
+.cm-s-obsidian span.cm-formatting-strong,
+.cm-s-obsidian span.cm-quote.cm-strong,
+.cm-s-obsidian span.cm-quote.cm-formatting-strong {
+	color: var(--bold-color);
+}
+
+/* A bold run inside a link keeps the link colour. */
+.markdown-rendered a :is(strong, b),
+.cm-s-obsidian span.cm-strong:is(.cm-hmd-internal-link, .cm-link, .cm-url),
+.cm-s-obsidian span.cm-quote.cm-strong:is(.cm-hmd-internal-link, .cm-link, .cm-url) {
+	color: var(--link-color);
+}
+
+/* No variable sets text-transform, so h6's capitals need Obsidian's own heading
+   selectors: the reading view's h6, and the heading text in the editor.
+   Small caps (--h6-variant) would avoid the rule, but they render about 8px
+   tall at this size, too small to read as a heading. */
+.markdown-rendered h6,
+.cm-header-6 {
+	text-transform: uppercase;
+}
+
+/* Chapter hairline under h1 and h2: the border colour, not the accent, and
+   h3 does not get one. No variable covers a heading border, so this uses
+   Obsidian's own heading selectors: the reading view, print, and the live
+   preview line (HyperMD-header-N; the lint wants kebab-case, which that
+   class is not). Padding keeps the glyphs off the line. */
+.markdown-rendered :is(h1, h2),
+.print :is(h1, h2),
+/* stylelint-disable-next-line selector-class-pattern */
+.cm-line.HyperMD-header-1,
+/* stylelint-disable-next-line selector-class-pattern */
+.cm-line.HyperMD-header-2 {
+	border-bottom: var(--hr-thickness) solid var(--background-modifier-border);
+	padding-bottom: 0.35em;
+}
+
+/* Callouts are Tela's request card: a faint neutral box, radius 8, with a
+   bar in the callout's colour, 4px wide, 4px in and 6px clear of the ends.
+   Text starts 22px in, not the card's 16: beside 16px note text, 8px from
+   the bar crowds it. The inline padding is logical, so the text keeps clear
+   of the bar in right-to-left notes too.
+   Every bar is a border, not a background: axe skips short text (titles,
+   inline code) inside anything with a sizeable background pseudo-element,
+   so a filled bar would hide callout titles from npm run qa. */
+body {
+	--callout-radius: 8px;
+}
+
+.callout {
+	/* Code sits on the note's own ground. Obsidian's code ground is within a
+	   step of the card's, so inline code and code blocks would lose their
+	   box; on the ground they keep it, at the contrast they have outside. */
+	--code-background: var(--background-primary);
+
+	position: relative;
+	padding-inline: 22px 12px;
+	background-color: color-mix(in srgb, var(--text-normal) 4%, transparent);
+}
+
+.callout::before {
+	content: "";
+	position: absolute;
+	inset-block: 6px;
+	inset-inline-start: 4px;
+	width: 0;
+	border-inline-start: 4px solid var(--callout-color);
+	border-radius: 2px;
+}
+
+/* Callout titles take the callout colour. On the pale box several hues
+   land under 4.5:1 (cyan 4.31:1), so light mode deepens the title ink; the
+   icon and the bar keep the raw colour. */
+.theme-light .callout {
+	--callout-title-color: color-mix(in oklch, var(--callout-color) 78%, #000);
+}
+
+/* Quotes take the same bar in faint ink, 2px clear of the ends. Note
+   embeds keep Obsidian's 2px accent line: an embed frames a whole note,
+   and a bar there would stack with the bars of the quotes and callouts
+   inside it. */
+body {
+	--blockquote-border-thickness: 0;
+	--blockquote-border-color: var(--text-faint);
+}
+
+.markdown-rendered blockquote {
+	position: relative;
+}
+
+.markdown-rendered blockquote::before {
+	content: "";
+	position: absolute;
+	inset-block: 2px;
+	inset-inline-start: 0;
+	width: 0;
+	border-inline-start: 4px solid var(--blockquote-border-color);
+	border-radius: 2px;
+}
+
+/* Live preview draws a quote one line at a time, so the bar is each line's,
+   joined; the last and first line round its ends. Only :has() can find
+   the last line, and it looks at the next sibling alone. Nested levels
+   draw theirs with .cm-blockquote-border. */
+.markdown-source-view.mod-cm6 .cm-blockquote-border::before,
+/* stylelint-disable-next-line selector-class-pattern */
+.markdown-source-view.mod-cm6.is-live-preview .HyperMD-quote::before {
+	width: 0;
+	border-inline-start: 4px solid var(--blockquote-border-color);
+}
+
+/* stylelint-disable-next-line selector-class-pattern, selector-pseudo-class-disallowed-list */
+.markdown-source-view.mod-cm6.is-live-preview .HyperMD-quote:not(:has(+ .HyperMD-quote))::before {
+	bottom: 2px;
+	border-end-start-radius: 2px;
+	border-end-end-radius: 2px;
+}
+
+/* stylelint-disable-next-line selector-class-pattern */
+.markdown-source-view.mod-cm6.is-live-preview .HyperMD-quote:not(.HyperMD-quote + .HyperMD-quote)::before {
+	top: 2px;
+	border-start-start-radius: 2px;
+	border-start-end-radius: 2px;
+}
+
+/* Obsidian pins the native calendar icon to the left but reserves space for
+   it only on desktop. Android WebViews that show it paint it over date text.
+   Match desktop's physical left inset: Obsidian's later picker rule also wins
+   over its RTL rule, so logical padding would reserve the wrong side in RTL. */
+body.is-android input[type="date"]:not(:disabled),
+body.is-android input[type="datetime-local"]:not(:disabled) {
+	padding-left: var(--size-4-6);
+}
+
+/* Alternate task states. Obsidian draws every marker other than [ ] and [x]
+   as a plain tick; these get a mark of their own, in two kinds, each drawn
+   one way:
+   - Status markers keep the box, filled, with a heavy glyph like the tick:
+     [!] important in Tela's attention colour (something waiting on you),
+     [?] question in warn, [/] in progress as a half-filled accent box, and
+     the parked states [-] cancelled, [>] forwarded and [<] scheduled in grey.
+   - Annotation markers drop the box for a bare 16px Lucide glyph in a hue,
+     like Obsidian's own icons: [*] ["] [l] [b] [i] [S] [I] [p] [c] [f] [k]
+     [w] [u] [d], the set many themes share. Every hue clears 3:1 on the
+     note, except light mode's yellow, so yellow glyphs take warn.
+   Each state sets custom properties on its checkbox, and one rule draws them.
+   The checkbox carries data-task in some views and its line or list item in
+   others, so each state names all four places. Other markers get a check. */
+
+/* [!] important */
+:is(input[data-task="!"], li[data-task="!"] > input, li[data-task="!"] > p > input, .cm-line[data-task="!"] input) {
+	--checkbox-color: var(--tela-attention);
+	--checkbox-color-hover: var(--tela-attention);
+	--checkbox-marker-color: var(--tela-on-attention);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v9M12 19v.01'/%3E%3C/svg%3E");
+}
+
+/* [?] question */
+:is(input[data-task="?"], li[data-task="?"] > input, li[data-task="?"] > p > input, .cm-line[data-task="?"] input) {
+	--checkbox-color: var(--tela-warn);
+	--checkbox-color-hover: var(--tela-warn);
+	--checkbox-marker-color: var(--tela-on-warn);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8.5 9a3.5 3.5 0 1 1 4.7 3.3c-.8.3-1.2 1-1.2 1.8v.4M12 19v.01'/%3E%3C/svg%3E");
+}
+
+/* [-] cancelled */
+:is(input[data-task="-"], li[data-task="-"] > input, li[data-task="-"] > p > input, .cm-line[data-task="-"] input) {
+	--checkbox-color: var(--color-base-35);
+	--checkbox-color-hover: var(--color-base-35);
+	--checkbox-marker-color: var(--text-muted);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+}
+
+/* [>] forwarded */
+:is(input[data-task=">"], li[data-task=">"] > input, li[data-task=">"] > p > input, .cm-line[data-task=">"] input) {
+	--checkbox-color: var(--color-base-35);
+	--checkbox-color-hover: var(--color-base-35);
+	--checkbox-marker-color: var(--text-muted);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E");
+}
+
+/* [<] scheduled */
+:is(input[data-task="<"], li[data-task="<"] > input, li[data-task="<"] > p > input, .cm-line[data-task="<"] input) {
+	--checkbox-color: var(--color-base-35);
+	--checkbox-color-hover: var(--color-base-35);
+	--checkbox-marker-color: var(--text-muted);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v3'/%3E%3Cpath d='M16 2v3'/%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M3 9h18'/%3E%3C/svg%3E");
+}
+
+/* [*] star */
+:is(input[data-task="*"], li[data-task="*"] > input, li[data-task="*"] > p > input, .cm-line[data-task="*"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-warn);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* ["] quote */
+:is(input[data-task="\""], li[data-task="\""] > input, li[data-task="\""] > p > input, .cm-line[data-task="\""] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--text-muted);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z'/%3E%3Cpath d='M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [l] location */
+:is(input[data-task="l"], li[data-task="l"] > input, li[data-task="l"] > p > input, .cm-line[data-task="l"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-err);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [b] bookmark */
+:is(input[data-task="b"], li[data-task="b"] > input, li[data-task="b"] > p > input, .cm-line[data-task="b"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-attention);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [i] information */
+:is(input[data-task="i"], li[data-task="i"] > input, li[data-task="i"] > p > input, .cm-line[data-task="i"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-accent);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [S] savings */
+:is(input[data-task="S"], li[data-task="S"] > input, li[data-task="S"] > p > input, .cm-line[data-task="S"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-ok);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 17h3v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a3.16 3.16 0 0 0 2-2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1a5 5 0 0 0-2-4V3a4 4 0 0 0-3.2 1.6l-.3.4H11a6 6 0 0 0-6 6v1a5 5 0 0 0 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z'/%3E%3Cpath d='M16 10h.01'/%3E%3Cpath d='M2 8v1a2 2 0 0 0 2 2h1'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [I] idea */
+:is(input[data-task="I"], li[data-task="I"] > input, li[data-task="I"] > p > input, .cm-line[data-task="I"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-warn);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [p] pro */
+:is(input[data-task="p"], li[data-task="p"] > input, li[data-task="p"] > p > input, .cm-line[data-task="p"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-ok);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z'/%3E%3Cpath d='M7 10v12'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [c] con */
+:is(input[data-task="c"], li[data-task="c"] > input, li[data-task="c"] > p > input, .cm-line[data-task="c"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-err);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z'/%3E%3Cpath d='M17 14V2'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [f] fire */
+:is(input[data-task="f"], li[data-task="f"] > input, li[data-task="f"] > p > input, .cm-line[data-task="f"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-attention);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [k] key */
+:is(input[data-task="k"], li[data-task="k"] > input, li[data-task="k"] > p > input, .cm-line[data-task="k"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-warn);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z'/%3E%3Ccircle cx='16.5' cy='7.5' r='.5' fill='white'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [w] win */
+:is(input[data-task="w"], li[data-task="w"] > input, li[data-task="w"] > p > input, .cm-line[data-task="w"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-purple);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2'/%3E%3Cpath d='M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2'/%3E%3Cpath d='M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3'/%3E%3Cpath d='M4 22h16'/%3E%3Cpath d='M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z'/%3E%3Cpath d='M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [u] up */
+:is(input[data-task="u"], li[data-task="u"] > input, li[data-task="u"] > p > input, .cm-line[data-task="u"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-ok);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 7h6v6'/%3E%3Cpath d='m22 7-8.5 8.5-5-5L2 17'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [d] down */
+:is(input[data-task="d"], li[data-task="d"] > input, li[data-task="d"] > p > input, .cm-line[data-task="d"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--tela-err);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 17h6v-6'/%3E%3Cpath d='m22 17-8.5-8.5-5 5L2 7'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+/* [/] in progress: an accent outline, half filled. */
+:is(input[data-task="/"], li[data-task="/"] > input, li[data-task="/"] > p > input, .cm-line[data-task="/"] input) {
+	--checkbox-color: transparent;
+	--checkbox-color-hover: transparent;
+	--checkbox-marker-color: var(--interactive-accent);
+	--tela-task-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='2' width='10' height='20' fill='white'/%3E%3C/svg%3E");
+	--tela-task-glyph-size: 100%;
+}
+
+:is(input[data-task="/"], li[data-task="/"] > input, li[data-task="/"] > p > input, .cm-line[data-task="/"] input):checked {
+	border-color: var(--interactive-accent);
+}
+
+:is(input[data-task]:not([data-task=" "], [data-task="x"], [data-task="X"]), li[data-task]:not([data-task=" "], [data-task="x"], [data-task="X"]) > input, li[data-task]:not([data-task=" "], [data-task="x"], [data-task="X"]) > p > input, .cm-line[data-task]:not([data-task=" "], [data-task="x"], [data-task="X"]) input):checked::after {
+	mask-image: var(--tela-task-glyph, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"));
+	mask-size: var(--tela-task-glyph-size, 65%);
+	mask-position: center;
+}
+
+/* Cancelled reads as struck out, like done, but stays muted. */
+li[data-task="-"],
+.cm-line[data-task="-"] {
+	color: var(--text-muted);
+	text-decoration: line-through;
+}
+
+/* PDF export and printing: keep a block on one page, and a heading on the
+   page of the text it introduces. A block taller than a page still breaks.
+   The lint's "partial support" warning is about breaks between columns;
+   Chromium honours these between pages, as a real PDF export confirms. */
+@media print {
+	.print :is(.callout, pre, table, .math-block, .mermaid, img) {
+		/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+		break-inside: avoid;
+	}
+
+	.print :is(h1, h2, h3, h4, h5, h6) {
+		/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+		break-after: avoid;
+	}
+}
+
+/* @settings
+
+name: Tela
+id: tela
+settings:
+    -
+        id: tela-distinct-sidebar
+        title: Distinct sidebars
+        description: Give the sidebars a recessed surface instead of the editor's background, like Tela with "Match terminal background" turned off.
+        type: class-toggle
+
+*/
+
+/* The mobile drawer reads --mobile-sidebar-background, which Obsidian points
+   at --background-secondary in dark mode but --background-primary in light. */
+.tela-distinct-sidebar.theme-dark,
+.tela-distinct-sidebar.theme-light {
+	--background-secondary: var(--tela-recess);
+	--mobile-sidebar-background: var(--tela-recess);
+}
+
+/* On the light recess, a black wash darkens a row past what muted text can
+   hold. Rows there lift toward the note's ground instead: halfway on hover,
+   and when selected, to the selected wash laid on that ground (on the
+   recess itself it would drop muted text to 4.1:1). */
+.tela-distinct-sidebar.theme-light :is(.mod-left-split, .mod-right-split, .workspace-drawer) {
+	--nav-item-background-hover: color-mix(in srgb, var(--tela-bg) 50%, var(--tela-recess));
+	--nav-item-background-active: color-mix(in srgb, var(--tela-tint-accent) 16%, var(--tela-bg));
+	--nn-theme-navitem-selected-inactive-bg: var(--nav-item-background-active);
+	--nn-theme-file-selected-inactive-bg: var(--nav-item-background-active);
+}

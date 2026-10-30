@@ -16,7 +16,7 @@ html[data-background=plain] #chat-screen,html[data-background=plain] #landing.li
 .sp-note{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 14px}.sp-note.ok{color:var(--brass)}.sp-note.warn{color:var(--warn)}.sp-note.err{color:var(--bad)}
 .sp-field{display:block;margin:0 0 14px;font-size:15px;color:var(--text)}
 .sp-field-head{display:flex;justify-content:space-between;align-items:baseline}.sp-field-head small{color:var(--muted);font-size:13px}
-.sp-field input,.sp-field select{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:48px;padding:8px 12px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-s);color:inherit;font-size:16px}
+.sp-field input,.sp-field select{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:48px;padding:8px 12px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-m);color:inherit;font-size:16px}
 .sp-with-button{display:flex;align-items:flex-end;gap:8px}.sp-with-button>label{flex:1;min-width:0}.sp-icon-btn{min-width:48px;min-height:48px;margin-bottom:14px;background:transparent;border:0;color:var(--text);font-size:20px}
 
 

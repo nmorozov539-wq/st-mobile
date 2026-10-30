@@ -56,7 +56,7 @@
 
 /* 5c: configuration fields */
 .memory-field{display:block;font-size:14px;color:var(--text);margin:0 0 14px}
-.memory-field input,.memory-field select,.memory-field textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:44px;padding:8px 10px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-s);color:inherit;font-size:16px;line-height:1.5}
+.memory-field input,.memory-field select,.memory-field textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:44px;padding:8px 10px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-m);color:inherit;font-size:16px;line-height:1.5}
 .memory-field textarea{resize:vertical}.memory-field textarea[readonly]{opacity:.65}
 .memory-stats-table{width:100%;border-collapse:collapse;font-size:14px}.memory-stats-table td{padding:10px 0;border-bottom:1px solid var(--line)}.memory-stats-table td:last-child{text-align:right;color:var(--muted)}
 .memory-section .memory-hint{margin:4px 0 10px;display:block}

@@ -1,5 +1,7 @@
 # Pocket Tavern design handoff
 
+> **0.8 look (October 2026):** the colour, gradient and accent parts of this document are superseded by the 0.8 look defined in `prototype/frontend/tokens.css` (charcoal and brass, Rubik and Literata, Lucide icons; the "Gradient" background is now a faint glow of the character colour). The behaviour and safeguard rules here still apply.
+
 Updated 9 October 2026. Project: `/home/Riv/Projects/st-mobile`. Current build: 0.7.9 Memory; 0.7.8 Characters and Chats libraries; 0.7.0 chat is user-confirmed working on Android.
 
 ## Start here

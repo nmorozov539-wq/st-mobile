@@ -1,5 +1,7 @@
 # Pocket Tavern goal visuals
 
+> **0.8 look (October 2026):** the colour, gradient and accent parts of this document are superseded by the 0.8 look defined in `prototype/frontend/tokens.css` (charcoal and brass, Rubik and Literata, Lucide icons; the "Gradient" background is now a faint glow of the character colour). The behaviour and safeguard rules here still apply.
+
 Visual references for the intended Pocket Tavern Android app. The current web build is a proof of concept for its UI, ST integration and safeguards. These are mockups, not implemented application screens; Android packaging/framework decisions remain a separate future phase.
 
 Implementation status, 8 October 2026: the authorized 0.7.0 chat phase follows these references; other screens remain later phases. Historical “on hold” notes below record design-only approval at the time. The two-line persona-link draft still awaits approval. See [review and rollout](../docs/IMPLEMENTATION_REVIEW.md).

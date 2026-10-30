@@ -2,7 +2,6 @@
 // Recovery for the existing combined installation; never prepares/overwrites user data.
 const fs=require('node:fs');const path=require('node:path');const os=require('node:os');
 const net=require('node:net');const {spawn}=require('node:child_process');
-const {pipeline}=require('node:stream/promises');
 const RELEASE='0.8.0-phase1',PREFIX=`pocket-tavern-combined-v${RELEASE}/`;
 // The release name may carry a suffix (0.8.0-phase1); browsers may add " (1)" or "-1" to repeat downloads.
 const archiveName=new RegExp(`^pocket-tavern-combined-v${RELEASE.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?:[ (\\-].*)?\\.zip$`);
@@ -22,8 +21,14 @@ async function extractKit(archive,destination,engine){
     if(entry.fileName.endsWith('/'))fs.mkdirSync(file,{recursive:true});
     else{
      fs.mkdirSync(path.dirname(file),{recursive:true});
+     // Read the whole entry, then write it. Piping yauzl 2.10's stream into a file stream
+     // can stall forever under backpressure on current Node, which ended the repair silently.
      const stream=await new Promise((done,fail)=>zip.openReadStream(entry,(error,value)=>error?fail(error):done(value)));
-     await pipeline(stream,fs.createWriteStream(file,{flags:'wx',mode:0o600}));
+     const chunks=[];
+     await new Promise((done,fail)=>{stream.on('data',chunk=>chunks.push(chunk));stream.on('end',done);stream.on('error',fail);});
+     const data=Buffer.concat(chunks);
+     if(data.length!==entry.uncompressedSize)throw Error(`Damaged ZIP entry: ${entry.fileName}. Download the package again.`);
+     fs.writeFileSync(file,data,{flag:'wx',mode:0o600});
     }
     zip.readEntry();
    }catch(error){zip.close();reject(error);}

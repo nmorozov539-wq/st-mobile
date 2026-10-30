@@ -98,13 +98,13 @@ export function createEntryEditor({request, action, notify, locked, back, setSub
 
   if (state.error) page.append(el('p', state.error, 'wi-error'));
   const footer = el('div', '', 'wi-footer');
-  footer.append(btn('Cancel', () => action(cancel)), btn('Save', () => action(save), 'wi-btn wi-primary wi-save'));
+  footer.append(btn('Cancel', () => action(cancel)), btn('Save', () => action(save), 'btn secondary wi-btn primary wi-primary wi-save'));
   page.append(footer);
   container.replaceChildren(page); sync();
  }
  async function expand(source) {
   const area = el('textarea', '', 'wi-expanded'); area.value = source.value;
-  const result = await modal({title: 'Entry content', body: [area], buttons: done => [btn('Cancel', () => done(null)), btn('Use text', () => done(area.value), 'wi-btn wi-primary')]});
+  const result = await modal({title: 'Entry content', body: [area], buttons: done => [btn('Cancel', () => done(null)), btn('Use text', () => done(area.value), 'btn secondary wi-btn primary wi-primary')]});
   if (result !== null) { state.draft.content = result; source.value = result; sync(); }
  }
  async function cancel() {

@@ -5,7 +5,7 @@ export function el(tag, text = '', className) {
  if (className) node.className = className;
  return node;
 }
-export function btn(label, onclick, className = 'wi-btn', attrs = {}) {
+export function btn(label, onclick, className = 'btn secondary wi-btn', attrs = {}) {
  const node = el('button', label, className);
  node.type = 'button';
  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
@@ -30,19 +30,19 @@ export function modal({title, text, body = [], buttons}) {
   d.showModal();
  });
 }
-export const confirmDialog = ({title, text, confirm, danger}) => modal({title, text, buttons: done => [btn('Cancel', () => done(false)), btn(confirm, () => done(true), danger ? 'wi-btn wi-danger' : 'wi-btn wi-primary')]}).then(Boolean);
+export const confirmDialog = ({title, text, confirm, danger}) => modal({title, text, buttons: done => [btn('Cancel', () => done(false)), btn(confirm, () => done(true), danger ? 'btn secondary wi-btn destructive wi-danger' : 'btn secondary wi-btn primary wi-primary')]}).then(Boolean);
 export function promptDialog({title, text, label, value = '', confirm = 'Save', validate}) {
  const input = el('input'); input.value = value; input.setAttribute('aria-label', label);
  const message = el('p', '', 'wi-form-error'); message.hidden = true;
  const field = el('label', label, 'wi-field'); field.append(input);
  return modal({title, text, body: [field, message], buttons: done => {
-  const ok = btn(confirm, () => { const problem = validate?.(input.value); if (problem) { message.textContent = problem; message.hidden = false; return; } done(input.value); }, 'wi-btn wi-primary');
+  const ok = btn(confirm, () => { const problem = validate?.(input.value); if (problem) { message.textContent = problem; message.hidden = false; return; } done(input.value); }, 'btn secondary wi-btn primary wi-primary');
   input.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); ok.click(); } };
   return [btn('Cancel', () => done(null)), ok];
  }});
 }
 /** Lets the person choose one of several actions. Resolves with the chosen id. */
-export const menuDialog = (title, items) => modal({title, buttons: done => items.map(item => btn(item.label, () => done(item.id), item.danger ? 'wi-btn wi-menu-item wi-danger-text' : 'wi-btn wi-menu-item')).concat(btn('Close', () => done(null), 'wi-btn'))});
+export const menuDialog = (title, items) => modal({title, buttons: done => items.map(item => btn(item.label, () => done(item.id), item.danger ? 'btn secondary wi-btn wi-menu-item destructive wi-danger-text' : 'btn secondary wi-btn wi-menu-item')).concat(btn('Close', () => done(null), 'btn secondary wi-btn'))});
 
 export function checkbox(label, checked, onchange, hint) {
  const row = el('label', '', 'wi-check');

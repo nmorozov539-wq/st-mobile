@@ -59,7 +59,7 @@ export function createActivationPage({request, action, notify, locked, back, cha
   page.append(section('Matching defaults', 'Entries can override these.', true, c));
   if (error) page.append(el('p', error, 'wi-error'));
   const footer = el('div', '', 'wi-footer');
-  footer.append(btn('Cancel', () => action(cancel)), btn('Save', () => action(save), 'wi-btn wi-primary wi-save'));
+  footer.append(btn('Cancel', () => action(cancel)), btn('Save', () => action(save), 'btn secondary wi-btn primary wi-primary wi-save'));
   page.append(footer);
   container.replaceChildren(page); sync();
  }

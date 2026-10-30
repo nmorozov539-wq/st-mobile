@@ -61,7 +61,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
   return [...new Set([...registry, ...used])].sort((a, b) => a.localeCompare(b));
  }
  const bookRow = book => {
-  const wrap = el('div', '', 'wi-book'), open = expanded.has(book.name);
+  const wrap = el('div', '', 'card wi-book'), open = expanded.has(book.name);
   const head = el('div', '', 'wi-book-head');
   const toggle = btn('', () => { if (open) expanded.delete(book.name); else { expanded.add(book.name); if (!details.has(book.name)) loadBook(book.name); } render(); }, 'wi-book-toggle', {'aria-expanded': String(open), 'aria-label': `${open ? 'Collapse' : 'Expand'} ${book.name}`});
   const caret = iconIn('span', open ? 'down' : 'right', 'wi-caret'), text = el('span', '', 'wi-book-text');
@@ -96,7 +96,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
   if (!container?.isConnected || !onPage('wi')) return;
   const page = el('div', '', 'wi-page');
   const bar = el('div', '', 'wi-toolbar');
-  bar.append(btn('Import', () => importInput.click(), 'wi-btn'), (() => { const b = btn('Book', () => action(createBook), 'wi-btn wi-primary'); b.prepend(icon('plus')); return b; })(), btn('Folder', () => action(createFolder), 'wi-btn'));
+  bar.append(btn('Import', () => importInput.click(), 'btn secondary wi-btn'), (() => { const b = btn('Book', () => action(createBook), 'btn secondary wi-btn primary wi-primary'); b.prepend(icon('plus')); return b; })(), btn('Folder', () => action(createFolder), 'btn secondary wi-btn'));
   page.append(bar);
   if (failure) { page.append(el('p', failure, 'wi-error'), btn('Retry', load)); }
   else if (!lib) page.append(el('p', 'Loading World Info…', 'wi-note'));
@@ -200,7 +200,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
  async function moveBook(book) {
   const names = folders();
   const picker = select([['', 'No folder'], ...names.map(name => [name, name]), ['\u0000new', 'New folder…']], book.folder ?? '', () => {});
-  const choice = await modal({title: `Move “${book.name}”`, body: [field('Folder', picker)], buttons: done => [btn('Cancel', () => done(null)), btn('Move', () => done(picker.value), 'wi-btn wi-primary')]});
+  const choice = await modal({title: `Move “${book.name}”`, body: [field('Folder', picker)], buttons: done => [btn('Cancel', () => done(null)), btn('Move', () => done(picker.value), 'btn secondary wi-btn primary wi-primary')]});
   if (choice === null) return;
   let folder = choice === '' ? null : choice;
   if (choice === '\u0000new') {

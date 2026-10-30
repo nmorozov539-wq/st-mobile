@@ -79,7 +79,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   return new Promise(resolve => {
    const d = dialog('memory-confirm');
    let result = false;
-   const ok = el('button', confirm, danger ? 'memory-danger' : 'memory-primary');
+   const ok = el('button', confirm, danger ? 'btn destructive memory-danger' : 'btn primary memory-primary');
    const cancel = el('button', 'Cancel');
    ok.onclick = () => { result = true; d.close(); };
    cancel.onclick = () => d.close();
@@ -98,7 +98,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    area.rows = 9; area.value = text;
    const label = el('label', 'Summary', 'memory-field');
    label.append(area);
-   const save = el('button', 'Save', 'memory-primary');
+   const save = el('button', 'Save', 'btn primary memory-primary');
    const cancel = el('button', 'Cancel');
    const sync = () => { save.disabled = !area.value.trim(); };
    area.oninput = sync; sync();
@@ -115,7 +115,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
  // ---------- shared catch-up card (page and chat) ----------
  function choiceCard(value) {
   if (!value?.backlog) return null;
-  const card = el('div', '', 'memory-catchup-card');
+  const card = el('div', '', 'card memory-catchup-card');
   card.append(el('strong', 'Catch up on older turns?'));
   card.append(el('p', `${value.backlog.turns} older turns need summarizing. Catching up takes about ${value.backlog.calls} summary request${value.backlog.calls !== 1 ? 's' : ''}, plus any layer promotions.`));
   const choose = (kind, label, note) => {
@@ -181,7 +181,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   content.append(toggle('Enable Summaryception', 'enabled'), toggle('Pause summarization', 'pauseSummarization'));
   content.append(el('small', 'Pause new summaries; keep existing memories in use.', 'memory-hint'));
 
-  const summarizeBtn = el('button', '', 'memory-summarize-btn');
+  const summarizeBtn = el('button', '', 'btn primary memory-summarize-btn');
   summarizeBtn.append(icon('zap'), 'Summarize now');
   summarizeBtn.disabled = off;
   summarizeBtn.onclick = () => action(async () => {
@@ -194,7 +194,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   content.append(summarizeBtn);
 
   if (value.busy) {
-   const stopBtn = el('button', 'Stop summarizing', 'memory-stop-btn');
+   const stopBtn = el('button', 'Stop summarizing', 'btn destructive memory-stop-btn');
    stopBtn.onclick = () => action(async () => { onStopRequested(); await request({action: 'stop'}); await reread(); });
    content.append(stopBtn);
   }
@@ -211,7 +211,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    if (text === undefined) box.append(el('p', 'Preview needs the updated Summaryception extension. Restart the engine after updating.', 'memory-placeholder'));
    else if (!text) box.append(el('p', value.settings.enabled ? 'Nothing is injected yet: this chat has no summaries.' : 'Summaryception is disabled, so nothing is injected.', 'memory-placeholder'));
    else box.append(el('pre', text, 'memory-injection-text'));
-   const refreshBtn = el('button', 'Refresh', 'memory-secondary'); refreshBtn.prepend(icon('refresh'));
+   const refreshBtn = el('button', 'Refresh', 'btn secondary memory-secondary'); refreshBtn.prepend(icon('refresh'));
    refreshBtn.disabled = offline;
    refreshBtn.onclick = () => action(async () => { await reread(); });
    box.append(refreshBtn);
@@ -242,7 +242,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    const box = el('div');
    box.append(el('p', usable ? 'Summaries use the main ST connection, including its proxy.' : `Summaryception is set to "${source}". Pocket can only summarize through the main ST connection; your other connection settings are kept.`, 'memory-hint'));
    if (!usable) {
-    const useMain = el('button', 'Use the main ST connection', 'memory-secondary');
+    const useMain = el('button', 'Use the main ST connection', 'btn secondary memory-secondary');
     useMain.disabled = off;
     useMain.onclick = () => mutate({action: 'settings', value: {connectionSource: 'default'}}, 'Using the main ST connection');
     box.append(useMain);
@@ -267,7 +267,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    box.append(el('h4', 'Memory for this conversation', 'memory-subhead'));
    const row = el('div', '', 'memory-button-row');
    const button = (label, fn, {danger = false, disabled = off} = {}) => {
-    const b = el('button', label, danger ? 'memory-danger-outline' : 'memory-secondary');
+    const b = el('button', label, danger ? 'btn destructive memory-danger-outline' : 'btn secondary memory-secondary');
     b.disabled = disabled || !modern;
     b.onclick = fn;
     row.append(b);
@@ -311,7 +311,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   content.append(el('p', 'Configuration applies to all chats. Saved memories belong to this conversation.', 'memory-footer'));
 
   const saveBar = el('div', '', 'memory-savebar');
-  const saveBtn = el('button', 'Save settings', 'memory-save-btn');
+  const saveBtn = el('button', 'Save settings', 'btn primary memory-save-btn');
   saveBtn.disabled = !dirty() || off;
   saveBtn.onclick = () => action(async () => {
    const delta = changes(value);
@@ -353,7 +353,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    slot.disabled = off || !names.length;
    slotWrap.append(slot);
    const row = el('div', '', 'memory-button-row');
-   const load = el('button', 'Load', 'memory-secondary'), del = el('button', 'Delete', 'memory-danger-outline');
+   const load = el('button', 'Load', 'btn secondary memory-secondary'), del = el('button', 'Delete', 'btn destructive memory-danger-outline');
    load.disabled = del.disabled = off;
    load.onclick = () => { if (!slot.value) return; user.area.value = saved[slot.value]; edit('summarizerUserPrompt', saved[slot.value]); promptName = slot.value; };
    del.onclick = () => action(async () => {
@@ -368,7 +368,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    nameInput.oninput = () => { promptName = nameInput.value; };
    nameWrap.append(nameInput);
    const row2 = el('div', '', 'memory-button-row');
-   const saveP = el('button', 'Save prompt', 'memory-secondary'), imp = el('button', 'Import', 'memory-secondary'), exp = el('button', 'Export', 'memory-secondary');
+   const saveP = el('button', 'Save prompt', 'btn secondary memory-secondary'), imp = el('button', 'Import', 'btn secondary memory-secondary'), exp = el('button', 'Export', 'btn secondary memory-secondary');
    saveP.disabled = imp.disabled = off;
    saveP.onclick = () => { const n = promptName.trim(); if (!n || !user.area.value.trim()) { notify('Enter a prompt name and some prompt text.'); return; } edit('savedCustomPrompts', {...saved, [n]: user.area.value}); renderIfVisible(current); };
    imp.onclick = () => action(async () => { const text = await readFile('.txt,.md,text/plain'); if (text === null) return; user.area.value = text; edit('summarizerUserPrompt', text); });
@@ -403,14 +403,14 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   wrap.append(tabs);
   const blocked = off || value.needsRebuild || value.settings.injectionTemplate === undefined;
   (layers[activeLayer] ?? []).forEach((snippet, index) => {
-   const card = el('article', '', 'memory-snippet');
+   const card = el('article', '', 'card memory-snippet');
    const range = Array.isArray(snippet.turnRange) ? `Messages ${snippet.turnRange[0] + 1}–${snippet.turnRange[1] + 1}` : '';
    const when = snippet.timestamp ? new Date(snippet.timestamp).toLocaleString() : '';
    if (range || when) card.append(el('small', [range, when].filter(Boolean).join(' · ')));
    card.append(el('p', snippet.text ?? ''));
    const row = el('div', '', 'memory-snippet-actions');
    const target = {layer: activeLayer, index, expected: snippet.text};
-   const editBtn = el('button', 'Edit', 'memory-secondary');
+   const editBtn = el('button', 'Edit', 'btn secondary memory-secondary');
    editBtn.onclick = () => action(async () => {
     const text = await editDialog(snippet.text);
     if (text === null || text === snippet.text) return;
@@ -418,14 +418,14 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    });
    row.append(editBtn);
    if (snippet.turnRange) {
-    const redo = el('button', 'Regenerate', 'memory-secondary');
+    const redo = el('button', 'Regenerate', 'btn secondary memory-secondary');
     redo.onclick = () => action(async () => {
      if (!await confirmDialog({title: 'Regenerate this memory?', text: `Summarizes ${range.toLowerCase()} again with your summarizer. This sends a request that may cost money, and replaces the current text.`, confirm: 'Regenerate'})) return;
      await mutate({action: 'snippet', value: {op: 'regenerate', ...target}}, 'Snippet regenerated');
     });
     row.append(redo);
    }
-   const del = el('button', 'Delete', 'memory-danger-outline');
+   const del = el('button', 'Delete', 'btn destructive memory-danger-outline');
    del.onclick = () => action(async () => {
     if (!await confirmDialog({title: 'Delete this memory?', text: 'The snippet is removed from the injected memory. Your chat messages are not deleted.', confirm: 'Delete', danger: true})) return;
     await mutate({action: 'snippet', value: {op: 'delete', ...target}}, 'Snippet deleted');

@@ -114,7 +114,7 @@ function renderPersonaEditor(content){
             // Load the list and the new portrait first, then show the page once.
             const savedKey=result?.key??personaEdit.key;await refresh();if(personaPortraitFile&&savedKey){const version=Date.now();await preloadImage(personaPortraitUrl(savedKey,version));personaPortraitVersions.set(savedKey,version);}personaPortraitFile=null;personaEdit=null;navigate('personas');toast('Persona saved');
         }catch(e){saveBtn.disabled=false;cancelBtn.disabled=false;toast(e.message);}
-    });saveBtn.className='persona-save';
+    });saveBtn.className='btn primary persona-save';
     actions.append(cancelBtn,saveBtn);content.append(top,descLabel,actions);
 }
 let pickerPersonaDetail=null;
@@ -136,8 +136,8 @@ function renderPersonaPicker(content){
         header.append(info);card.append(header);
         if(desc)card.append(el('p',desc,'persona-current-desc'));
         const cardActions=el('div','','persona-current-actions');
-        const editBtn=button('Edit persona',()=>action(()=>openPersonaEditor(current)));editBtn.className='persona-action-btn';editBtn.prepend(icon('edit'));
-        const linkBtn=button('Link…',()=>action(()=>openLinkDialog(current)));linkBtn.className='persona-action-btn';linkBtn.prepend(icon('link'));
+        const editBtn=button('Edit persona',()=>action(()=>openPersonaEditor(current)));editBtn.className='btn secondary persona-action-btn';editBtn.prepend(icon('edit'));
+        const linkBtn=button('Link…',()=>action(()=>openLinkDialog(current)));linkBtn.className='btn secondary persona-action-btn';linkBtn.prepend(icon('link'));
         cardActions.append(editBtn,linkBtn);card.append(cardActions);
         const chatLink=snapshot?.metadata?.persona===current.id;
         const charLink=pickerPersonaDetail?.descriptor?.connections?.some(c=>c?.type==='character'&&c.id===snapshot?.characterKey);

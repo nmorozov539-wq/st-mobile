@@ -3,7 +3,7 @@
 #landing.library-screen .page-heading h1{font-size:22px;font-weight:500;flex:1}
 #landing.library-screen .page-heading button{background:transparent;border:0;padding:8px;min-width:44px;min-height:44px;margin:0;color:var(--muted);display:grid;place-items:center}
 #landing.library-screen #page-new-chat{background:transparent;color:var(--brass)}
-#landing.library-screen .page-heading svg,.library-tools svg,.chat-row-more svg{width:22px;height:22px}
+#landing.library-screen .page-heading svg,.library-tools svg,.chat-row-more svg{width:20px;height:20px}
 #landing.library-screen #page-content{padding:8px 16px 24px}
 .library-tools{display:flex;gap:10px;padding:8px 4px 20px}.library-tools button{display:flex;align-items:center;gap:7px;min-height:44px;border:0;background:var(--raised);color:var(--text);font-size:13px;padding:8px 13px}.library-tools button:first-child{background:var(--raised);color:var(--text)}
 .character-grid-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;height:150px;padding:6px 4px 20px}
@@ -49,9 +49,9 @@ body:has(#landing.library-screen:not([hidden])) #bottom-nav button.current{backg
 .persona-field-label input,.persona-field-label textarea{background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-s);color:var(--text);padding:10px 12px;font:14px var(--ui);resize:vertical}
 .persona-field-label input:focus,.persona-field-label textarea:focus{border-color:var(--brass);outline:none}
 .persona-editor-actions{display:flex;justify-content:flex-end;gap:12px;padding:20px 0;position:sticky;bottom:0;background:var(--bg)}
-.persona-editor-actions button{min-height:44px;padding:10px 24px;border-radius:var(--r-m);font-size:15px}
-.persona-save{background:var(--brass);color:var(--brass-ink);border:0;font-weight:600}
-.persona-save:disabled{opacity:0.5}
+
+
+
 
 /* Persona picker page */
 .persona-picker-page{padding-top:8px}
@@ -65,7 +65,7 @@ body:has(#landing.library-screen:not([hidden])) #bottom-nav button.current{backg
 .persona-current-title{display:block;font-size:13px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .persona-current-desc{font-size:14px;line-height:1.5;color:var(--muted);margin:12px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .persona-current-actions{margin-top:14px;display:flex;gap:10px}
-.persona-action-btn{background:transparent;border:1px solid var(--line-strong);color:var(--brass);border-radius:var(--r-m);padding:8px 16px;min-height:38px;font-size:13px}
+
 .persona-list-heading{font-size:14px;font-weight:500;color:var(--muted);margin:0 0 12px;padding:0 4px}
 .persona-list-row{display:flex;align-items:center;gap:13px;width:100%;min-height:56px;padding:10px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);text-align:left;border-radius:0}
 .persona-list-row:last-child{border-bottom:0}
@@ -85,7 +85,7 @@ body:has(#landing.library-screen:not([hidden])) #bottom-nav button.current{backg
 .persona-link-target{display:flex;align-items:flex-start;gap:14px;width:100%;min-height:60px;padding:14px 12px;border:1px solid var(--line-strong);border-radius:var(--r-m);background:transparent;color:var(--text);text-align:left;margin-bottom:10px;cursor:pointer}
 .persona-link-target:active{background:var(--selected)}
 .link-target-icon{flex-shrink:0;width:24px;height:24px;color:var(--brass);padding-top:2px}
-.link-target-icon svg{width:22px;height:22px}
+.link-target-icon svg{width:20px;height:20px}
 .link-target-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .link-target-text strong{font-size:15px;font-weight:500}
 .link-target-text small{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

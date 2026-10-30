@@ -130,10 +130,10 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
  function connectionTab(page) {
   const selected = config.selected, custom = selected.source === 'custom';
   const engine = el('div', '', 'sp-engine'); const text = el('div'); text.append(el('strong', 'SillyTavern engine'), el('small', connected() ? 'Connected · Local' : 'Not connected'));
-  const re = btn('', () => reconnect(), 'sp-link'); re.append(icon('reply'), ' Reconnect'); engine.append(text, re);
+  const re = btn('', () => reconnect(), 'btn quiet sp-link'); re.append(icon('reply'), ' Reconnect'); engine.append(text, re);
   const providerNote = deepseek() ? (selected.source === 'deepseek' ? 'DeepSeek · direct' : 'Connect switches to DeepSeek.') : custom ? 'Custom · OpenAI-compatible' : `Currently ${selected.source}. Connect switches to Custom · OpenAI-compatible.`;
   page.append(engine, el('h2', 'Chat Completion', 'sp-heading'), el('p', providerNote, 'sp-sub'));
-  const providers = el('div', '', 'sp-segmented'); providers.setAttribute('role', 'radiogroup'); providers.setAttribute('aria-label', 'Provider');
+  const providers = el('div', '', 'segmented sp-segmented'); providers.setAttribute('role', 'radiogroup'); providers.setAttribute('aria-label', 'Provider');
   for (const [value, label] of [['custom', 'OpenAI-compatible'], ['deepseek', 'DeepSeek']]) providers.append(btn(label, () => {
    if (form.provider === value) return;
    form.provider = value; form.manual = false; form.reply = null;
@@ -148,7 +148,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   const toggle = btn('', () => {
    if (proxyOn()) form.endpoint = directEndpoint(); else { saveDirect(form.endpoint); form.endpoint = PROXY_ENDPOINT; }
    say('Endpoint switched · Ready to connect', 'ok'); render();
-  }, 'sp-switch', {role: 'switch', 'aria-checked': String(proxyOn()), 'aria-label': 'Use proxy'});
+  }, 'toggle sp-switch', {role: 'switch', 'aria-checked': String(proxyOn()), 'aria-label': 'Use proxy'});
   row.append(toggle); page.append(row);
   page.append(el('p', proxyUp === null ? 'Checking proxy…' : proxyOn() ? (proxyUp ? 'Proxy running' : 'Proxy not detected. Start Pocket Tavern with the proxy, then Connect.') : (proxyUp ? 'Proxy available' : 'Proxy stopped'), `sp-note ${proxyOn() && proxyUp === false ? 'warn' : ''}`));
 
@@ -177,17 +177,17 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
    page.append(fieldBlock('Model ID', id));
   }
   // The manual entry also sits at the end of the model list, which is easy to miss on a long list.
-  if (models.length) page.append(btn(form.manual ? 'Choose from the list instead' : 'Type a model ID instead', () => { form.manual = !form.manual; if (!form.manual && !models.some(item => item.id === form.model)) form.model = models[0].id; render(); }, 'sp-link sp-manual'));
+  if (models.length) page.append(btn(form.manual ? 'Choose from the list instead' : 'Type a model ID instead', () => { form.manual = !form.manual; if (!form.manual && !models.some(item => item.id === form.model)) form.model = models[0].id; render(); }, 'btn quiet sp-link sp-manual'));
   page.append(el('p', 'Default model for chats without their own selection.', 'sp-note'));
 
   connectAndTest(page);
  }
  function connectAndTest(page) {
-  const connectButton = btn('', connect, 'sp-primary', working ? {disabled: ''} : {}); connectButton.append(icon('link'), ' Connect');
+  const connectButton = btn('', connect, 'btn primary sp-primary', working ? {disabled: ''} : {}); connectButton.append(icon('link'), ' Connect');
   page.append(connectButton);
   const known = config.onlineStatus === 'no_connection' ? 'Not connected' : `Connected · ${config.models.length} models loaded`;
   page.append(el('p', message || known, `sp-note ${message ? messageKind : (config.onlineStatus === 'no_connection' ? '' : 'ok')}`), el('p', 'Saves connection settings and checks access.', 'sp-note'), el('hr', '', 'sp-rule'));
-  const test = btn('', testMessage, 'sp-secondary', working ? {disabled: ''} : {}); test.append(icon('chat'), ' Test message');
+  const test = btn('', testMessage, 'btn secondary sp-secondary', working ? {disabled: ''} : {}); test.append(icon('chat'), ' Test message');
   page.append(test, el('p', `Using ${form.model || config.selected.model || 'no model selected'}`, 'sp-note'), el('p', 'Sends a small generation request. Provider charges may apply.', 'sp-note'));
   if (form.reply) page.append(el('div', `Test reply · ${form.reply.model} ${form.reply.text}`, 'sp-reply'));
   page.append(el('p', `Pocket Tavern ${FRONTEND_BUILD} · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'));
@@ -209,7 +209,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   slider.onchange = () => render();
   page.append(head, slider);
   const segmented = (title, name, options) => {
-   const group = el('div', '', 'sp-seg'); group.setAttribute('role', 'group'); group.setAttribute('aria-label', title);
+   const group = el('div', '', 'segmented sp-seg'); group.setAttribute('role', 'group'); group.setAttribute('aria-label', title);
    for (const [id, label] of options) group.append(btn(label, () => commit({[name]: id}), '', {'aria-pressed': String(value[name] === id)}));
    page.append(el('p', title, 'sp-label'), group);
   };
@@ -218,7 +218,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   page.append(el('hr', '', 'sp-rule'), el('p', 'Message details', 'sp-label'));
   const flags = [['time', 'Generation time', 'Time taken to finish each reply.'], ['clock', 'Clock timestamp', ''], ['model', 'Model icon', 'Tap the icon to see the full model name.'], ['tokens', 'Token count', 'SillyTavern saves counts only on replies written while this is on.']];
   for (const [name, label, hint] of flags) {
-   const row = el('div', '', 'sp-switch-row'); row.append(el('span', label), btn('', () => { const on = !value.details[name]; commit({details: {[name]: on}}); if (name === 'tokens' && on) enableTokenCounts(); }, 'sp-switch', {role: 'switch', 'aria-checked': String(value.details[name]), 'aria-label': label}));
+   const row = el('div', '', 'sp-switch-row'); row.append(el('span', label), btn('', () => { const on = !value.details[name]; commit({details: {[name]: on}}); if (name === 'tokens' && on) enableTokenCounts(); }, 'toggle sp-switch', {role: 'switch', 'aria-checked': String(value.details[name]), 'aria-label': label}));
    page.append(row); if (hint) page.append(el('p', hint, 'sp-note'));
   }
   page.append(el('p', 'Live preview', 'sp-preview-title'));
@@ -238,7 +238,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   for (const [id, label] of [['connection', 'Connection'], ['appearance', 'Appearance & reading']]) tabs.append(btn(label, () => { tab = id; render(); }, '', {role: 'tab', 'aria-selected': String(tab === id)}));
   page.append(tabs);
   if (tab === 'appearance') appearanceTab(page);
-  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'sp-secondary'), el('p', 'Reading preferences on the other tab work without the engine.', 'sp-note')); }
+  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'btn secondary sp-secondary'), el('p', 'Reading preferences on the other tab work without the engine.', 'sp-note')); }
   else if (!config) page.append(el('p', 'Loading connection settings…', 'sp-note'));
   else connectionTab(page);
   container.replaceChildren(page);

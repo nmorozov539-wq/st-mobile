@@ -14,7 +14,7 @@ I am not technical. Explain findings plainly, give your own opinions, and push b
 
 Start by reading:
 
-- `README.md` and `DESIGN_HANDOFF.md`.
+- `README.md` and `docs/DESIGN_HANDOFF.md`.
 - `prototype/IMPLEMENTATION.md` and `tests/TEST_REPORT.md`.
 - `GoalVisuals/IMPLEMENTATION_GUIDE.md` and `GoalVisuals/README.md`.
 

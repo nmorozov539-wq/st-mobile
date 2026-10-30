@@ -8,7 +8,7 @@ Pocket Tavern is intended as an Android app. The current browser build is a proo
 
 ## Authority and approval
 
-This is a design reference, not a working frontend or permission to implement. Read `README.md` here for behavior, then project `DESIGN_HANDOFF.md`, `README.md`, `prototype/IMPLEMENTATION.md`, and `tests/TEST_REPORT.md` before coding. Later explicitly approved decisions supersede earlier experiments and stale “pending” notes. Preview clicks and sample values do not change approved defaults.
+This is a design reference, not a working frontend or permission to implement. Read `README.md` here for behavior, then project `docs/DESIGN_HANDOFF.md`, `README.md`, `prototype/IMPLEMENTATION.md`, and `tests/TEST_REPORT.md` before coding. Later explicitly approved decisions supersede earlier experiments and stale “pending” notes. Preview clicks and sample values do not change approved defaults.
 
 The character menu's new two-line Chat/Character persona association draft is **awaiting approval**. It is included for review, not an approved replacement. Existing character menu remains the approved base. Chat atmosphere: static Soft still is approved; drift is exploratory. Gear: Curved fan is approved; Vertical is superseded. The full-page model picker with Apply/Cancel is superseded by immediate-selection expandable bottom panel.
 
@@ -49,12 +49,12 @@ Native supported fields and metadata must survive even when a mock editor omits 
 - Proxy toggle eventually starts/stops the process and switches remembered endpoints safely. It requires launcher/bridge changes. Connection tests explicitly identify the global model.
 - Full Summaryception functionality is the intended future target; current bridge limitations are integration gaps. Preserve native import/cancellation/skip semantics.
 
-The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character content/actions/association visibility follow in 0.7.2–0.7.5. The user authorized continuing while phone testing is unavailable and committing each verified milestone. The latest two-line persona-link draft remains pending approval. See `../IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
+The initial coding request authorized evaluation, complete reference review and Chat. The user confirmed 0.7.0 on the phone and authorized continuing the roadmap. Release 0.7.1 implements Preset; Character content/actions/association visibility follow in 0.7.2–0.7.5. The user authorized continuing while phone testing is unavailable and committing each verified milestone. The latest two-line persona-link draft remains pending approval. See `../docs/IMPLEMENTATION_REVIEW.md` for evidence and the staged roadmap.
 
 
 ## Character content rollout — 0.7.2
 
-The first Character subphase implements native content, greeting organization and safe notes previews through the existing verified card editor. Library entry defaults to Edit; chat entry remembers Read/Edit per card. Native links, lorebooks, card actions and new-chat/delete workflows require the next integration subphase. Do not treat the awaiting-approval two-line persona-link draft as accepted. Release numbering stays 0.7.*; storage schema remains independently versioned. Outstanding device checks are in PHONE_TEST_CHECKLIST.md.
+The first Character subphase implements native content, greeting organization and safe notes previews through the existing verified card editor. Library entry defaults to Edit; chat entry remembers Read/Edit per card. Native links, lorebooks, card actions and new-chat/delete workflows require the next integration subphase. Do not treat the awaiting-approval two-line persona-link draft as accepted. Release numbering stays 0.7.*; storage schema remains independently versioned. Outstanding device checks are in ../docs/PHONE_TEST_CHECKLIST.md.
 
 
 ## Character card actions — 0.7.3
@@ -75,7 +75,7 @@ Next Character subphase: approved current-chat selector and create-new-before-op
 
 ## Conversation workflow rollout — 0.7.6–0.7.7
 
-The approved current-chat selector and Character overflow Start new chat confirmation are implemented. Source deletion is optional and off by default; native greeting persistence is verified first, with full-source Undo and explicit uncertainty/restart review. Saved native alternatives and unknown fields remain intact; fresh Memory does not copy the source. No automatic AI request is made when opening a greeting. The broader Characters/Chats libraries and Chats fresh-character picker ship in 0.7.8 below, eliminating the old library’s implicit first-chat creation. Full Persona, World Info and Memory designs remain later phases. The two-line persona draft is still awaiting approval. See ../tests/TEST_REPORT.md and ../PHONE_TEST_CHECKLIST.md for verified evidence and outstanding device checks.
+The approved current-chat selector and Character overflow Start new chat confirmation are implemented. Source deletion is optional and off by default; native greeting persistence is verified first, with full-source Undo and explicit uncertainty/restart review. Saved native alternatives and unknown fields remain intact; fresh Memory does not copy the source. No automatic AI request is made when opening a greeting. The broader Characters/Chats libraries and Chats fresh-character picker ship in 0.7.8 below, eliminating the old library’s implicit first-chat creation. Full Persona, World Info and Memory designs remain later phases. The two-line persona draft is still awaiting approval. See ../tests/TEST_REPORT.md and ../docs/PHONE_TEST_CHECKLIST.md for verified evidence and outstanding device checks.
 
 ## Characters and Chats libraries — 0.7.8
 

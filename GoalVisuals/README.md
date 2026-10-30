@@ -2,7 +2,7 @@
 
 Visual references for the intended Pocket Tavern Android app. The current web build is a proof of concept for its UI, ST integration and safeguards. These are mockups, not implemented application screens; Android packaging/framework decisions remain a separate future phase.
 
-Implementation status, 8 October 2026: the authorized 0.7.0 chat phase follows these references; other screens remain later phases. Historical “on hold” notes below record design-only approval at the time. The two-line persona-link draft still awaits approval. See [review and rollout](../IMPLEMENTATION_REVIEW.md).
+Implementation status, 8 October 2026: the authorized 0.7.0 chat phase follows these references; other screens remain later phases. Historical “on hold” notes below record design-only approval at the time. The two-line persona-link draft still awaits approval. See [review and rollout](../docs/IMPLEMENTATION_REVIEW.md).
 
 ## Coding-session entry point
 
@@ -246,4 +246,4 @@ Only three gear destinations: Preset, Persona, Memory. No Other or Advanced Form
 
 ## Conversation workflow rollout — 0.7.6–0.7.7
 
-The approved current-chat selector and Character overflow Start new chat confirmation are implemented. Source deletion is optional and off by default; native greeting persistence is verified first, with full-source Undo and explicit uncertainty/restart review. Saved native alternatives and unknown fields remain intact; fresh Memory does not copy the source. No automatic AI request is made when opening a greeting. Characters/Chats libraries and the fresh-character picker ship in 0.7.8: three-column cards, separate Import/Create, completeness warnings, exact saved-chat resume, named deletion/Undo and retained swipe-to-reveal Delete. Library taps never activate or create chats. Full Persona, World Info and Memory designs remain later phases. The two-line persona draft is still awaiting approval. See ../tests/TEST_REPORT.md and ../PHONE_TEST_CHECKLIST.md for verified evidence and outstanding device checks.
+The approved current-chat selector and Character overflow Start new chat confirmation are implemented. Source deletion is optional and off by default; native greeting persistence is verified first, with full-source Undo and explicit uncertainty/restart review. Saved native alternatives and unknown fields remain intact; fresh Memory does not copy the source. No automatic AI request is made when opening a greeting. Characters/Chats libraries and the fresh-character picker ship in 0.7.8: three-column cards, separate Import/Create, completeness warnings, exact saved-chat resume, named deletion/Undo and retained swipe-to-reveal Delete. Library taps never activate or create chats. Full Persona, World Info and Memory designs remain later phases. The two-line persona draft is still awaiting approval. See ../tests/TEST_REPORT.md and ../docs/PHONE_TEST_CHECKLIST.md for verified evidence and outstanding device checks.

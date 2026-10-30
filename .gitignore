@@ -22,3 +22,10 @@ __pycache__/
 
 # Local historical inputs and archives (not current design references)
 /history/
+
+# Delivery leftovers and local runtime state
+*.bundle
+*.b64
+*.pid
+/.handoff/
+.obsidian/workspace.json

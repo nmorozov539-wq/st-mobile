@@ -21,3 +21,4 @@
 #entry-marker{color:#c6d4e4;font-size:14px}.preset-savebar{position:sticky;bottom:0;z-index:1;background:#242938;display:flex;justify-content:end;gap:8px;border-top:1px solid #414359;padding:12px 0}.preset-savebar #entry-apply{background:#73b7eb;color:#142437;padding:8px 22px}
 #preset-status{margin:0;padding:8px 18px;background:#242938;border-top:1px solid #414359;font-size:12px;overflow-wrap:anywhere;flex-shrink:0}#preset-status:empty{display:none}#entry-error{color:#f0a7a7;font-size:13px}
 #preset-panel :is(button,input,select,textarea,summary):focus-visible{outline:2px solid #8bc9fa;outline-offset:2px}
+.preset-import{width:100%;min-height:48px;margin:16px 0 4px;border:1px dashed #68738b;border-radius:12px;background:transparent;color:#dce1eb;font-size:15px}

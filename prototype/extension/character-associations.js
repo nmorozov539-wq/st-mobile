@@ -25,8 +25,7 @@ export function associationRevision(power,worldInfo) {
 export function removeCharacterPersona(power,key,personaKey) {
     const next=structuredClone(power.persona_descriptions?.[personaKey]);
     if(!next||!Array.isArray(next.connections))throw Error('The persona link is unavailable. Reopen the character.');
-    const links=Object.entries(power.persona_descriptions??{}).filter(([,d])=>d?.connections?.some(c=>c?.type==='character'&&c.id===key));
-    if(links.length!==1||links[0][0]!==personaKey)throw Error('Multiple or changed persona links need native ST review.');
+    if(!next.connections.some(c=>c?.type==='character'&&c.id===key))throw Error('The persona link changed. Reopen the character.');
     next.connections=next.connections.filter(c=>!(c?.type==='character'&&c.id===key));
     return next;
 }

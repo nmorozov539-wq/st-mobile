@@ -30,3 +30,6 @@
 .new-chat-delete-label input{width:20px;height:20px;flex-shrink:0}
 #new-chat-confirm .dialog-actions{display:flex;gap:8px;flex-wrap:wrap}
 #new-chat-status{font-size:.85rem;color:#b9c7d9}
+.character-chat-persona{display:block;margin-top:-6px;font-size:12px;color:#a9b3c5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.character-association-sheet .persona-link-actions{display:flex;gap:8px;margin-top:8px}.character-association-sheet .persona-link-actions button{flex:1}
+#persona-choice-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}#persona-choice-list .persona-link-target{display:flex;align-items:center;gap:12px;text-align:left}

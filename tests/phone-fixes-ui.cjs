@@ -11,7 +11,8 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  await p.waitForFunction(()=>document.querySelector('#status').textContent==='Engine ready',null,{timeout:90000});
  const engine=p.locator('#engine').contentFrame().locator('body');
  const title=()=>p.locator('#page-title').textContent();
- const back=async()=>{await p.evaluate(()=>history.back());await p.waitForTimeout(600);};
+ // Escape is a close request, the desktop stand-in for Android Back.
+ const back=async()=>{await p.keyboard.press('Escape');await p.waitForTimeout(600);};
  const stamp=Date.now().toString(36);
  // Earlier suites may leave Summaryception on; these checks need an idle engine.
  await engine.evaluate(async()=>{const s=SillyTavern.getContext().extensionSettings.summaryception;if(s)s.enabled=false;await window.pocketExtensions?.get('summaryception')?.run({action:'stop'});});

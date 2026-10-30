@@ -7,7 +7,8 @@ export function hasActiveSecret(entries) {
 export function providerSecretKey(source) {
     if (source === 'openrouter') return 'api_key_openrouter';
     if (source === 'custom') return 'api_key_custom';
-    throw new Error('Choose OpenRouter or a custom OpenAI-compatible connection.');
+    if (source === 'deepseek') return 'api_key_deepseek';
+    throw new Error('Choose OpenRouter, DeepSeek or a custom OpenAI-compatible connection.');
 }
 
 export function validateEndpoint(value) {

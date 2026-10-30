@@ -1,10 +1,10 @@
-import {icon} from './icons.js?build=0.7.14';
-import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.7.14';
-import {revision} from './journal.js?build=0.7.14';
+import {icon} from './icons.js?build=0.7.15';
+import {presetOrder,setPromptEnabled} from './preset-order.js?build=0.7.15';
+import {revision} from './journal.js?build=0.7.15';
 
 const triggers=[['normal','Normal reply'],['swipe','New alternative'],['continue','Continue'],['regenerate','Regenerate'],['impersonate','Impersonate'],['quiet','Quiet generation']];
 const labels={temperature:'Temperature',openai_max_tokens:'Reply token limit',openai_max_context:'Context token budget',top_p:'Top P'};
-export function createPresetPanel({load,change,action,available}) {
+export function createPresetPanel({load,change,action,available,importPreset}) {
     const $=id=>document.getElementById(id),dialog=$('preset-panel');
     const node=(tag,text='',className='')=>{const n=document.createElement(tag);n.textContent=text;n.className=className;return n;};
     let origin,scope,state,configuration,fields=[],view='main',busy=false,entry,entryBase,entryCopy,feedback='';
@@ -89,6 +89,8 @@ export function createPresetPanel({load,change,action,available}) {
     });
     for(const b of $('preset-scopes').querySelectorAll('button'))b.onclick=()=>{scope=b.dataset.scope;feedback='';render();};
     $('preset-choose').onclick=()=>{show('picker');render();};
+    $('preset-import').onclick=()=>$('preset-import-file').click();
+    $('preset-import-file').onchange=()=>{const file=$('preset-import-file').files[0];$('preset-import-file').value='';if(!file)return;action(async()=>{busy=true;feedback=`Importing ${file.name}…`;renderStatus();lock();try{const result=await importPreset(file);await refresh();feedback=`Imported “${result.imported}”. Tap it to use it.`;}catch(e){feedback=e.message;throw e;}finally{busy=false;render();}});};
     $('preset-inherit').onclick=()=>action(()=>save('inheritPreset'));
     $('preset-back').onclick=()=>{if(view==='main')dialog.close();else{show('main');render();}};
     dialog.addEventListener('cancel',e=>{if(view!=='main'){e.preventDefault();show('main');render();}});

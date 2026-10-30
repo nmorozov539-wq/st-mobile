@@ -87,7 +87,11 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             if (selecting || active || isBusy()) fail('BUSY', 'Finish the current operation before changing settings.');
             if (!argument || argument.revision !== configuration.read().revision) fail('STALE_SETTINGS', 'Settings changed. Reopen the settings panel first.');
             selecting = true;
-            try { return clone(await configuration.change(argument)); }
+            try {
+                const result = await configuration.change(argument);
+                if (['model','source'].includes(argument.kind)) await configuration.syncGlobalModel?.();
+                return clone(result);
+            }
             finally { selecting = false; }
         },
         async extensions(argument) {

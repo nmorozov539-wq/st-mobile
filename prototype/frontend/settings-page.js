@@ -1,8 +1,8 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.7.14';
-import {icon} from './icons.js?build=0.7.14';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.14';
-import {FRONTEND_BUILD} from './build.js?build=0.7.14';
+import {el, btn} from './wi-ui.js?build=0.7.15';
+import {icon} from './icons.js?build=0.7.15';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.7.15';
+import {FRONTEND_BUILD} from './build.js?build=0.7.15';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
@@ -23,7 +23,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   try {
    config = await rpc('settings');
    const selected = config.selected;
-   form = {endpoint: selected.endpoint ?? '', key: '', model: selected.model ?? '', manual: false};
+   form = {provider: selected.source === 'deepseek' ? 'deepseek' : 'custom', endpoint: selected.endpoint ?? '', key: '', model: selected.model ?? '', manual: false};
   } catch (error) { config = null; failure = error.message; }
   say('');
   render();
@@ -50,8 +50,15 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   catch (error) { say(error.message, 'err'); try { config = await rpc('settings'); } catch {} }
   finally { working = false; render(); }
  }
+ const deepseek = () => form.provider === 'deepseek';
  async function saveConnection() {
   const selected = config.selected;
+  if (deepseek()) {
+   // DeepSeek's key and model list live in ST's own DeepSeek slot.
+   if (selected.source !== 'deepseek') await persist('source', 'deepseek');
+   if (form.model && form.model !== config.selected.model && config.models.some(item => item.id === form.model)) await persist('model', form.model);
+   return;
+  }
   if (selected.source !== 'custom') await persist('source', 'custom');
   if (!sameEndpoint(form.endpoint, config.selected.endpoint)) await persist('endpoint', form.endpoint.trim());
   if (form.model && form.model !== config.selected.model) await persist('model', form.model.trim());
@@ -60,8 +67,9 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   await saveConnection(); const key = form.key; form.key = '';
   await persist('connect', key); onChecked();
   say(`Endpoint answered · ${config.models.length} models loaded`, config.onlineStatus === 'no_connection' ? 'err' : 'ok');
-  if (config.onlineStatus === 'no_connection') say('Not connected. Check the endpoint, key and that the proxy is running.', 'err');
-  else {
+  if (config.onlineStatus === 'no_connection') say(deepseek() ? 'Not connected. DeepSeek refused the request: check the API key and your balance.' : 'Not connected. Check the endpoint, key and that the proxy is running.', 'err');
+  else if (deepseek()) say(`Connected to DeepSeek · ${config.models.length} models loaded`, 'ok');
+  else if (!deepseek()) {
    // A model list is public on OpenRouter, so a wrong key still "connects".
    const verdict = await checkKey(form.endpoint, key);
    if (verdict === false) say('The endpoint answered, but the provider rejected this API key. Paste the correct key and press Connect again.', 'err');
@@ -92,11 +100,49 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   say(config.onlineStatus === 'no_connection' ? 'Not connected. The model list could not be refreshed.' : `Models refreshed · ${config.models.length} available`, config.onlineStatus === 'no_connection' ? 'err' : 'ok');
  });
 
+ // Direct DeepSeek: no endpoint or proxy, just the key and DeepSeek's own model list.
+ function deepseekFields(page) {
+  const listed = config.selected.source === 'deepseek' ? config.models : [];
+  page.append(keyField(page, 'DeepSeek API key', 'Create one at platform.deepseek.com → API keys.'));
+  const picker = el('select'); picker.disabled = !listed.length;
+  if (!listed.length) { const option = el('option', 'Connect to load DeepSeek models'); option.value = ''; picker.append(option); }
+  for (const item of listed) { const option = el('option', item.name); option.value = item.id; picker.append(option); }
+  if (listed.length) picker.value = listed.some(item => item.id === form.model) ? form.model : listed[0].id;
+  form.model = picker.value; picker.onchange = () => { form.model = picker.value; };
+  const modelRow = el('div', '', 'sp-with-button'); modelRow.append(fieldBlock('Global model', picker));
+  modelRow.append(btn('', () => refreshModels(), 'sp-icon-btn', {'aria-label': 'Refresh model list'})); modelRow.lastChild.append(icon('refresh')); page.append(modelRow);
+  page.append(el('p', 'Default model for chats without their own selection. Reasoner models think before replying.', 'sp-note'));
+  connectAndTest(page);
+ }
+ function keyField(page, label, hint) {
+  // A saved key belongs to the provider it was saved for.
+  const saved = config.hasProviderKey && (form.provider === 'deepseek') === (config.selected.source === 'deepseek');
+  const key = el('input'); key.type = showKey ? 'text' : 'password'; key.autocomplete = 'off'; key.value = form.key;
+  key.placeholder = saved ? 'Saved key · Leave blank to keep' : 'Paste API key'; key.oninput = () => { form.key = key.value; };
+  const keyRow = el('div', '', 'sp-with-button'); keyRow.append(fieldBlock(label, key, '', hint));
+  const eye = btn('', () => {
+   if (!form.key && saved) { notify('The saved key stays hidden inside SillyTavern. The eye shows a key you type here.'); return; }
+   showKey = !showKey; render();
+  }, 'sp-icon-btn', {'aria-label': showKey ? 'Hide API key' : 'Show API key', 'aria-pressed': String(showKey)});
+  eye.append(icon(showKey ? 'eyeOff' : 'eye')); keyRow.append(eye);
+  return keyRow;
+ }
  function connectionTab(page) {
   const selected = config.selected, custom = selected.source === 'custom';
   const engine = el('div', '', 'sp-engine'); const text = el('div'); text.append(el('strong', 'SillyTavern engine'), el('small', connected() ? 'Connected · Local' : 'Not connected'));
   const re = btn('', () => reconnect(), 'sp-link'); re.append(icon('reply'), ' Reconnect'); engine.append(text, re);
-  page.append(engine, el('h2', 'Chat Completion', 'sp-heading'), el('p', custom ? 'Custom · OpenAI-compatible' : `Currently ${selected.source}. Saving switches to Custom · OpenAI-compatible.`, 'sp-sub'));
+  const providerNote = deepseek() ? (selected.source === 'deepseek' ? 'DeepSeek · direct' : 'Connect switches to DeepSeek.') : custom ? 'Custom · OpenAI-compatible' : `Currently ${selected.source}. Connect switches to Custom · OpenAI-compatible.`;
+  page.append(engine, el('h2', 'Chat Completion', 'sp-heading'), el('p', providerNote, 'sp-sub'));
+  const providers = el('div', '', 'sp-segmented'); providers.setAttribute('role', 'radiogroup'); providers.setAttribute('aria-label', 'Provider');
+  for (const [value, label] of [['custom', 'OpenAI-compatible'], ['deepseek', 'DeepSeek']]) providers.append(btn(label, () => {
+   if (form.provider === value) return;
+   form.provider = value; form.manual = false; form.reply = null;
+   // The other provider's model list doesn't apply; Connect loads the right one.
+   form.model = value === config.selected.source || (value === 'custom' && config.selected.source !== 'deepseek') ? config.selected.model ?? '' : '';
+   say(value === 'deepseek' ? 'Paste your DeepSeek API key, then Connect.' : 'Endpoint settings · Ready to connect', 'ok'); render();
+  }, 'sp-segment', {role: 'radio', 'aria-checked': String(form.provider === value)}));
+  page.append(providers);
+  if (deepseek()) { deepseekFields(page); return; }
 
   const row = el('div', '', 'sp-switch-row'); row.append(el('span', 'Use proxy'));
   const toggle = btn('', () => {
@@ -116,14 +162,7 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   endpoint.onchange = () => saveDirect(endpoint.value);
   page.append(fieldBlock('API endpoint', endpoint, side, 'Base URL, without /chat/completions.'));
 
-  const key = el('input'); key.type = showKey ? 'text' : 'password'; key.autocomplete = 'off'; key.value = form.key;
-  key.placeholder = config.hasProviderKey ? 'Saved key · Leave blank to keep' : 'Paste API key'; key.oninput = () => { form.key = key.value; };
-  const keyRow = el('div', '', 'sp-with-button'); keyRow.append(fieldBlock('API key', key));
-  const eye = btn('', () => {
-   if (!form.key && config.hasProviderKey) { notify('The saved key stays hidden inside SillyTavern. The eye shows a key you type here.'); return; }
-   showKey = !showKey; render();
-  }, 'sp-icon-btn', {'aria-label': showKey ? 'Hide API key' : 'Show API key', 'aria-pressed': String(showKey)});
-  eye.append(icon(showKey ? 'eyeOff' : 'eye')); keyRow.append(eye); page.append(keyRow);
+  page.append(keyField(page, 'API key'));
 
   const models = [...config.models]; if (form.model && !models.some(item => item.id === form.model)) models.unshift({id: form.model, name: form.model});
   const picker = el('select');
@@ -141,6 +180,9 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   if (models.length) page.append(btn(form.manual ? 'Choose from the list instead' : 'Type a model ID instead', () => { form.manual = !form.manual; if (!form.manual && !models.some(item => item.id === form.model)) form.model = models[0].id; render(); }, 'sp-link sp-manual'));
   page.append(el('p', 'Default model for chats without their own selection.', 'sp-note'));
 
+  connectAndTest(page);
+ }
+ function connectAndTest(page) {
   const connectButton = btn('', connect, 'sp-primary', working ? {disabled: ''} : {}); connectButton.append(icon('link'), ' Connect');
   page.append(connectButton);
   const known = config.onlineStatus === 'no_connection' ? 'Not connected' : `Connected · ${config.models.length} models loaded`;

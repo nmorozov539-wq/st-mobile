@@ -1,12 +1,13 @@
-import { createWorkspace } from './workspace.js?build=0.7.14';
-import { createAdapter } from './adapter.js?build=0.7.14';
-import { createGenerationRuntime } from './runtime.js?build=0.7.14';
+import { createWorkspace } from './workspace.js?build=0.7.15';
+import { createAdapter } from './adapter.js?build=0.7.15';
+import { createGenerationRuntime } from './runtime.js?build=0.7.15';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.7.14';
+import { createConfigurationRuntime } from './configuration.js?build=0.7.15';
 
-import { createAssetRuntime } from './assets.js?build=0.7.14';
-import { createWorldInfoRuntime } from './worldinfo.js?build=0.7.14';
+import { createAssetRuntime } from './assets.js?build=0.7.15';
+import { createWorldInfoRuntime } from './worldinfo.js?build=0.7.15';
+import { repairDoubledCards } from './card-repair.js?build=0.7.15';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -32,15 +33,17 @@ window.pocketSaveSettings = async expected => {
     if(!saved || Object.entries(expected).some(([key,value])=>key!=='promptPreset' && JSON.stringify(saved[key])!==JSON.stringify(value)))throw Error('Memory settings do not match the saved copy.');
 };
 
-if (window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime')) {
+// The engine frame is marked by its name: any query string on ST's URL makes jQuery UI load the whole
+// page into the Backgrounds tab, duplicating #form_create and doubling every saved character field.
+if (window.parent !== window && (window.name === 'pocket-engine' || new URLSearchParams(location.search).has('mobileRuntime'))) {
     let port;
-    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.14'};}, characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.7.15'};}, characters: () => adapter.listCharacters(),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),
         chats: () => adapter.listChats(), manage: arg => adapter.manageChat(arg),
         extensions: async arg => {const value=await adapter.extensions(arg);const current=getContext();return {...value,target:{characterKey:current.characters[current.characterId]?.avatar,chatId:current.chatId}};}, assets: arg => adapter.assets(arg), worldinfo: arg => adapter.worldInfo(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
-        activity: () => ({...adapter.activity(),locks:[...(isGenerating()?['ST generation/swipe']:[]),...(isChatSaving?['ST chat save']:[]),...(workspace.busy()?['workspace change']:[]),...[...(window.pocketExtensions?.values()??[])].filter(e=>e.read().busy).map(e=>e.read().waiting?`Memory waiting (${e.read().waitingFor??'deferred'})`:'Memory running')]}), reconcile: () => adapter.reconcile(), reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
+        activity: () => ({...adapter.activity(),locks:[...(isGenerating()?['ST generation/swipe']:[]),...(isChatSaving?['ST chat save']:[]),...(workspace.busy()?['workspace change']:[]),...[...(window.pocketExtensions?.values()??[])].filter(e=>e.read().busy).map(e=>e.read().waiting?`Memory waiting (${e.read().waitingFor??'deferred'})`:'Memory running')]}), reconcile: () => adapter.reconcile(), tokens: async arg => { const texts = Array.isArray(arg?.texts) ? arg.texts.slice(0, 100) : []; return Promise.all(texts.map(text => getContext().getTokenCountAsync(String(text ?? ''), 0))); }, reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
     window.addEventListener('message', event => {
         if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'st-mobile-connect' || !event.ports[0]) return;
         port?.close(); port = event.ports[0];
@@ -53,7 +56,9 @@ if (window.parent !== window && new URLSearchParams(location.search).has('mobile
         port.start();
         window.parent.postMessage({ type: 'st-mobile-connected' }, location.origin);
     });
-    ctx.eventSource.on(ctx.eventTypes.APP_READY, () => {
+    ctx.eventSource.on(ctx.eventTypes.APP_READY, async () => {
+        try { const repaired = await repairDoubledCards(getContext); if (repaired.length) console.info('Pocket repaired doubled card fields:', repaired); }
+        catch (error) { console.warn('Pocket card repair failed', error); }
         adapter.markReady(); adapter.subscribe(event => port?.postMessage({ event }));
         window.parent.postMessage({ type: 'st-mobile-ready' }, location.origin);
     });

@@ -2789,7 +2789,7 @@ async function fetchProfilesFallback(selectElement, currentValue) {
 })();
 
 // Pocket Tavern integration. Full pipeline ownership includes persistence and dialogs.
-const pocketMode = window.parent !== window && new URLSearchParams(location.search).has('mobileRuntime');
+const pocketMode = window.parent !== window && (window.name === 'pocket-engine' || new URLSearchParams(location.search).has('mobileRuntime'));
 let pocketWorking = false, pocketBacklog = null, pocketFailure = '', pocketTimer, pocketRepairTimer, pocketStopped=false;
 let pocketPendingAuto=null, pocketPendingRepair=null;
 const pocketEngineBusy = () => window.pocketEngineBusy?.() ?? true;
@@ -2874,8 +2874,11 @@ const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)t
                 if(getSettings().connectionSource && getSettings().connectionSource!=='default')throw Error('Choose Default ST as Summaryception’s connection in full ST before summarizing in Pocket.');
                 const {chat}=SillyTavern.getContext(),s=getSettings();
                 const turns=getAssistantTurns(chat).filter(t=>!chat[t.index].extra?.sc_ghosted);
+                // Report what happened: a short chat has nothing past the verbatim window.
+                const layers=()=>JSON.stringify(getChatStore().layers),before=layers();
                 if(turns.length>s.verbatimTurns)await runCatchup(turns,turns.length-s.verbatimTurns);
                 updateInjection();await SillyTavern.getContext().saveChat();await window.pocketVerifyMemory();
+                return {...pocketRead(),summaryResult:{replies:turns.length,verbatim:s.verbatimTurns,changed:layers()!==before}};
             }else if(action==='snippet'){
                 const ctx=SillyTavern.getContext(),store=getChatStore(),{op,layer,index,expected,text}=value??{};
                 if(ctx.chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');

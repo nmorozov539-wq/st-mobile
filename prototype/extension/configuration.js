@@ -1,7 +1,7 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.7.14';
-import { connectThroughST } from './connection-check.js?build=0.7.14';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.7.14';
-import { testConnection } from './connection-test.js?build=0.7.14';
+import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.7.15';
+import { connectThroughST } from './connection-check.js?build=0.7.15';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.7.15';
+import { testConnection } from './connection-test.js?build=0.7.15';
 import { saveSettings } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { model_list, getChatCompletionModel, getPresetApplicationPromise, sendOpenAIRequest } from '/scripts/openai.js';
@@ -20,11 +20,11 @@ export function createConfigurationRuntime(getContext) {
         const selected = { mainApi: ctx.mainApi, source: settings.chat_completion_source,
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts, toolCalling: !!settings.function_calling };
-        return { bridgeBuild: '0.7.14', selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.7.15', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
-            onlineStatus: ctx.onlineStatus, keySource: selected.source, hasProviderKey: ['custom','openrouter'].includes(selected.source) && hasActiveSecret(secret_state[providerSecretKey(selected.source)]), hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]), tokenCounts: !!ctx.powerUserSettings?.message_token_count_enabled };
+            onlineStatus: ctx.onlineStatus, keySource: selected.source, hasProviderKey: ['custom','openrouter','deepseek'].includes(selected.source) && hasActiveSecret(secret_state[providerSecretKey(selected.source)]), hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]), tokenCounts: !!ctx.powerUserSettings?.message_token_count_enabled };
     }
     async function verify(check) {
         await saveSettings();
@@ -36,6 +36,14 @@ export function createConfigurationRuntime(getContext) {
     }
     return {
         read,
+        // Settings sets the global model and provider. Keep Pocket's global
+        // copy in step, or opening a chat would put the previous model back.
+        async syncGlobalModel() {
+            const global = getContext().extensionSettings.pocket_tavern?.global, model = getChatCompletionModel();
+            if (!global || !model || global.model === model) return;
+            global.model = model;
+            await verify(saved => saved.extension_settings?.pocket_tavern?.global?.model === model);
+        },
         async change({ kind, value }) {
             const ctx = getContext(), settings = ctx.chatCompletionSettings;
             if (kind === 'preset') {
@@ -73,7 +81,7 @@ export function createConfigurationRuntime(getContext) {
                 settings.show_thoughts = value;
                 await verify(saved => saved.oai_settings?.show_thoughts === value);
             } else if (kind === 'source') {
-                if (!['openrouter', 'custom'].includes(value)) fail('INVALID_ARGUMENT', 'This prototype supports OpenRouter and the custom test connection.');
+                if (!['openrouter', 'custom', 'deepseek'].includes(value)) fail('INVALID_ARGUMENT', 'Pocket supports OpenAI-compatible endpoints (OpenRouter, the proxy, custom) and DeepSeek.');
                 if (ctx.mainApi !== 'openai') changeSelect('#main_api', 'openai');
                 changeSelect('#chat_completion_source', value);
                 await verify(saved => saved.main_api === 'openai' && saved.oai_settings?.chat_completion_source === value);
@@ -82,6 +90,11 @@ export function createConfigurationRuntime(getContext) {
                 if (settings.chat_completion_source === 'custom') {
                     changeInput('#custom_model_id', value);
                     await verify(saved => saved.oai_settings?.custom_model === value);
+                } else if (settings.chat_completion_source === 'deepseek') {
+                    // ST lists DeepSeek's models after Connect and can select only those.
+                    if (!model_list.some(model => model.id === value)) fail('INVALID_ARGUMENT', model_list.length ? `“${value}” is not one of DeepSeek's models. Choose one from the list, or pick a model for this chat in the model panel.` : 'Connect DeepSeek first so its model list is loaded.');
+                    changeSelect('#model_deepseek_select', value);
+                    await verify(saved => saved.oai_settings?.deepseek_model === value);
                 } else {
                     if (settings.chat_completion_source !== 'openrouter' || !model_list.some(model => model.id === value)) fail('INVALID_ARGUMENT', 'Connect OpenRouter and choose a model from its loaded list.');
                     changeSelect('#model_openrouter_select', value);
@@ -107,12 +120,15 @@ export function createConfigurationRuntime(getContext) {
                 const key = providerSecretKey(settings.chat_completion_source);
                 {
                     if (typeof value === 'string' && value.trim()) {
-                        if (value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a valid OpenRouter key.');
+                        if (value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a valid API key.');
                         if (!await writeSecret(key, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
                     }
                     if (settings.chat_completion_source === 'openrouter' && !hasActiveSecret(secret_state[key])) fail('INVALID_ARGUMENT', 'Enter an OpenRouter API key, then press Connect.');
+                    if (settings.chat_completion_source === 'deepseek' && !hasActiveSecret(secret_state[key])) fail('INVALID_ARGUMENT', 'Enter your DeepSeek API key, then press Connect.');
                 }
                 const button = document.querySelector('#api_button_openai');
+                // Switching provider makes ST check the new connection by itself; let that finish first.
+                for (let waited = 0; button.classList.contains('disabled') && waited < 30000; waited += 200) await new Promise(resolve => setTimeout(resolve, 200));
                 if (button.classList.contains('disabled')) fail('BUSY', 'ST is already connecting. Refresh connection and models to check the result.');
                 return await connectThroughST({ host: window, click: () => button.click(), origin: location.origin, read });
             } else fail('INVALID_ARGUMENT', 'Unknown settings control.');

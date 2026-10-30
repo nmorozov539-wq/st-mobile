@@ -41,3 +41,4 @@ import './worldinfo.test.js';
 import './appearance.test.js';
 import './home.test.js';
 import './interface-helpers.test.js';
+import './card-repair.test.js';

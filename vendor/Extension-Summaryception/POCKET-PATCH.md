@@ -9,3 +9,5 @@ Native ST pages retain the original dialogs and UI. Auto-update is disabled so
 an upstream change cannot silently remove this coordination patch.
 
 0.7.9 additions to the registered Pocket API (all validated, all persisted and verified through window.pocketVerifyMemory): `read` also returns the assembled `injection` text and full advanced settings; `settings` accepts layer depth, hiding, logging, system prompt, wrapper (must contain {{summary}}), strip patterns, saved custom prompts and switching connectionSource back to default; `snippet` (edit/delete/regenerate, guarded by expected text), `clear` (also lifts the Pocket rebuild block), `import`, `export`, `repair` and `reset`. Native ST pages are unchanged.
+
+0.7.15: the `summarize` action also returns `summaryResult` (`replies`, `verbatim`, `changed`) so Pocket can say whether anything was summarized. Pocket mode is detected from the engine frame's name (`pocket-engine`), with the old `?mobileRuntime` query string still accepted.

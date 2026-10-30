@@ -1,12 +1,12 @@
-import {characterStatus} from './libraries.js?build=0.7.14';
-import {createCharacterChats} from './character-chats.js?build=0.7.14';
-import {createCharacterActions} from './character-actions.js?build=0.7.14';
-import {createCharacterEditor} from './character-editor.js?build=0.7.14';
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.14';
-export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{},onStartChat=async()=>{},onStartFresh=async()=>{}}) {
+import {characterStatus} from './libraries.js?build=0.7.15';
+import {createCharacterChats} from './character-chats.js?build=0.7.15';
+import {createCharacterActions} from './character-actions.js?build=0.7.15';
+import {createCharacterEditor} from './character-editor.js?build=0.7.15';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.7.15';
+export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{},onStartChat=async()=>{},onStartFresh=async()=>{},personaName=id=>id}) {
     const $=id=>document.getElementById(id);
     const chats=createCharacterChats({rpc,action,readChat,onChat,readState:()=>({key,editorSession,open:$('asset-editor').open,unavailable:lastLocked&&!allowDrafts})});
-    const character=createCharacterEditor({format,converter,sanitize,associationOptions:{rpc,action,readState:associationState,onSaved:associationSaved,editPersona:editRelatedPersona}});
+    const character=createCharacterEditor({format,converter,sanitize,associationOptions:{rpc,action,readState:associationState,onSaved:associationSaved,editPersona:editRelatedPersona,chatPersona:()=>{const chat=readChat(),id=chat?.characterKey===key?chat.metadata?.persona:null;return id?{key:id,name:personaName(id)}:null;}}});
     const backEditor=event=>{if(kind!=='characters')return;if(cardActions.back()){event.preventDefault();return;}if(character.back()){event.preventDefault();renderEditor();}};
     $('asset-editor').addEventListener('pocket-back',backEditor);$('asset-editor').addEventListener('cancel',backEditor);
     window.addEventListener('keydown',event=>{if(event.key!=='Escape'||kind!=='characters'||[...document.querySelectorAll('dialog')].filter(dialog=>dialog.open).at(-1)!==$('asset-editor'))return;event.preventDefault();event.stopPropagation();if(event.repeat)return;const back=new Event('pocket-back',{cancelable:true});if($('asset-editor').dispatchEvent(back))$('asset-editor').close();},true);

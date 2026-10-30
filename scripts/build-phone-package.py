@@ -17,7 +17,13 @@ with tempfile.TemporaryDirectory(prefix='pocket-kit-') as temp:
     runtime=kit/'extension/runtime.js';runtime.write_text(runtime.read_text().replace('Connect ST to the local mock model first.','Open the test engine and connect it to the local mock model first.'))
     mock=kit/'mock-model.mjs';mock.write_text((project/'scripts/mock-model.js').read_text().replace('The PC bridge works!','The phone bridge works!'))
     output=project/'dist/pocket-tavern-combined-v0.8.0-phase1.zip';output.parent.mkdir(exist_ok=True)
+    # The phone extracts with ST's yauzl 2.10, which stalls on a deflated entry
+    # larger than 64 KiB compressed. Already-compressed files (fonts, images)
+    # are stored as they are, and the build stops if any other entry would hit the limit.
+    stored={'.woff2','.png','.jpg','.webp','.zip'}
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
         for file in sorted(kit.rglob('*')):
-            if file.is_file(): archive.write(file,file.relative_to(kit.parent))
+            if file.is_file(): archive.write(file,file.relative_to(kit.parent),compress_type=zipfile.ZIP_STORED if file.suffix in stored else zipfile.ZIP_DEFLATED)
+        large=[i.filename for i in archive.infolist() if i.compress_type==zipfile.ZIP_DEFLATED and i.compress_size>60000]
+    if large: output.unlink(); raise SystemExit('Deflated entries too large for the phone extractor: '+', '.join(large))
     print(output)

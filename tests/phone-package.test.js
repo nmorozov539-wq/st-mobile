@@ -115,3 +115,14 @@ test('data import preserves standard files, leaves source untouched and refuses 
         assert.equal(fs.readFileSync(path.join(destination,'chats/test.jsonl'),'utf8'),'ST CHAT');
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('repair reports a stalled update instead of exiting quietly as success',()=>{
+    const {spawnSync}=require('node:child_process');
+    const script=path.resolve('phone-package/repair-pocket.cjs');
+    const stalled=spawnSync(process.execPath,['-e',`require(${JSON.stringify(script)}).guardUnsettled(new Promise(()=>{}))`],{encoding:'utf8'});
+    assert.equal(stalled.status,1);assert.match(stalled.stderr,/Repair stopped: the update stalled/);
+    const failed=spawnSync(process.execPath,['-e',`require(${JSON.stringify(script)}).guardUnsettled(Promise.reject(Error('bad zip')))`],{encoding:'utf8'});
+    assert.equal(failed.status,1);assert.match(failed.stderr,/Repair stopped: bad zip/);
+    const done=spawnSync(process.execPath,['-e',`require(${JSON.stringify(script)}).guardUnsettled(Promise.resolve())`],{encoding:'utf8'});
+    assert.equal(done.status,0);assert.equal(done.stderr,'');
+});

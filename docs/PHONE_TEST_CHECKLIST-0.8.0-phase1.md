@@ -34,10 +34,10 @@ The background is near-black charcoal and the accent is brass (warm gold). No bl
 Every icon is a thin line drawing. You should see no leftover text symbols such as ⚙ × ‹ ⋯ ✓ ▸ 📁 ⚡ ↻.
 
 - [ ] The bottom bar icons, the Home settings cog, and the chat header back arrow and cog.
-- [ ] The ⋯ button on each message opens the action fan. Its icons are edit, copy, branch, bin, another reply and select.
+- [ ] The ⋯ button on each message opens the action fan. Its icons are edit, copy, branch, bin and select. **Another reply** (circular arrows) appears only on the latest character reply, as in 0.7.15.
 - [ ] Send is an up arrow and Stop is a square.
-- [ ] The close buttons in dialogs are an ×-shaped line icon.
-- [ ] Long-press a button in the chat-cog or message fan. Its name still appears in a small label.
+- [ ] Dialogs with a close button in the top corner (for example Characters → Import, or Start new chat) show it as a thin × icon, not a text ×.
+- [ ] Long-press a button in the chat-cog or message fan. Its name appears in a small label at the bottom of the screen, as before.
 - [ ] In the Model panel and the preset list, the chosen item has a check icon.
 - [ ] "Latest messages" (scroll up in a long chat) has a down-arrow icon.
 
@@ -79,7 +79,7 @@ Every icon is a thin line drawing. You should see no leftover text symbols such 
 - [ ] Book rows show a chevron that turns when opened, the folder rows show a folder icon, and the ⋯ menus are icons.
 - [ ] Entry marks: keyword is a brass circle, Always on is an amber diamond, and Vectorized is a grey triangle.
 - [ ] Open an entry. The expand-content button is an icon. The strategy dropdown reads "Keyword", "Always on" and "Vectorized" (no symbols).
-- [ ] Add entry, Save and Delete still work.
+- [ ] Add entry and Save still work. (There is no Delete for single entries yet; that is a separate feature.)
 
 ## 10. Preset sheet
 

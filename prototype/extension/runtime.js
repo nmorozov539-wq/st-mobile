@@ -1,5 +1,6 @@
 import { generateAlternative } from './alternative.js?build=0.8.0-phase1.1';
-import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteCharacterChatByName } from '/script.js';
+import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteCharacterChatByName, saveSettingsDebounced } from '/script.js';
+import { withoutTools } from './generation-tools.js?build=0.8.0-phase1.1';
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
@@ -67,7 +68,6 @@ export function createGenerationRuntime(getContext) {
             if (hasPendingFileAttachment()) fail('ATTACHMENT_PENDING', 'Remove ST’s pending attachment before using this text-only experiment.');
             if (isExecutingCommandsFromChatInput || ctx.swipe.state() !== SWIPE_STATE.NONE) fail('BUSY', 'Finish the current command or swipe edit first.');
             if (ctx.powerUserSettings.auto_continue.enabled || ctx.powerUserSettings.auto_swipe) fail('AUTOMATIC_GENERATION', 'Disable auto-continue and auto-swipe for this single-reply experiment.');
-            if (ctx.chatCompletionSettings.function_calling) fail('TOOLS_ENABLED', 'Open Pocket Tavern Settings and turn off “Tool calling enabled in ST”, then send again. Your draft is kept.');
         },
         async edit(messageId, text) {
             const ctx = getContext();
@@ -84,12 +84,12 @@ export function createGenerationRuntime(getContext) {
             await swipe(null, SWIPE_DIRECTION.RIGHT, { forceSwipeId: swipeId, forceDuration: 0 });
             await getContext().saveChat();
         },
-        async generateSwipe() { await generateAlternative(getContext(),syncMesToSwipe); },
+        async generateSwipe() { await withoutTools(getContext().chatCompletionSettings, () => generateAlternative(getContext(),syncMesToSwipe), saveSettingsDebounced); },
         async submit(text) {
             const element = composer();
             element.value = text;
             element.dispatchEvent(new Event('input', { bubbles: true }));
-            try { await sendTextareaMessage(); }
+            try { await withoutTools(getContext().chatCompletionSettings, () => sendTextareaMessage(), saveSettingsDebounced); }
             finally {
                 // Clear only our untouched draft; do not delete edits made elsewhere.
                 if (element.value === text) {

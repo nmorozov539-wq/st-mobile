@@ -8,7 +8,7 @@ function readLaunch(target, mock=false, proxy=false){
     target=fs.realpathSync(target);
     const marker=JSON.parse(fs.readFileSync(path.join(target,'.pocket-tavern.json')));
     if(marker.version!==1||marker.mode!=='combined')throw Error('Not a recognized combined Pocket Tavern folder.');
-    if(mock!==marker.mock)throw Error(marker.mock?'This fixture requires --mock. Prepare a normal combined folder for OpenRouter.':'This folder uses real-provider settings. Use a separate --mock fixture for mock testing.');
+    if(mock!==marker.mock)throw Error(marker.mock?'This fixture requires --mock. Prepare a normal combined folder for OpenRouter.':`This is your normal install, so --mock is refused to keep test data out of it. Use a separate --mock install: unzip the Pocket Tavern ZIP, and in its folder run once: node prepare.cjs ${marker.source??'~/SillyTavern'} ~/pocket-tavern-mock --mock — then start it with: node ~/pocket-tavern-mock/start.cjs --mock`);
     if(proxy&&mock)throw Error('The real OpenRouter proxy cannot run in a mock fixture.');
     if(proxy&&!fs.existsSync(path.join(target,'.pocket-proxy/index.cjs')))throw Error('The optional proxy is not installed. Run setup-proxy.cjs with your working or-proxy folder first.');
     // The data path is deliberately fixed inside this installation.

@@ -6,7 +6,7 @@
 .preset-header h2{font-size:18px;font-weight:500;margin:0}.preset-header button{display:grid;place-items:center}
 #preset-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:20px 18px max(26px,env(safe-area-inset-bottom))}
 .preset-caption{font-size:12px;color:var(--muted);margin:0 0 8px}
-#preset-scopes{display:flex}#preset-scopes button{font-size:14px}
+#preset-scopes{display:flex}#preset-scopes button{font-size:14px;color:var(--muted);border-radius:calc(var(--r-s) - 2px)}#preset-scopes button[aria-pressed=true]{background:var(--raised);color:var(--text)}
 #scope-note{font-size:12px;color:var(--muted);margin:9px 0 16px;overflow-wrap:anywhere}
 #preset-inherit{display:block;width:100%;text-align:left;font-size:12px!important;border:1px solid var(--line-strong)!important;margin-bottom:14px}#preset-inherit[aria-pressed=true]{background:var(--selected)}
 #preset-choose{display:flex;align-items:center;justify-content:space-between;width:100%;padding:13px 14px!important;border:1px solid var(--line-strong)!important;background:var(--raised)!important;text-align:left;margin:0 0 20px;border-radius:var(--r-m)!important;gap:10px}

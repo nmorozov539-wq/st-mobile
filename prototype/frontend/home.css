@@ -3,7 +3,7 @@
 html[data-background=plain] #landing.home-screen{background:var(--bg)}
 #landing.home-screen .page-heading{background:transparent;border:0;padding:14px 20px 0;gap:8px}
 #landing.home-screen .page-heading h1{font-size:13px;font-weight:400;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);flex:1}
-#landing.home-screen #app-settings{width:48px;height:48px;border-radius:var(--r-l);background:var(--surface);border:0;color:var(--text);font-size:22px}
+#landing.home-screen #app-settings{display:grid;place-items:center;padding:0;width:48px;height:48px;border-radius:var(--r-l);background:var(--surface);border:0;color:var(--text);font-size:22px}
 .home-page{display:flex;flex-direction:column;min-height:calc(100dvh - 200px);padding:36px 24px 16px;max-width:760px;margin:0 auto}
 .home-badge{width:56px;height:56px;display:grid;place-items:center;border-radius:var(--r-l);background:var(--surface);color:var(--brass)}
 .home-badge svg{width:30px;height:30px}

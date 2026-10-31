@@ -106,7 +106,8 @@ function renderPersonaEditor(content){
     const actions=el('div','','persona-editor-actions');
     const cancelBtn=button('Cancel',()=>navigate('personas'));
     const saveBtn=button('Save',async()=>{
-        if(!String(d.name).trim()){toast('A persona needs a name.');return;}
+        d.name=String(d.name??'').trim();nameInput.value=d.name;
+        if(!d.name){toast('A persona needs a name.');return;}
         if(engineBusy||memoryBusy){toast('Wait for the engine to finish before saving.');return;}
         saveBtn.disabled=true;cancelBtn.disabled=true;
         try{

@@ -63,7 +63,7 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #model-handle span{width:34px;height:4px;border-radius:4px;background:var(--line-strong)}
 #model-picker .dialog-heading button{width:44px;padding:8px;display:grid;place-items:center}
 #model-scopes{display:flex}
-#model-scopes button{font-size:13px;padding:6px}
+#model-scopes button{font-size:13px;padding:6px;color:var(--muted);border-radius:calc(var(--r-s) - 2px)}#model-scopes button[aria-pressed=true]{background:var(--raised);color:var(--text)}
 
 #model-target{font-size:12px;line-height:1.5;color:var(--muted);margin:7px 0;overflow-wrap:anywhere}
 .model-effective-line{display:flex;align-items:baseline;gap:10px;justify-content:space-between;min-width:0}

@@ -31,3 +31,11 @@ export async function waitForConnection({ isLoading, read, delay = ms => new Pro
     }
     throw new Error('ST is still waiting for the provider. Refresh connection and models to check the result before retrying.');
 }
+
+// Providers list exact model IDs (DeepSeek uses capitals); Pocket may hold another
+// spelling, e.g. ST's lower-case default. Match the list, ignoring case.
+export function listedModel(models, value) {
+    if (typeof value !== 'string' || !value) return undefined;
+    const ids = (models ?? []).map(model => typeof model === 'string' ? model : model?.id).filter(Boolean);
+    return ids.find(id => id === value) ?? ids.find(id => id.toLowerCase() === value.toLowerCase());
+}

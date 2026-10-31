@@ -73,3 +73,9 @@ export function switchScope(record,enabled,current) {
     const retained=withModelSelection(record)??{modelSelection:{enabled:false,value:current.model??null}};
     return { ...retained,enabled,copy:clone(record?.copy??current)};
 }
+// Deleting the chat ST has open: move ST to another saved chat, or close it when it
+// was the character's only chat. Never create a replacement chat.
+export function deletePlan({active,target,others}){
+    if(active?.characterKey!==target.characterKey||active?.chatId!==target.chatId)return {};
+    return others.length?{select:others[0]}:{close:true};
+}

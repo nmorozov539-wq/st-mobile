@@ -21,7 +21,8 @@ const configuration = createConfigurationRuntime(getContext);
 const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||adapter.activity({ignoreExternal:true}).busy,configuration});
 const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
-    generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext), extensions: window.pocketExtensions });
+    generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext), extensions: window.pocketExtensions,
+    prepareGeneration: () => workspace.prepareGeneration() });
 
 window.pocketEngineBusy = () => {try{return isGenerating() || isChatSaving || workspace.busy() || adapter.activity({ignoreExternal:true}).busy || [...(window.pocketExtensions?.entries()??[])].some(([id,extension])=>id!=='summaryception' && extension.read().busy);}catch{return true;}};
 window.pocketVerifyMemory = () => runtime.verifyPersistence(adapter.snapshot());
@@ -42,7 +43,7 @@ if (window.parent !== window && (window.name === 'pocket-engine' || new URLSearc
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),
         chats: () => adapter.listChats(), manage: arg => adapter.manageChat(arg),
-        extensions: async arg => {const value=await adapter.extensions(arg);const current=getContext();return {...value,target:{characterKey:current.characters[current.characterId]?.avatar,chatId:current.chatId}};}, assets: arg => adapter.assets(arg), worldinfo: arg => adapter.worldInfo(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
+        extensions: async arg => {if(arg?.action==='summarize')await workspace.prepareGeneration();else if(arg?.action==='choice')await workspace.prepareGeneration().catch(()=>{});const value=await adapter.extensions(arg);const current=getContext();return {...value,target:{characterKey:current.characters[current.characterId]?.avatar,chatId:current.chatId}};}, assets: arg => adapter.assets(arg), worldinfo: arg => adapter.worldInfo(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
         activity: () => ({...adapter.activity(),locks:[...(isGenerating()?['ST generation/swipe']:[]),...(isChatSaving?['ST chat save']:[]),...(workspace.busy()?['workspace change']:[]),...[...(window.pocketExtensions?.values()??[])].filter(e=>e.read().busy).map(e=>e.read().waiting?`Memory waiting (${e.read().waitingFor??'deferred'})`:'Memory running')]}), reconcile: () => adapter.reconcile(), tokens: async arg => { const texts = Array.isArray(arg?.texts) ? arg.texts.slice(0, 100) : []; return Promise.all(texts.map(text => getContext().getTokenCountAsync(String(text ?? ''), 0))); }, reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
     window.addEventListener('message', event => {
         if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'st-mobile-connect' || !event.ports[0]) return;

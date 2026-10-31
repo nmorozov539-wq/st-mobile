@@ -1,4 +1,4 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint } from './configuration-state.js?build=0.8.0-phase1.1';
+import { hasActiveSecret, providerSecretKey, validateEndpoint, listedModel } from './configuration-state.js?build=0.8.0-phase1.1';
 import { connectThroughST } from './connection-check.js?build=0.8.0-phase1.1';
 import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.8.0-phase1.1';
 import { testConnection } from './connection-test.js?build=0.8.0-phase1.1';
@@ -39,8 +39,9 @@ export function createConfigurationRuntime(getContext) {
         // Settings sets the global model and provider. Keep Pocket's global
         // copy in step, or opening a chat would put the previous model back.
         async syncGlobalModel() {
-            const global = getContext().extensionSettings.pocket_tavern?.global, model = getChatCompletionModel();
-            if (!global || !model || global.model === model) return;
+            // While disconnected ST reports its built-in default, not a model you chose.
+            const ctx = getContext(), global = ctx.extensionSettings.pocket_tavern?.global, model = listedModel(model_list, getChatCompletionModel());
+            if (!global || !model || ctx.onlineStatus === 'no_connection' || global.model === model) return;
             global.model = model;
             await verify(saved => saved.extension_settings?.pocket_tavern?.global?.model === model);
         },
@@ -92,13 +93,15 @@ export function createConfigurationRuntime(getContext) {
                     await verify(saved => saved.oai_settings?.custom_model === value);
                 } else if (settings.chat_completion_source === 'deepseek') {
                     // ST lists DeepSeek's models after Connect and can select only those.
-                    if (!model_list.some(model => model.id === value)) fail('INVALID_ARGUMENT', model_list.length ? `“${value}” is not one of DeepSeek's models. Choose one from the list, or pick a model for this chat in the model panel.` : 'Connect DeepSeek first so its model list is loaded.');
-                    changeSelect('#model_deepseek_select', value);
-                    await verify(saved => saved.oai_settings?.deepseek_model === value);
+                    const listed = listedModel(model_list, value);
+                    if (!listed) fail('INVALID_ARGUMENT', model_list.length ? `“${value}” is not one of DeepSeek's models. Choose one from the list, or pick a model for this chat in the model panel.` : 'Connect DeepSeek first so its model list is loaded.');
+                    changeSelect('#model_deepseek_select', listed);
+                    await verify(saved => saved.oai_settings?.deepseek_model === listed);
                 } else {
-                    if (settings.chat_completion_source !== 'openrouter' || !model_list.some(model => model.id === value)) fail('INVALID_ARGUMENT', 'Connect OpenRouter and choose a model from its loaded list.');
-                    changeSelect('#model_openrouter_select', value);
-                    await verify(saved => saved.oai_settings?.openrouter_model === value);
+                    const listed = listedModel(model_list, value);
+                    if (settings.chat_completion_source !== 'openrouter' || !listed) fail('INVALID_ARGUMENT', 'Connect OpenRouter and choose a model from its loaded list.');
+                    changeSelect('#model_openrouter_select', listed);
+                    await verify(saved => saved.oai_settings?.openrouter_model === listed);
                 }
             } else if (kind === 'endpoint') {
                 if (settings.chat_completion_source !== 'custom') fail('INVALID_ARGUMENT', 'Choose Custom before editing its endpoint.');

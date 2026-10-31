@@ -1,5 +1,5 @@
 // ST behavior lives in the runtime bindings; this module owns operation tracking.
-export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, worldInfo, extensions }) {
+export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, worldInfo, extensions, prepareGeneration = async () => {} }) {
     let ready = false;
     let selecting = false;
     let disposed = false;
@@ -211,6 +211,8 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                 let submissionError;
                 let unsubscribe = () => {};
                 try {
+                    // Saves never select the model; a reply does, before anything is submitted.
+                    await prepareGeneration();
                     unsubscribe = generation.subscribeText((text, reasoning = '') => {
                         operation.status.text = String(text);
                         operation.status.reasoning = String(reasoning);

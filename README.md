@@ -1,4 +1,4 @@
-# Pocket Tavern — v0.8.0-phase1
+# Pocket Tavern — v0.8.0-phase1.1
 
 Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
 
@@ -6,7 +6,7 @@ For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern
 
 ## Current release
 
-`pocket-tavern-combined-v0.8.0-phase1.zip` is built into `dist/` by `scripts/build-phone-package.py`; the matching `repair-pocket.cjs` is `phone-package/repair-pocket.cjs`. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.8.0-phase1.1.zip` is built into `dist/` by `scripts/build-phone-package.py`; the matching `repair-pocket.cjs` is `phone-package/repair-pocket.cjs`. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -46,7 +46,7 @@ Home 0.7.12 is the approved lightweight landing page: Pocket Tavern header with 
 
 0.7.14 fixes what the first full phone test found (your filled-in checklist is kept as `docs/PHONE_TEST_RESULTS_0.7.13.md`). Memory acts on the chat on screen, and its page no longer reappears over every other page. Android Back now does what the on-screen back arrow does, and World Info asks before Back discards edits. The engine reloads by itself when the browser comes back from the background, and Send reconnects the API first if SillyTavern dropped it. Saving a persona with a portrait works, and importing a character with an embedded lorebook offers to import and link that book. Starting a fresh chat for the character the engine already has open no longer copies the old messages. Linking a persona to a character replaces the old link, and "This chat" links work. In Settings, the eye button, a visible manual model ID, a wrong-OpenRouter-key check on Connect, the proxy probe, Test message and token counts are fixed. Home, notifications, dialogs and the loading screen use the new colours. Pocket Tavern can now be installed from Chrome's menu (Install app / Add to Home screen); opened from that icon it stays in portrait. A normal browser tab can't lock rotation, so it still turns sideways.
 
-0.8.0-phase1 is the first 0.8 build: the new look only (tokens.css palette, bundled Rubik and Literata fonts, Lucide icons, base parts in base.css); behaviour is unchanged from 0.7.15. Its phone checklist is in `docs/PHONE_TEST_CHECKLIST-0.8.0-phase1.md`.
+0.8.0-phase1.1 is the first 0.8 build (phase1.1 adds the fixes from the first phone test): the new look only (tokens.css palette, bundled Rubik and Literata fonts, Lucide icons, base parts in base.css); behaviour is unchanged from 0.7.15. Its phone checklist is in `docs/PHONE_TEST_CHECKLIST-0.8.0-phase1.md`.
 
 0.7.15 works through the 0.7.14 phone results (kept as `docs/PHONE_TEST_CHECKLIST-0.7.14-results.md`). It adds **preset import** (chat gear → Preset → Choose preset → Import preset…; the file is added to the list without switching presets, and a name clash becomes "Name (2)"), **several personas per character** like SillyTavern (linking adds, the character page lists them all and shows the chat's own persona, and a new chat asks which one to use), and a **direct DeepSeek connection** (Settings → Connection → Provider; it uses SillyTavern's own DeepSeek source and key, and switching back restores the OpenAI-compatible endpoint). Android Back no longer closes the app on the Memory → chat → Chats path, uses close requests instead of browser history, and a reconnect adds no history entry. Token counts show on older replies, Summarize now always reports its outcome, regenerating hides the old reply while the new one streams, the "alternative selected" notice is gone, World Info keeps expanded books across a failed load, and a saved persona portrait no longer flashes empty. Two engine fixes came out of testing: the engine page is now marked by its frame name instead of a `?mobileRuntime` query string, which made jQuery UI load a second copy of SillyTavern's page into its Backgrounds tab so character saves stored doubled fields as lists (damaged cards are repaired once on the first start, and could make replies hang); and the hidden engine can no longer take keyboard focus, which sent Back to SillyTavern instead of Pocket.
 

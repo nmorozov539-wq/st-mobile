@@ -1,8 +1,8 @@
-# Pocket Tavern — phone test checklist · 0.8.0-phase1
+# Pocket Tavern — phone test checklist · 0.8.0-phase1.1
 
 This build changes only how Pocket looks: the new charcoal and brass colours, the Rubik and Literata fonts, Lucide icons, and the new buttons and controls. Nothing should behave differently from 0.7.15. Work top to bottom. Tick what works, and write a note under anything that doesn't.
 
-**Before you start:** install from `pocket-tavern-combined-v0.8.0-phase1.zip` with the usual repair/update flow (`node repair-pocket.cjs`, with the ZIP beside it or in Downloads). Open `http://127.0.0.1:8123/st-mobile/` and fully reload once. Check that Settings → Connection shows **0.8.0-phase1** for both the frontend and the bridge.
+**Before you start:** install from `pocket-tavern-combined-v0.8.0-phase1.1.zip` with the usual repair/update flow (`node repair-pocket.cjs`, with the ZIP beside it or in Downloads). Open `http://127.0.0.1:8123/st-mobile/` and fully reload once. Check that Settings → Connection shows **0.8.0-phase1.1** for both the frontend and the bridge.
 
 **When something is wrong**, say which screen you were on, what you tapped, what you expected and what happened. A screenshot helps most.
 

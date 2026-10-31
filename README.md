@@ -1,4 +1,4 @@
-# Pocket Tavern — v0.8.0-phase1.1
+# Pocket Tavern — v0.8.0-phase1.2
 
 Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
 
@@ -6,7 +6,7 @@ For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern
 
 ## Current release
 
-`pocket-tavern-combined-v0.8.0-phase1.1.zip` is built into `dist/` by `scripts/build-phone-package.py`; the matching `repair-pocket.cjs` is `phone-package/repair-pocket.cjs`. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.8.0-phase1.2.zip` is built into `dist/` by `scripts/build-phone-package.py`; the matching `repair-pocket.cjs` is `phone-package/repair-pocket.cjs`. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -45,6 +45,8 @@ Home 0.7.12 is the approved lightweight landing page: Pocket Tavern header with 
 0.7.13 is a review pass over the three new screens before phone testing: activation sliders no longer cancel a drag under the finger, the Settings endpoint field no longer steals the next tap, Settings and its reading preferences stay reachable while the engine is down, book deletion refreshes SillyTavern’s own book list first, and the entry editor tolerates books with missing or malformed fields. That checklist, filled in on the phone, is now `docs/PHONE_TEST_RESULTS_0.7.13.md`.
 
 0.7.14 fixes what the first full phone test found (your filled-in checklist is kept as `docs/PHONE_TEST_RESULTS_0.7.13.md`). Memory acts on the chat on screen, and its page no longer reappears over every other page. Android Back now does what the on-screen back arrow does, and World Info asks before Back discards edits. The engine reloads by itself when the browser comes back from the background, and Send reconnects the API first if SillyTavern dropped it. Saving a persona with a portrait works, and importing a character with an embedded lorebook offers to import and link that book. Starting a fresh chat for the character the engine already has open no longer copies the old messages. Linking a persona to a character replaces the old link, and "This chat" links work. In Settings, the eye button, a visible manual model ID, a wrong-OpenRouter-key check on Connect, the proxy probe, Test message and token counts are fixed. Home, notifications, dialogs and the loading screen use the new colours. Pocket Tavern can now be installed from Chrome's menu (Install app / Add to Home screen); opened from that icon it stays in portrait. A normal browser tab can't lock rotation, so it still turns sideways.
+
+0.8.0-phase1.2 adds the connection pass: saving needs only the SillyTavern engine, the model is chosen right before a reply, and pending changes become one Retry/Discard banner (see `docs/0.8-connection-pass-proposal.md`; phone checklist `docs/PHONE_TEST_CHECKLIST-0.8.0-phase1.2.md`).
 
 0.8.0-phase1.1 is the first 0.8 build (phase1.1 adds the fixes from the first phone test): the new look only (tokens.css palette, bundled Rubik and Literata fonts, Lucide icons, base parts in base.css); behaviour is unchanged from 0.7.15. Its phone checklist is in `docs/PHONE_TEST_CHECKLIST-0.8.0-phase1.md`.
 

@@ -1,6 +1,6 @@
 // Phase 6c: World Info entry editor. Sends only the fields the person changed, guarded by the book revision.
-import {icon} from './icons.js?build=0.8.0-phase1.1';
-import {el, btn, checkbox, field, select, numberInput, section, modal, confirmDialog} from './wi-ui.js?build=0.8.0-phase1.1';
+import {icon} from './icons.js?build=0.8.0-phase1.2';
+import {el, btn, checkbox, field, select, numberInput, section, modal, confirmDialog} from './wi-ui.js?build=0.8.0-phase1.2';
 
 export const POSITIONS = [[0, 'Before character definitions'], [1, 'After character definitions'], [2, 'Top of Author’s Note'], [3, 'Bottom of Author’s Note'], [4, 'At depth'], [5, 'Before example messages'], [6, 'After example messages'], [7, 'Outlet']];
 export const LOGIC = [[0, 'AND ANY'], [3, 'AND ALL'], [1, 'NOT ALL'], [2, 'NOT ANY']];

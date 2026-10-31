@@ -1,6 +1,6 @@
-import {icon} from './icons.js?build=0.8.0-phase1.1';
-import {createCharacterAssociations} from './character-associations.js?build=0.8.0-phase1.1';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.8.0-phase1.1';
+import {icon} from './icons.js?build=0.8.0-phase1.2';
+import {createCharacterAssociations} from './character-associations.js?build=0.8.0-phase1.2';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.8.0-phase1.2';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions}) {
     const links=createCharacterAssociations(associationOptions);

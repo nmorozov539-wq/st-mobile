@@ -9,7 +9,7 @@ export function createJournal(storage){
 // is reported once and dropped, so one bad change never blocks the rest.
 export const INTERRUPTED_CODES=['TIMEOUT','DISCONNECTED','ENGINE_UNAVAILABLE'];
 export function failureOutcome(code){if(code==='BUSY')return 'wait';return INTERRUPTED_CODES.includes(code)?'interrupted':'failed';}
-// Changes left by an earlier session, including 0.8.0-phase1.1's review queue, were
+// Changes left by an earlier session, including 0.8.0-phase1.2's review queue, were
 // never confirmed. Nothing is applied or dropped automatically: they wait for the person.
 export const LEFTOVER_ERROR='it was not confirmed before the engine restarted.';
 export function adoptLeftovers(items,sessionId){return items.map(item=>item.state==='pending'&&item.sessionId===sessionId?item:{...item,state:'interrupted',error:LEFTOVER_ERROR});}

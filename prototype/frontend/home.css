@@ -22,4 +22,4 @@ html[data-background=plain] #landing.home-screen{background:var(--bg)}
 .home-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line-strong);padding-top:26px}
 .home-counts strong{display:block;font:400 34px/1.1 var(--read);color:var(--text)}
 .home-counts span{color:var(--muted);font-size:15px}
-.home-foot{margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;color:var(--muted);font-size:15px}
+.home-foot{gap:var(--s-3);margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;color:var(--muted);font-size:15px}

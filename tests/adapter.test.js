@@ -49,7 +49,7 @@ test('overlapping selection is rejected and disposal invalidates the adapter', a
     adapter.dispose(); assert.throws(() => adapter.snapshot(), { code: 'DISPOSED' });
 });
 
-function withGeneration(overrides = {}) {
+function withGeneration(overrides = {}, adapterOptions = {}) {
     const ctx = { characters: [{ avatar: 'a.png', name: 'A' }], characterId: 0,
         groupId: null, chatId: 'fixture', chat: [{ mes: 'greeting', is_user: false }], chatMetadata: {} };
     let count = 0;
@@ -66,7 +66,7 @@ function withGeneration(overrides = {}) {
         async verifyPersistence() {}, stop() { return true; }, ...overrides,
     };
     const adapter = createAdapter({ getContext: () => ctx, isBusy: () => false,
-        supportedVersion: '1.19.0', runtimeVersion: '1.19.0', generation });
+        supportedVersion: '1.19.0', runtimeVersion: '1.19.0', generation, ...adapterOptions });
     adapter.markReady();
     const request = { requestId: 'request-1', text: 'hello', characterKey: 'a.png', chatId: 'fixture' };
     return { adapter, ctx, request, count: () => count };
@@ -289,4 +289,15 @@ test('generation can verify its save while Memory is waiting, but another send s
  const result=await adapter.sendMessage(request);assert.equal(result.state,'completed');assert.equal(result.persistence,'verified');
  assert.equal(adapter.activity().busy,true);assert.equal(adapter.activity({ignoreExternal:true}).busy,false);
  await assert.rejects(adapter.sendMessage({...request,requestId:'next'}),{code:'BUSY'});
+});
+
+test('a reply selects the model first; a model that cannot be selected fails before anything is submitted', async () => {
+    const calls = [];
+    const ready = withGeneration({ async submit(text) { calls.push('submit'); } }, { prepareGeneration: async () => { calls.push('model'); } });
+    await ready.adapter.sendMessage(ready.request);
+    assert.deepEqual(calls.slice(0, 2), ['model', 'submit']);
+    const refused = withGeneration({}, { prepareGeneration: async () => { throw Object.assign(new Error('Connect DeepSeek first so its model list is loaded.'), { code: 'INVALID_ARGUMENT' }); } });
+    const result = await refused.adapter.sendMessage(refused.request);
+    assert.equal(result.state, 'failed'); assert.match(result.error.message, /Connect DeepSeek first/);
+    assert.equal(refused.count(), 0);
 });

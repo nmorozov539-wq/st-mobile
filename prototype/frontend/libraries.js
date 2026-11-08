@@ -15,6 +15,21 @@ export function chatDate(value,now=Date.now()){
     const label=day(date)===day(today)?date.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}):day(date)===day(yesterday)?'Yesterday':date.toLocaleDateString(undefined,{day:'numeric',month:'short',...(date.getFullYear()!==today.getFullYear()?{year:'numeric'}:{})});
     return {label,datetime:date.toISOString(),title:date.toLocaleString()};
 }
+// Characters page: search, tag filter and sort, applied before the grid is laid out.
+export const CHARACTER_SORTS={recent:'Recent',name:'Name',added:'Newest'};
+export function arrangeCharacters(cards,{query='',tag='',sort='recent',recents=[]}={}){
+    const q=String(query).trim().toLocaleLowerCase(),rank=new Map();
+    recents.forEach((r,i)=>{if(!rank.has(r.characterKey))rank.set(r.characterKey,i);});
+    let rows=cards.filter(c=>(!q||String(c.name??'').toLocaleLowerCase().includes(q)||(c.tags??[]).some(t=>t.toLocaleLowerCase().includes(q)))&&(!tag||(c.tags??[]).includes(tag)));
+    const byName=(a,b)=>String(a.name??'').localeCompare(String(b.name??''),undefined,{sensitivity:'base'});
+    if(sort==='name')rows=[...rows].sort(byName);
+    else if(sort==='added')rows=[...rows].sort((a,b)=>(b.added??0)-(a.added??0)||byName(a,b));
+    else rows=[...rows].sort((a,b)=>(rank.get(a.key)??Infinity)-(rank.get(b.key)??Infinity)||byName(a,b));
+    return [...rows.filter(c=>c.fav),...rows.filter(c=>!c.fav)];
+}
+export function characterTags(cards){const count=new Map();for(const c of cards)for(const t of c.tags??[])count.set(t,(count.get(t)??0)+1);return [...count].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([t])=>t);}
+export function chatGroups(rows){const groups=new Map();for(const r of rows){if(!groups.has(r.characterKey))groups.set(r.characterKey,[]);groups.get(r.characterKey).push(r);}return [...groups].map(([characterKey,chats])=>({characterKey,chats}));}
+export function chunk(rows,size){return Array.from({length:Math.ceil(rows.length/size)},(_,i)=>rows.slice(i*size,i*size+size));}
 export function createLibraryViews({node,button,portrait,personaPortrait,windowList,editCharacter,createCharacter,importCharacters,editPersona,createPersona,startFresh,onDelete,readCard,availability}){
     const waiting=new WeakMap();
     function completeness(c,element){
@@ -29,10 +44,20 @@ export function createLibraryViews({node,button,portrait,personaPortrait,windowL
         if(!waiting.has(c))waiting.set(c,readCard(c.key).then(value=>{c.complete=characterStatus(value.draft).complete;c.description=value.draft.description??'';}).catch(()=>{c.metadataError='Character details unavailable. Open to retry.';}));
         waiting.get(c).then(()=>{if(element.isConnected)update();});
     }
-    function characters(content,rows){
-        const tools=node('div','','library-tools'),upload=button('Import',importCharacters),create=button('Create',createCharacter);upload.prepend(icon('upload'));create.prepend(icon('plus'));upload.id='characters-import';create.id='characters-create';tools.append(upload,create);content.append(tools);
-        if(!rows.length){content.append(node('p','No characters yet. Import a native card or create one.','library-empty'));return;}
-        windowList(content,characterRows(rows),group=>{const row=node('div','','character-grid-row');for(const c of group){const card=button('',()=>editCharacter(c));card.className='character-card';card.dataset.key=c.key;card.append(portrait(c),node('span',c.name,'character-card-name'));completeness(c,card);row.append(card);}return row;},150);
+    function characters(content,rows,options={}){
+        const {view='cards',sort='recent',tag='',query='',recents=[],onView,onSort,onTag}=options;
+        if(!rows.length){const empty=node('div','','list-empty');empty.append(node('strong','No characters yet'),node('span','Import a card from your phone, or create one from scratch.'));const actions=node('div','','list-empty-actions'),up=button('Import a card',importCharacters),make=button('Create one',createCharacter);up.className='btn primary';make.className='btn secondary';up.prepend(icon('upload'));make.prepend(icon('plus'));actions.append(up,make);empty.append(actions);content.append(empty);return;}
+        const bar=node('div','','list-controls');
+        const sortSelect=node('select','','field list-sort');sortSelect.setAttribute('aria-label','Sort characters');for(const [value,label] of Object.entries(CHARACTER_SORTS)){const o=node('option',label);o.value=value;o.selected=value===sort;sortSelect.append(o);}sortSelect.onchange=()=>onSort?.(sortSelect.value);
+        const views=node('div','','segmented list-view');views.setAttribute('role','group');views.setAttribute('aria-label','Layout');
+        for(const [value,glyph,label] of [['cards','grid','Cards'],['circles','circles','Circles']]){const b=button('',()=>onView?.(value));b.append(icon(glyph));b.setAttribute('aria-label',label);b.title=label;b.setAttribute('aria-pressed',String(view===value));views.append(b);}
+        bar.append(sortSelect,views);content.append(bar);
+        const tags=characterTags(rows);
+        if(tags.length){const strip=node('div','','tag-strip');for(const t of ['',...tags.slice(0,30)]){const chip=button(t||'All',()=>onTag?.(t===tag?'':t));chip.className='tag-chip';chip.setAttribute('aria-pressed',String(t===tag));strip.append(chip);}content.append(strip);}
+        const shown=arrangeCharacters(rows,{query,tag,sort,recents});
+        if(!shown.length){content.append(node('p',query?`No characters match “${query}”.`:'No characters with this tag.','library-empty'));return;}
+        const circles=view==='circles',per=circles?3:2;
+        windowList(content,chunk(shown,per),group=>{const row=node('div','',circles?'character-grid-row circles':'character-grid-row cards');for(const c of group){const card=button('',()=>editCharacter(c));card.className=circles?'character-card':'character-card tall';card.dataset.key=c.key;card.append(portrait(c));if(c.fav){const star=node('span','','fav-star');star.append(icon('star'));star.setAttribute('aria-hidden','true');card.querySelector('.avatar').append(star);}card.append(node('span',c.name,'character-card-name'));if(!circles&&c.tags?.length){const t=node('span','','character-card-tags');for(const name of c.tags.slice(0,2))t.append(node('span',name,'chip'));card.append(t);}completeness(c,card);row.append(card);}return row;},circles?150:296);
     }
     function picker(content,rows){
         content.append(node('p','Choose a character to start a fresh conversation.','library-caption'));
@@ -40,16 +65,17 @@ export function createLibraryViews({node,button,portrait,personaPortrait,windowL
         windowList(content,rows,c=>{const b=button('',()=>startFresh(c));b.className='fresh-character';b.dataset.key=c.key;b.setAttribute('aria-label',`Start fresh chat with ${c.name}`);const text=node('span');text.append(node('strong',c.name),node('small',c.complete===false?'Incomplete · edit in Characters':plainDescription(c.description)));b.append(portrait(c),text);const update=()=>{b.dataset.incomplete=String(c.complete===false);b.disabled=!availability()||c.complete===false;text.querySelector('small').textContent=c.complete===false?'Incomplete · edit in Characters':plainDescription(c.description);};update();
             if(c.complete===null){if(!waiting.has(c))waiting.set(c,readCard(c.key).then(value=>{c.complete=characterStatus(value.draft).complete;c.description=value.draft.description??'';}).catch(()=>{}));waiting.get(c).then(()=>{if(b.isConnected)update();});}return b;},104);
     }
-    function personas(content,rows,{createPersona:create,editPersona:edit}){
-        const tools=node('div','','library-tools'),btn=button('Create persona',create);btn.prepend(icon('plus'));btn.id='personas-create';tools.append(btn);content.append(tools);
-        if(!rows.length){content.append(node('p','No personas yet. Create one to get started.','library-empty'));return;}
-        windowList(content,characterRows(rows),group=>{const row=node('div','','character-grid-row');for(const p of group){const card=button('',()=>edit(p));card.className='character-card persona-card';card.dataset.key=p.id;card.append(personaPortrait(p),node('span',p.name,'character-card-name'));row.append(card);}return row;},150);
+    function personas(content,rows,{createPersona:create,editPersona:edit,current,query=''}){
+        if(!rows.length){const empty=node('div','','list-empty');empty.append(node('strong','No personas yet'),node('span','A persona is who you are in a chat: a name, a portrait and a short description.'));const b=button('Create persona',create);b.className='btn primary';b.prepend(icon('plus'));const actions=node('div','','list-empty-actions');actions.append(b);empty.append(actions);content.append(empty);return;}
+        const q=String(query).trim().toLocaleLowerCase(),shown=q?rows.filter(p=>`${p.name} ${p.title??''}`.toLocaleLowerCase().includes(q)):rows;
+        if(!shown.length){content.append(node('p',`No personas match “${query}”.`,'library-empty'));return;}
+        windowList(content,shown,p=>{const row=button('',()=>edit(p));row.className='persona-row';row.dataset.key=p.id;row.setAttribute('aria-label',`Edit persona ${p.name}`);const text=node('span','','persona-row-text');text.append(node('strong',p.name),node('span',p.title||plainPreview(p.description,140)||'No description','persona-row-line'));row.append(personaPortrait(p),text);if(p.id===current){const mark=node('span','Current','chip persona-current-chip');row.append(mark);}return row;},76);
     }
     function plainDescription(text){return plainPreview(text,240);}
     function chat(row,characters){
         const c=characters.find(c=>c.key===row.characterKey),outer=node('div','','chat-row'),open=button('',()=>row.open());open.className='chat-open';open.setAttribute('aria-label',`Open ${c?.name??row.characterKey} · ${row.chatId}`);
-        const text=node('span','','chat-row-text'),top=node('span','','chat-row-top');top.append(node('strong',c?.name??row.characterKey));const date=chatDate(row.updated);if(date){const time=node('time',date.label);time.dateTime=date.datetime;time.title=date.title;top.append(time);}
-        text.append(top,node('span',row.chatId,'chat-row-name'),node('span',plainPreview(row.preview)||'No messages yet','preview'));open.append(portrait(c),text);
+        const text=node('span','','chat-row-text'),top=node('span','','chat-row-top');top.append(node('strong',row.inGroup?row.chatId:c?.name??row.characterKey));const date=chatDate(row.updated);if(date){const time=node('time',date.label);time.dateTime=date.datetime;time.title=date.title;top.append(time);}
+        text.append(top);if(row.showChatName!==false&&!row.inGroup)text.append(node('span',row.chatId,'chat-row-name'));text.append(node('span',plainPreview(row.preview)||'No messages yet','preview'));if(!row.inGroup)open.append(portrait(c));open.append(text);if(row.inGroup)outer.classList.add('in-group');
         const more=button('',()=>onDelete(row));more.className='chat-row-more';more.append(icon('more'));more.setAttribute('aria-label',`Actions for ${row.chatId}`);more.title='Delete chat · confirmation and Undo';
         const del=button('Delete',()=>onDelete(row));del.className='row-delete';del.hidden=true;del.setAttribute('aria-label',`Delete ${row.chatId}`);outer.append(open,more,del);
         let pointer,suppressClick=false;

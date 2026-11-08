@@ -95,9 +95,6 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
  function render() {
   if (!container?.isConnected || !onPage('wi')) return;
   const page = el('div', '', 'wi-page');
-  const bar = el('div', '', 'wi-toolbar');
-  bar.append(btn('Import', () => importInput.click(), 'btn secondary wi-btn'), (() => { const b = btn('Book', () => action(createBook), 'btn secondary wi-btn primary wi-primary'); b.prepend(icon('plus')); return b; })(), btn('Folder', () => action(createFolder), 'btn secondary wi-btn'));
-  page.append(bar);
   if (failure) { page.append(el('p', failure, 'wi-error'), btn('Retry', load)); }
   else if (!lib) page.append(el('p', 'Loading World Info…', 'wi-note'));
   else {
@@ -116,7 +113,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
    }
    const loose = lib.books.filter(book => !book.folder || !folderNames.includes(book.folder));
    for (const book of loose) page.append(bookRow(book));
-   if (!lib.books.length) page.append(el('p', 'No World Info books yet. Tap + Book to create one, or Import a lorebook file.', 'wi-note'));
+   if (!lib.books.length) page.append(el('p', 'No World Info books yet. Tap + to create one, or import a lorebook file.', 'wi-note'));
   }
   container.replaceChildren(page);
  }
@@ -228,6 +225,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
  }
 
  return {
+  headerActions() { const off = locked(); return [{id: 'wi-import', icon: 'upload', label: 'Import a lorebook', run: () => importInput.click(), disabled: off}, {id: 'wi-folder', icon: 'folderPlus', label: 'New folder', run: () => action(createFolder), disabled: off}, {id: 'wi-book', icon: 'plus', label: 'New book', run: () => action(createBook), disabled: off, primary: true}]; },
   renderLibrary(content) { container = content; if (!importInput.isConnected) document.body.append(importInput); setSubtitle(''); if (!loading && (!lib || Date.now() - loadedAt > 5000)) load(); render(); },
   renderEntry(content) { entry.render(content); },
   renderActivation(content) { activation.render(content); },

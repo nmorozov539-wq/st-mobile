@@ -21,7 +21,7 @@ export function createConfigurationRuntime(getContext) {
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts, toolCalling: !!settings.function_calling };
         return { bridgeBuild: '0.8.0-phase3', selected, revision: JSON.stringify(selected), presets,
-            personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => ({ id, name })),
+            personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => { const d = ctx.powerUserSettings.persona_descriptions?.[id]; return { id, name, title: typeof d?.title === 'string' ? d.title.slice(0,120) : '', description: typeof d?.description === 'string' ? d.description.slice(0,240) : '' }; }),
             lorebooks: [...(world_names ?? [])],
             models: model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),
             onlineStatus: ctx.onlineStatus, keySource: selected.source, hasProviderKey: ['custom','openrouter','deepseek'].includes(selected.source) && hasActiveSecret(secret_state[providerSecretKey(selected.source)]), hasOpenRouterKey: hasActiveSecret(secret_state[SECRET_KEYS.OPENROUTER]), tokenCounts: !!ctx.powerUserSettings?.message_token_count_enabled };

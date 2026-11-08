@@ -39,3 +39,25 @@
 .character-colour input[type=color]::-webkit-color-swatch-wrapper{padding:4px}.character-colour input[type=color]::-webkit-color-swatch{border:0;border-radius:var(--r-s)}
 .character-colour small{color:var(--muted);font-size:var(--t-xs);flex:1;min-width:120px}
 .character-colour button{min-height:44px;background:transparent;border:1px solid var(--line-strong);font-size:var(--t-s)}
+
+/* 0.8 workshop: the character page in Read mode */
+#asset-editor.character-editor{--glow:radial-gradient(ellipse 120% 40% at 50% 0%,color-mix(in srgb,var(--char) 16%,transparent),transparent 70%)}
+.character-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:8px 0 18px;margin:0 -16px;background:var(--glow)}
+.character-hero-portrait{width:148px;aspect-ratio:3/4;border-radius:var(--r-l);overflow:hidden;background:linear-gradient(150deg,color-mix(in srgb,var(--char) 28%,var(--raised)),var(--surface));box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px color-mix(in srgb,var(--char) 70%,transparent);display:grid;place-items:center;font:48px var(--read);color:var(--char);margin-bottom:10px}
+.character-hero-portrait img{width:100%;height:100%;object-fit:cover}
+.character-hero h3{font:500 28px/1.2 var(--read);color:var(--char);margin:0;padding:0 16px;overflow-wrap:anywhere}
+.character-hero small{color:var(--faint);font-size:13px}
+.character-hero .character-tags{justify-content:center;margin-top:4px}
+.character-hero-actions{display:flex;gap:10px;width:100%;padding:14px 16px 0}
+.character-hero-actions .btn{height:46px;font-size:15px}
+.character-hero-actions .btn.primary{flex:1}
+.workshop-section{border-top:1px solid var(--line);padding:16px 0 14px}
+.workshop-section>h4,.workshop-section>summary{margin:0 0 8px;font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.workshop-section>summary{cursor:pointer;min-height:32px;display:flex;align-items:center}
+.workshop-section .character-reading{font:var(--t-read)/1.6 var(--read);color:var(--text)}
+.workshop-line{margin:0 0 4px;color:var(--muted)}.workshop-line strong{color:var(--text);font-weight:500}
+.workshop-preset small{color:var(--faint);font-size:13px;line-height:1.45;display:block}
+.character-greeting .character-greeting-nav{display:flex;align-items:center;gap:8px;margin:0 0 8px;color:var(--muted);font-size:13px}
+.character-greeting .character-greeting-nav button{width:36px;height:36px;padding:0;display:grid;place-items:center;border:1px solid var(--line-strong);background:transparent;border-radius:var(--r-m)}
+.character-advanced.workshop-section>h4{margin-top:14px;font-size:11px}
+details.character-advanced.workshop-section,details.character-notes.workshop-section{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:12px 0}

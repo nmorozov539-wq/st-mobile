@@ -1,0 +1,76 @@
+/* 0.8 list pages: one header pattern, the tab bar, list controls, empty states,
+   character cards and circles, chat groups and persona rows. Linked after libraries.css. */
+
+/* Tab bar: only the current tab is lit, with a soft pill behind its icon. */
+#bottom-nav [data-page=home]{font-weight:inherit}
+#bottom-nav button,body:has(#landing.library-screen:not([hidden])) #bottom-nav button{color:var(--faint);font-size:12px;font-weight:400;gap:4px}
+#bottom-nav button .icon{width:44px;height:28px;padding:3px 11px;border-radius:14px;transition:background .15s,color .15s}
+#bottom-nav button.current,body:has(#landing.library-screen:not([hidden])) #bottom-nav button.current{color:var(--text);font-weight:500}
+#bottom-nav button.current .icon{background:var(--selected);color:var(--brass)}
+
+/* Header: title left, actions right; the main action is brass. Search sits under it on long lists. */
+#landing.library-screen .page-heading{flex-wrap:wrap;row-gap:4px;padding:10px 8px 10px 16px}
+#page-actions{display:flex;align-items:center;gap:2px}
+#page-actions:empty{display:none}
+#landing.library-screen .page-heading button.primary,#landing.library-screen .page-heading .page-action.primary{color:var(--brass)}
+#landing.library-screen .page-heading button:disabled{opacity:.4}
+#page-search{flex-basis:100%;display:flex;align-items:center;gap:8px;height:40px;margin:2px 8px 0 0;padding:0 4px 0 12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--faint)}
+#page-search:focus-within{border-color:var(--brass)}
+#page-search>span .icon{width:18px;height:18px}
+#page-search-input{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:var(--t-m) var(--ui);outline:0}
+#page-search-input::-webkit-search-cancel-button{display:none}
+#landing.library-screen .page-heading #page-search-clear{min-width:32px;min-height:32px;padding:6px}
+#page-search-clear .icon{width:16px;height:16px}
+
+/* Controls above a list */
+.list-controls{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
+.list-sort{width:auto;min-height:36px;height:36px;padding:0 30px 0 12px;font-size:var(--t-s);background-color:var(--surface)}
+.list-view{margin-left:auto;padding:2px}
+.list-view>button{display:grid;place-items:center;width:40px;height:32px;padding:0}
+.list-view .icon{width:18px;height:18px}
+.tag-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 12px;padding:0 16px}
+.tag-strip::-webkit-scrollbar{display:none}
+.tag-chip{flex:none;min-height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:16px;background:transparent;color:var(--muted);font-size:13px}
+.tag-chip[aria-pressed=true]{background:var(--selected);border-color:color-mix(in srgb,var(--brass) 50%,transparent);color:var(--text)}
+
+/* Empty list: a short line and the one useful action. */
+.list-empty{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:40px 4px 16px;color:var(--muted)}
+.list-empty strong{font:400 24px/1.25 var(--read);color:var(--text)}
+.list-empty>span{max-width:30em;line-height:1.5}
+.list-empty-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.list-empty-actions .btn{height:44px;font-size:15px}
+
+/* Characters: two columns of tall portrait cards, or three of circles. */
+.character-grid-row.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;height:296px;padding:0 0 14px}
+.character-grid-row.circles{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;height:150px;padding:4px 0 16px}
+.character-card.tall{align-items:stretch;gap:6px;text-align:left}
+.character-card.tall .avatar{width:100%;height:auto;aspect-ratio:3/4;border-radius:var(--r-l);font:40px var(--read);display:grid;place-items:center}
+.character-card.tall .character-card-name{font-size:15px;font-weight:500;-webkit-line-clamp:1;line-height:1.35;padding:0 2px}
+.character-card-tags{display:flex;gap:4px;overflow:hidden;padding:0 2px}
+.character-card-tags .chip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:11px;padding:1px 6px}
+.character-grid-row.circles .character-card .avatar{width:84px;height:84px;border-radius:50%;font:30px var(--read);display:grid;place-items:center}
+.character-grid-row.circles .character-card .avatar img{border-radius:50%}
+.fav-star{position:absolute;top:6px;right:6px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--brass)}
+.fav-star .icon{width:14px;height:14px;fill:currentColor}
+.circles .fav-star{top:-2px;right:-2px}
+
+/* Chats: Recent or grouped by character */
+.chat-grouping{margin:2px 0 8px;max-width:280px}
+.chat-grouping>button{min-height:34px;font-size:13px}
+.chat-group{border-bottom:1px solid var(--line)}
+.chat-group-head{display:flex;align-items:center;gap:12px;min-height:60px;padding:6px 2px;cursor:pointer}
+.chat-group-head::before{order:9;margin:0 0 0 auto}
+.chat-group-head .avatar{width:36px;height:36px;flex:none;border-radius:var(--r-av);border:1px solid var(--line-strong);background:linear-gradient(150deg,color-mix(in srgb,var(--char) 28%,var(--raised)),var(--surface));font:16px var(--read);display:grid;place-items:center}
+.chat-group-head strong{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-group-count{color:var(--faint);font-size:13px}
+.chat-group-rows{padding-left:12px;border-left:1px solid var(--line);margin:0 0 10px 18px}
+.chat-group-rows .chat-row:last-child{border-bottom:0}
+
+/* Personas: one row each, the current one marked */
+#page-content .persona-row{display:flex;flex-direction:row;align-items:center;gap:12px;width:100%;min-height:68px;padding:10px 4px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--text);text-align:left}
+.persona-row .avatar{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--line-strong);background:var(--raised);font:18px var(--read);display:grid;place-items:center}
+.persona-row .avatar img{border-radius:50%}
+.persona-row-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.persona-row-text strong{font-weight:500}
+.persona-row-line{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.persona-current-chip{color:var(--brass);border-color:color-mix(in srgb,var(--brass) 40%,transparent)}

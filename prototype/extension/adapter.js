@@ -41,7 +41,9 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                     ...(generation ? ['generation.send', 'generation.stop', 'generation.status', 'message.edit', 'swipes.select', 'swipes.generate'] : [])] };
         },
         listCharacters() {
-            return context().characters.map(character => ({ key: character.avatar, name: character.name, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()), color:/^#[0-9a-f]{6}$/i.test(character.data?.extensions?.pocket_tavern?.color??'')?character.data.extensions.pocket_tavern.color:null }));
+            const ctx = context(), tagNames = new Map((Array.isArray(ctx.tags) ? ctx.tags : []).map(tag => [tag?.id, tag?.name]));
+            const tagsOf = character => { const names = new Set(); for (const id of ctx.tagMap?.[character.avatar] ?? []) { const name = tagNames.get(id); if (typeof name === 'string' && name.trim()) names.add(name.trim()); } for (const name of character.data?.tags ?? character.tags ?? []) if (typeof name === 'string' && name.trim()) names.add(name.trim()); return [...names].slice(0, 24); };
+            return ctx.characters.map(character => ({ key: character.avatar, name: character.name, tags: tagsOf(character), added: Number.isFinite(Number(character.date_added)) ? Number(character.date_added) : null, fav: character.fav === true || character.fav === 'true' || character.data?.extensions?.fav === true, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()), color:/^#[0-9a-f]{6}$/i.test(character.data?.extensions?.pocket_tavern?.color??'')?character.data.extensions.pocket_tavern.color:null }));
         },
         snapshot,
         async selectCharacter(key) {

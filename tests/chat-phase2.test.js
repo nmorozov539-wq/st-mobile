@@ -38,3 +38,11 @@ test('thinking blocks setting defaults to collapsed', () => {
     assert.equal(normalizeAppearance({thinking:'expanded'}).thinking,'expanded');
     assert.equal(normalizeAppearance({thinking:'open'}).thinking,'collapsed');
 });
+import {swipeSide} from '../prototype/frontend/side-panels.js';
+test('side-panel swipes: direction picks the panel; short, slow or vertical drags open nothing', () => {
+    assert.equal(swipeSide(-120,10),'right');
+    assert.equal(swipeSide(140,-8),'left');
+    assert.equal(swipeSide(40,0),null,'short and slow');
+    assert.equal(swipeSide(40,0,{velocity:.9}),'left','short but fast');
+    assert.equal(swipeSide(-80,70),null,'mostly vertical');
+});

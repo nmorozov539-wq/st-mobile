@@ -56,7 +56,7 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 .message.user .message-tools{justify-content:flex-end}
 #composer{border:0;padding:8px 12px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:transparent}
 .compose-input{display:flex;align-items:flex-end;gap:6px;padding:4px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-l)}
-#composer #draft{font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px 8px 10px 10px;min-height:44px;max-height:min(150px,30dvh);resize:none;flex:1;caret-color:var(--char)}
+#composer #draft{touch-action:pan-y;font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px 8px 10px 10px;min-height:44px;max-height:min(150px,30dvh);resize:none;flex:1;caret-color:var(--char)}
 #composer #draft:focus{outline:0}.compose-input:focus-within{border-color:color-mix(in srgb,var(--char) 70%,var(--line-strong))}
 .compose-bottom{display:flex;align-items:center;flex-shrink:0}
 #composer #send,#composer #stop{width:44px;height:44px;border:0;border-radius:var(--r-m);background:var(--char);color:#0b0c0e;transition:background .4s;display:grid;place-items:center;padding:0;flex-shrink:0}
@@ -117,3 +117,24 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 .menu-caption{margin:2px 10px 6px;font-size:var(--t-xs);color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #chat-screen .menu-selected .bubble{outline:1px solid var(--line-strong);outline-offset:6px;border-radius:var(--r-s)}
 #chat-screen .menu-selected .byline button{color:var(--char)}
+
+/* Side panels: slide in from the edge the swipe came from. */
+.side-panel{touch-action:pan-y;position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;border:0;padding:0;border-radius:0;background:transparent;overflow:hidden;color:var(--text)}
+.side-panel::backdrop{background:#0000008c;opacity:var(--side-fade,1)}
+.side-sheet{touch-action:pan-y;position:absolute;top:0;bottom:0;width:min(340px,86vw);display:flex;flex-direction:column;gap:4px;padding:max(16px,env(safe-area-inset-top)) 12px 16px;background:var(--surface);border:0 solid var(--line-strong);box-shadow:0 0 40px var(--shadow);overflow:auto;overscroll-behavior:contain}
+.side-panel.right .side-sheet{right:0;border-left-width:1px}
+.side-panel.left .side-sheet{left:0;border-right-width:1px}
+.side-panel.animating .side-sheet{transition:transform .18s ease-out}
+.side-panel[open]:not(.animating) .side-sheet{transition:none}
+.side-sheet h2{margin:4px 8px 12px;font-size:var(--t-xs);font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.side-rows{display:flex;flex-direction:column;gap:4px}
+.side-row{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;margin:0;padding:10px;border:0;border-radius:var(--r-m);background:transparent;color:var(--text);text-align:left}
+.side-row:hover,.side-row:focus-visible{background:var(--hover)}
+.side-row>svg{width:20px;height:20px;color:var(--muted);flex-shrink:0}
+.side-row>svg:last-child{width:16px;height:16px;color:var(--faint)}
+.side-row-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.side-row-text small{font-size:var(--t-xs);color:var(--muted)}
+.side-row-text strong{font-size:var(--t-m);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-row-note{font-size:var(--t-xs);color:var(--faint)}
+.side-panel button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.side-hint{margin:auto 8px 0;font-size:var(--t-xs);color:var(--faint)}

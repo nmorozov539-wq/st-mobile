@@ -157,7 +157,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
    const box = el('input');
    box.type = 'checkbox'; box.checked = !!settings[key]; box.disabled = off;
    box.onchange = () => edit(key, box.checked);
-   wrap.append(box, ' ' + label);
+   box.className = 'toggle'; box.setAttribute('role', 'switch'); wrap.append(el('span', label), box);
    return wrap;
   };
   const numberField = (label, key, min = 1) => {

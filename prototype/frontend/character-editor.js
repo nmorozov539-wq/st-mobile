@@ -100,7 +100,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         if(items.length>1){const navigation=node('div');navigation.className='character-greeting-nav';const previous=button('',()=>{selected--;rerender();});previous.append(icon('back'));previous.setAttribute('aria-label','Previous greeting');previous.disabled=selected===0;const next=button('',()=>{selected++;rerender();});next.append(icon('right'));next.setAttribute('aria-label','Next greeting');next.disabled=selected===items.length-1;const count=node('span',`${selected===0?'Main':`Alternate ${selected}`} · ${selected+1} of ${items.length}`);count.setAttribute('aria-live','polite');navigation.append(previous,count,next);greeting.append(navigation);}
         reading(greeting,items[selected]);
         links.lorebooks({parent:section('Lore','workshop-lore'),key,associations,error:associationError});
-        const preset=section('Preset','workshop-preset'),own_preset=draft.extensions?.pocket_tavern?.settings?.preset;
+        const preset=section('Preset','workshop-preset'),scoped=draft.extensions?.pocket_tavern?.settings,own_preset=scoped?.enabled?scoped.copy?.preset:null;
         const line=node('p');line.className='workshop-line';
         if(own_preset){line.append(node('strong',own_preset),document.createTextNode(' · chosen for this character'));}else{line.append(node('strong',globalPreset()||'Your global preset'),document.createTextNode(' · the same as everywhere'));}
         preset.append(line,node('small','To change it, open a chat with this character, tap the preset chip in the header and choose This character.'));

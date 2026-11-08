@@ -43,7 +43,7 @@ export function createPresetPanel({load,change,action,available,importPreset}) {
         const selected=copy(),record=scope==='global'?null:state[scope],inherited=!!record&&!record.enabled||scope!=='global'&&!record;
         for(const b of $('preset-scopes').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.scope===scope));
         const stronger=['global','character','chat'].indexOf(state.effective.scope)>['global','character','chat'].indexOf(scope);
-        $('scope-note').textContent=(scope==='chat'?`Chat · ${origin.chatId}`:scope==='character'?`Character · ${origin.characterName}`:'Global · defaults for chats without overrides')+(inherited?' · Inheriting; choosing or editing creates a separate preset.':'')+(stronger?` · This chat currently uses its ${state.effective.scope} preset override.`:'');
+        $('scope-note').textContent=(scope==='chat'?`Only ${origin.chatId}`:scope==='character'?`Every chat with ${origin.characterName} that has no preset of its own`:'Every chat without a character or chat preset')+(inherited?' · Inheriting; choosing or editing creates a separate preset.':'')+(stronger?` · This chat currently uses its ${state.effective.scope} preset override.`:'');
         $('preset-inherit').hidden=scope==='global';$('preset-inherit').textContent=scope==='chat'?'Use character / global preset':'Use global preset';$('preset-inherit').setAttribute('aria-pressed',String(inherited));
         $('preset-name').textContent=selected.preset??'No preset selected';
         const remembered=selected.presetBank?.some(item=>item.preset===selected.preset);

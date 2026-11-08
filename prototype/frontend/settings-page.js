@@ -10,8 +10,8 @@ const DIRECT_KEY = 'pocket-tavern.direct-endpoint.v1';
 const MANUAL = '\u0000manual';
 export const sameEndpoint = (a, b) => String(a ?? '').trim().replace(/\/+$/, '') === String(b ?? '').trim().replace(/\/+$/, '');
 
-export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy, visible = () => true}) {
- let tab = 'connection', config = null, container = null;
+export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy, visible = () => true}) {
+ let tab = 'home', config = null, container = null;
  let form = null, message = '', messageKind = '', working = false, proxyUp = null, showKey = false, failure = '';
 
  const saveDirect = value => { try { if (value && !sameEndpoint(value, PROXY_ENDPOINT)) localStorage.setItem(DIRECT_KEY, value); } catch {} };
@@ -231,18 +231,29 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   function updatePreview() { const bits = detailBits(); line.replaceChildren(...(bits.length ? bits.flatMap((bit, i) => i ? [' · ', ...bit] : bit) : ['No message details'])); }
   updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }
+ // The Settings home: grouped rows with section labels. Each row opens its own page.
+ function homeTab(page) {
+  const group = (label, rows) => { const box = el('section', '', 'sp-group'); box.append(el('h2', label, 'sp-group-label')); const list = el('div', '', 'sp-group-rows'); for (const row of rows) list.append(row); box.append(list); page.append(box); };
+  const row = ({glyph, title, value, open, tone, id}) => { const b = btn('', open, 'sp-row', id ? {id} : {}); const lead = el('span', '', 'sp-row-icon'); lead.append(icon(glyph)); const text = el('span', '', 'sp-row-text'); text.append(el('strong', title)); if (value) text.append(el('small', value, tone ? `sp-row-value ${tone}` : 'sp-row-value')); b.append(lead, text); if (open) { const go = el('span', '', 'sp-row-go'); go.append(icon('right')); b.append(go); } else b.disabled = true; return b; };
+  const selected = config?.selected, look = getAppearance();
+  const engine = connected() ? 'Connected · Local' : 'Not connected';
+  const reconnectRow = el('div', '', 'sp-row sp-row-static'); const lead = el('span', '', 'sp-row-icon'); lead.append(icon('server')); const text = el('span', '', 'sp-row-text'); text.append(el('strong', 'SillyTavern engine'), el('small', engine, `sp-row-value ${connected() ? 'ok' : 'err'}`)); const re = btn('', () => reconnect(), 'btn quiet sp-link'); re.append(icon('refresh'), ' Reconnect'); reconnectRow.append(lead, text, re);
+  const provider = !selected ? (failure ? 'Could not read the connection' : 'Loading…') : `${selected.source === 'deepseek' ? 'DeepSeek' : selected.source === 'custom' ? (sameEndpoint(selected.endpoint, PROXY_ENDPOINT) ? 'Proxy' : 'OpenAI-compatible') : selected.source} · ${selected.model || 'no model'}`;
+  group('Connection', [reconnectRow, row({glyph: 'plug', title: 'Chat completion', value: provider, tone: config?.onlineStatus === 'no_connection' ? 'err' : '', open: () => { tab = 'connection'; render(); }, id: 'settings-connection'})]);
+  group('Chats', [row({glyph: 'sliders', title: 'Presets', value: selected?.preset ? `${selected.preset} · used everywhere unless a character or chat has its own` : 'Manage, edit and import presets', open: () => onPresets(), id: 'settings-presets'}), row({glyph: 'eye', title: 'Appearance & reading', value: `${look.textSize} px · ${look.spacing} spacing · thinking ${look.thinking}`, open: () => { tab = 'appearance'; render(); }, id: 'settings-appearance'})]);
+  group('About', [row({glyph: 'mug', title: 'Pocket Tavern', value: `${FRONTEND_BUILD} · engine bridge ${config?.bridgeBuild ?? '…'}`})]);
+ }
  function render(content) {
   if (content) container = content;
   if (!container?.isConnected || !visible()) return;
-  const page = el('div', '', 'sp-page');
-  const tabs = el('div', '', 'sp-tabs'); tabs.setAttribute('role', 'tablist');
-  for (const [id, label] of [['connection', 'Connection'], ['appearance', 'Appearance & reading']]) tabs.append(btn(label, () => { tab = id; render(); }, '', {role: 'tab', 'aria-selected': String(tab === id)}));
-  page.append(tabs);
-  if (tab === 'appearance') appearanceTab(page);
-  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'btn secondary sp-secondary'), el('p', 'Reading preferences on the other tab work without the engine.', 'sp-note')); }
+  const page = el('div', '', `sp-page sp-${tab}`);
+  const heading = document.getElementById('page-title'); if (heading) heading.textContent = ({home: 'Settings', connection: 'Connection', appearance: 'Appearance & reading'})[tab] ?? 'Settings';
+  if (tab === 'home') homeTab(page);
+  else if (tab === 'appearance') appearanceTab(page);
+  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'btn secondary sp-secondary'), el('p', 'Appearance & reading works without the engine.', 'sp-note')); }
   else if (!config) page.append(el('p', 'Loading connection settings…', 'sp-note'));
   else connectionTab(page);
   container.replaceChildren(page);
  }
- return {render, open: load, reload: () => action(load), setTab(next) { tab = next; }};
+ return {render, open: load, reload: () => action(load), setTab(next) { tab = next; }, title: () => ({home: 'Settings', connection: 'Connection', appearance: 'Appearance & reading'}[tab] ?? 'Settings'), back() { if (tab === 'home') return false; tab = 'home'; render(); return true; }};
 }

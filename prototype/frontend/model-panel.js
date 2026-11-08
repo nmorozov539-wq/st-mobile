@@ -9,7 +9,7 @@ export function createModelPanel({load,select,action,windowList,openConnection})
     function render(){
         const effective=state.effective,selection=scope==='global'?{enabled:true,value:state.global.model}:state[scope]?.modelSelection;
         for(const b of $('model-scopes').querySelectorAll('button')){b.setAttribute('aria-pressed',String(b.dataset.scope===scope));b.disabled=loading||!origin&&b.dataset.scope!=='global';}
-        $('model-target').textContent=scope==='chat'?`Chat · ${origin.chatId}`:scope==='character'?`Character · ${origin.characterName}`:'Global · default for chats without an override';
+        $('model-target').textContent=scope==='chat'?`Only ${origin.chatId}`:scope==='character'?`Every chat with ${origin.characterName} that has no model of its own`:'Every chat without a character or chat model';
         $('model-effective').textContent=effective.copy.model||'No model selected';
         $('model-source').textContent=`From ${scopeName(effective.modelScope)}`;
         const stronger=['global','character','chat'].indexOf(effective.modelScope)>['global','character','chat'].indexOf(scope);

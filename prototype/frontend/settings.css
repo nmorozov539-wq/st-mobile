@@ -44,3 +44,30 @@ html:not([data-background=plain]) .sp-preview{background:var(--glow),var(--bg)}
 .sp-segmented{display:flex;margin:4px 0 14px}.sp-segment{flex:1;min-height:44px;font-size:14px}.sp-segment[aria-checked="true"]{font-weight:600}
 .sp-manual{display:block;margin:4px 0 2px;padding:6px 0;font-size:13px}
 .sp-preview .user-bubble .bubble{font-family:var(--ui)}.sp-preview .user-bubble .who{color:var(--muted)}
+
+/* 0.8 Settings home: grouped rows under small section labels */
+.sp-home{padding-top:6px}
+.sp-group{margin:0 0 22px}
+#page-content .sp-group-label{margin:0 0 6px 4px;font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sp-group-rows{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden}
+#page-content .sp-row{display:flex;align-items:center;gap:14px;width:100%;min-height:64px;padding:10px 14px;border:0;border-radius:0;background:transparent;color:var(--text);text-align:left}
+.sp-row+.sp-row{border-top:1px solid var(--line)}
+#page-content button.sp-row:disabled{opacity:1;cursor:default}
+#page-content button.sp-row:not(:disabled):hover{background:var(--hover)}
+.sp-row-icon{display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-m);background:var(--raised);color:var(--muted);flex:none}
+.sp-row-icon .icon{width:18px;height:18px}
+.sp-row-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.sp-row-text strong{font-weight:500;font-size:16px}
+.sp-row-value{color:var(--muted);font-size:13px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sp-row-value.ok{color:var(--ok)}.sp-row-value.err{color:var(--bad)}
+.sp-row-go{color:var(--faint);display:grid;place-items:center}
+.sp-row-go .icon{width:18px;height:18px}
+.sp-row-static .sp-link{flex:none;min-height:40px}
+
+/* Sub pages use the same section labels as the home */
+.sp-connection,.sp-appearance{padding-top:8px}
+.sp-heading{font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:24px 0 4px}
+.sp-label{font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:18px 0 0}
+.sp-engine small{color:var(--ok)}
+.sp-field input,.sp-field select{border:1px solid var(--line);border-radius:var(--r-m);font-size:var(--t-m)}
+.sp-field input:focus,.sp-field select:focus{outline:0;border-color:var(--brass)}

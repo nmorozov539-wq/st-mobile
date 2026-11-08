@@ -1,5 +1,5 @@
-import {assertPersisted,canonical} from './persistence.js?build=0.8.0-phase3';
-import {assetName,assertUnchanged} from './asset-data.js?build=0.8.0-phase3';
+import {assertPersisted,canonical} from './persistence.js?build=0.8.0';
+import {assetName,assertUnchanged} from './asset-data.js?build=0.8.0';
 
 const fail=(code,message)=>{throw Object.assign(Error(message),{code});};
 const headerFields=value=>{const header={...value.header};delete header.chat_metadata;return header;};

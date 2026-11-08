@@ -1,7 +1,7 @@
-import {icon} from './icons.js?build=0.8.0-phase3';
-import {validColour} from './char-colour.js?build=0.8.0-phase3';
-import {createCharacterAssociations} from './character-associations.js?build=0.8.0-phase3';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.8.0-phase3';
+import {icon} from './icons.js?build=0.8.0';
+import {validColour} from './char-colour.js?build=0.8.0';
+import {createCharacterAssociations} from './character-associations.js?build=0.8.0';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.8.0';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions,colourOf=async()=>null,globalPreset=()=>''}) {
     const links=createCharacterAssociations(associationOptions);

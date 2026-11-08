@@ -1,11 +1,11 @@
-import { generateAlternative } from './alternative.js?build=0.8.0-phase3';
+import { generateAlternative } from './alternative.js?build=0.8.0';
 import { sendTextareaMessage, swipe, syncMesToSwipe, streamingProcessor, deleteCharacterChatByName, saveSettingsDebounced } from '/script.js';
-import { withoutTools } from './generation-tools.js?build=0.8.0-phase3';
+import { withoutTools } from './generation-tools.js?build=0.8.0';
 import { hasPendingFileAttachment } from '/scripts/chats.js';
 import { isExecutingCommandsFromChatInput } from '/scripts/slash-commands.js';
 import { SWIPE_STATE, SWIPE_DIRECTION } from '/scripts/constants.js';
-import { assertPersisted } from './persistence.js?build=0.8.0-phase3';
-import { selectSavedChat } from './chat-selection.js?build=0.8.0-phase3';
+import { assertPersisted } from './persistence.js?build=0.8.0';
+import { selectSavedChat } from './chat-selection.js?build=0.8.0';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export function createGenerationRuntime(getContext) {

@@ -1,7 +1,7 @@
 // Phase 5: full-page Summaryception memory panel.
 // Renders into #page-content when page === 'memory'. All writes go through the
 // verified extension actions (settings, snippet, clear, import, repair, reset).
-import {icon} from './icons.js?build=0.8.0-phase3';
+import {icon} from './icons.js?build=0.8.0';
 const EDITABLE = ['enabled', 'pauseSummarization', 'verbatimTurns', 'turnsPerSummary', 'snippetsPerLayer', 'snippetsPerPromotion', 'maxLayers', 'disableGhosting', 'summarizerResponseLength', 'promptPreset', 'summarizerUserPrompt', 'summarizerSystemPrompt', 'injectionTemplate', 'stripPatterns', 'savedCustomPrompts', 'debugMode', 'traceMode'];
 
 // Summarize now always says what it did; a short chat has nothing to summarize yet.

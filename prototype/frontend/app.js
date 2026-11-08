@@ -1,29 +1,29 @@
-import {createLibraryViews,characterStatus,chatDate,chatGroups} from './libraries.js?build=0.8.0-phase3';
-import {createNewChatPanel} from './new-chat-panel.js?build=0.8.0-phase3';
-import {createEngineMonitor} from './engine-monitor.js?build=0.8.0-phase3';
-import {checkBridgeBuild,FRONTEND_BUILD} from './build.js?build=0.8.0-phase3';
-import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.8.0-phase3';
-import {createJournal,revision,renderRange,failureOutcome} from './journal.js?build=0.8.0-phase3';
-import {RuntimeConnection} from './transport.js?build=0.8.0-phase3';
+import {createLibraryViews,characterStatus,chatDate,chatGroups} from './libraries.js?build=0.8.0';
+import {createNewChatPanel} from './new-chat-panel.js?build=0.8.0';
+import {createEngineMonitor} from './engine-monitor.js?build=0.8.0';
+import {checkBridgeBuild,FRONTEND_BUILD} from './build.js?build=0.8.0';
+import {createLocalState,isNearBottom,submittedUserMessage,recoveryDecision} from './state.js?build=0.8.0';
+import {createJournal,revision,renderRange,failureOutcome} from './journal.js?build=0.8.0';
+import {RuntimeConnection} from './transport.js?build=0.8.0';
 import {DOMPurify,showdown} from '/lib.js';
-import {createHTMLFormatter} from './html-format.js?build=0.8.0-phase3';
-import {createSettingsPanel} from './settings.js?build=0.8.0-phase3';
-import {createLibrary} from './library.js?build=0.8.0-phase3';
-import {createMemoryPanel} from './memory.js?build=0.8.0-phase3';
-import {confirmDialog} from './wi-ui.js?build=0.8.0-phase3';
-import {createWorldInfoPanel} from './world-info.js?build=0.8.0-phase3';
-import {renderHome,homeStatus,homeDot} from './home.js?build=0.8.0-phase3';
-import {createSettingsPage} from './settings-page.js?build=0.8.0-phase3';
-import {loadAppearance,saveAppearance,applyAppearance,clockText,modelName,tokenText} from './appearance.js?build=0.8.0-phase3';
-import {probeEngine} from './engine-health.js?build=0.8.0-phase3';
-import {createPresetPanel} from './preset-panel.js?build=0.8.0-phase3';
-import {icon} from './icons.js?build=0.8.0-phase3';
-import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.8.0-phase3';
-import {createModelPanel} from './model-panel.js?build=0.8.0-phase3';
-import {createCharacterColours} from './char-colour.js?build=0.8.0-phase3';
-import {createSidePanels} from './side-panels.js?build=0.8.0-phase3';
-import {compileDisplay,applyDisplay,messageDepth,placementFor,PLACEMENT} from './regex-display.js?build=0.8.0-phase3';
-import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.8.0-phase3';
+import {createHTMLFormatter} from './html-format.js?build=0.8.0';
+import {createSettingsPanel} from './settings.js?build=0.8.0';
+import {createLibrary} from './library.js?build=0.8.0';
+import {createMemoryPanel} from './memory.js?build=0.8.0';
+import {confirmDialog} from './wi-ui.js?build=0.8.0';
+import {createWorldInfoPanel} from './world-info.js?build=0.8.0';
+import {renderHome,homeStatus,homeDot} from './home.js?build=0.8.0';
+import {createSettingsPage} from './settings-page.js?build=0.8.0';
+import {loadAppearance,saveAppearance,applyAppearance,clockText,modelName,tokenText} from './appearance.js?build=0.8.0';
+import {probeEngine} from './engine-health.js?build=0.8.0';
+import {createPresetPanel} from './preset-panel.js?build=0.8.0';
+import {icon} from './icons.js?build=0.8.0';
+import {createChatControls,generationDuration,alternativeIntent} from './chat-controls.js?build=0.8.0';
+import {createModelPanel} from './model-panel.js?build=0.8.0';
+import {createCharacterColours} from './char-colour.js?build=0.8.0';
+import {createSidePanels} from './side-panels.js?build=0.8.0';
+import {compileDisplay,applyDisplay,messageDepth,placementFor,PLACEMENT} from './regex-display.js?build=0.8.0';
+import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.8.0';
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);
@@ -46,8 +46,11 @@ let listPrefs=(()=>{try{return {characterView:'cards',characterSort:'recent',cha
 function setListPref(key,value){listPrefs={...listPrefs,[key]:value};try{localStorage.setItem(LIST_PREFS,JSON.stringify(listPrefs));}catch{}renderPage();}
 const SEARCH_AT=8;
 function pageActions(list){$('page-actions').replaceChildren(...list.map(a=>{const b=button('',a.run);if(a.id)b.id=a.id;b.className=a.primary?'page-action primary':'page-action';b.append(icon(a.icon));b.setAttribute('aria-label',a.label);b.title=a.label;b.disabled=!!a.disabled;return b;}));}
-function renderSearch(){const count={chats:recents.length,characters:characters.length,personas:configuration?.personas?.length??0}[page];const show=count!==undefined&&(count>=SEARCH_AT||!!listQuery[page]);$('page-search').hidden=!show;if(!show)return;const input=$('page-search-input');if(document.activeElement!==input)input.value=listQuery[page];input.placeholder={chats:'Search chats',characters:'Search names and tags',personas:'Search personas'}[page];$('page-search-clear').hidden=!input.value;}
+function renderSearch(){const count={chats:recents.length,characters:characters.length,personas:configuration?.personas?.length??0}[page];const show=count!==undefined&&(count>=SEARCH_AT||!!listQuery[page]);$('page-search').hidden=!show;if(!show)return;const input=$('page-search-input');if(document.activeElement!==input)input.value=listQuery[page];input.placeholder={chats:'Search chats',characters:'Search names and tags',personas:'Search personas'}[page];input.setAttribute('aria-label',input.placeholder);$('page-search-clear').hidden=!input.value;}
 function chatMatches(row,q){if(!q)return true;const c=characters.find(c=>c.key===row.characterKey);return `${c?.name??row.characterKey} ${row.chatId} ${row.preview??''}`.toLocaleLowerCase().includes(q);}
+// Before the first library read: a quiet loading line, or after a long wait a plain error with Reconnect.
+function engineStalled(){return !connected&&(Date.now()-connectStartedAt>45000||!$('recovery').hidden);}
+function waitingState(content){const stalled=engineStalled();const box=el('div','','list-empty list-waiting');box.setAttribute('role','status');box.append(el('strong',stalled?'Can’t reach the engine':'Loading…'),el('span',stalled?'Pocket Tavern can’t talk to SillyTavern right now. Your drafts are kept.':'Reading your library from SillyTavern.'));if(stalled&&$('recovery').hidden){const again=button('Reconnect',()=>$('reconnect').click());again.className='btn secondary';again.prepend(icon('refresh'));const actions=el('div','','list-empty-actions');actions.append(again);box.append(actions);}content.append(box);}
 function renderChats(content){
     if(!recents.length){const empty=el('div','','list-empty');empty.append(el('strong','No chats yet'),el('span','Pick a character to start your first story.'));const go=button('Choose a character',()=>navigate('new-chat'));go.className='btn primary';go.prepend(icon('plus'));go.disabled=!connected||review;const actions=el('div','','list-empty-actions');actions.append(go);empty.append(actions);content.append(empty);return;}
     const views=el('div','','segmented chat-grouping');views.setAttribute('role','group');views.setAttribute('aria-label','Group chats');for(const [value,label] of [['recent','Recent'],['character','By character']]){const b=button(label,()=>setListPref('chatGroup',value));b.setAttribute('aria-pressed',String(listPrefs.chatGroup===value));views.append(b);}content.append(views);
@@ -66,7 +69,7 @@ function error(value){status(value.message);toast(value.message);if(['DISCONNECT
 async function action(fn){try{return await fn();}catch(e){error(e);}}
 function saveDraft(){clearTimeout(draftTimer);if(snapshot&&$('draft').value!==state.draft(snapshot))state.saveDraft(snapshot,$('draft').value);}
 let homeSignature='',libraryLoaded=false,connectStartedAt=Date.now();
-function homeSync(){if(page!=='home')return;const signature=JSON.stringify([connected,initializing,engineBusy||working||!!operation,configuration?.onlineStatus,apiChecked,libraryLoaded,!libraryLoaded&&Date.now()-connectStartedAt>45000,characters.map(c=>[c.key,c.name,c.color]),recents.slice(0,4).map(r=>[r.characterKey,r.chatId,r.updated,r.preview])]);if(signature!==homeSignature){homeSignature=signature;renderPage();}}
+function homeSync(){if(page!=='home')return;const signature=JSON.stringify([connected,initializing,engineBusy||working||!!operation,configuration?.onlineStatus,apiChecked,libraryLoaded,!libraryLoaded&&engineStalled(),characters.map(c=>[c.key,c.name,c.color]),recents.slice(0,4).map(r=>[r.characterKey,r.chatId,r.updated,r.preview])]);if(signature!==homeSignature){homeSignature=signature;renderPage();}}
 function controls(){homeSync();const unavailable=!connected||review;const busy=freshPreparing||engineBusy||working||memoryBusy||startingGeneration||draining;
     $('draft').disabled=!snapshot||unavailable;
     $('send').disabled=unavailable||busy||!snapshot||!$('draft').value.trim();$('send').hidden=!!operation;
@@ -96,8 +99,9 @@ function windowList(parent,rows,makeRow,estimate=100,scroller=$('landing')){
 function renderPage(){listRenderer=null;if(page==='chat')return;const content=$('page-content');content.replaceChildren();content.className='';const titles={home:'Pocket Tavern',chats:'Chats',characters:'Characters',personas:'Personas',wi:'World Info','new-chat':'New chat','persona-editor':personaEdit?.key?'Edit persona':'New persona','persona-picker':'Persona',memory:'Memory','wi-entry':'Entry','wi-activation':'Activation',settings:'Settings'};$('page-title').textContent=page==='settings'?settingsPage.title():titles[page];$('page-subtitle').hidden=page!=='memory';$('page-subtitle').textContent=page==='memory'?'Summaryception':'';$('landing').classList.toggle('home-screen',page==='home');$('landing').classList.toggle('library-screen',['characters','chats','new-chat','personas','persona-editor','persona-picker','memory','wi','wi-entry','wi-activation','settings'].includes(page));$('page-wi-activation').hidden=page!=='wi';$('app-settings').hidden=page!=='home';$('home-meta').hidden=page!=='home';$('page-back').hidden=page!=='new-chat'&&page!=='persona-editor'&&page!=='persona-picker'&&page!=='memory'&&page!=='wi-entry'&&page!=='wi-activation'&&page!=='settings';$('page-new-chat').hidden=page!=='chats';$('page-new-chat').classList.add('primary');for(const b of $('bottom-nav').querySelectorAll('button')){const on=b.dataset.page===(page==='new-chat'?'chats':page);b.classList.toggle('current',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');}
     const locked=!connected||review;pageActions(page==='characters'?[{id:'characters-import',icon:'upload',label:'Import a character card',run:openImport,disabled:locked},{id:'characters-create',icon:'plus',label:'Create a character',run:()=>action(()=>library.createCharacter()),disabled:locked,primary:true}]:page==='personas'?[{id:'personas-create',icon:'plus',label:'Create persona',run:()=>action(()=>openPersonaEditor(null)),primary:true}]:page==='wi'?wiPanel.headerActions():[]);renderSearch();
     if(page==='home'){
-        const status=homeStatus({connected,initializing,generating:engineBusy||working||!!operation,onlineStatus:configuration?.onlineStatus,apiChecked});renderHomeStatus(status);renderHome(content,{status,loaded:libraryLoaded,stalled:Date.now()-connectStartedAt>45000,connected:connected&&!review,characters,recents,portrait,chatDate,colours:characterColours,actions:{openChat:row=>action(()=>openChat(row)),allChats:()=>navigate('chats'),allCharacters:()=>navigate('characters'),openCharacter:c=>action(()=>library.edit(c.key,{kind:'characters',fromLibrary:true})),addCharacter:()=>navigate('characters'),importCharacters:openImport,createCharacter:()=>library.createCharacter(),startChat:()=>navigate('new-chat'),reconnect:()=>$('reconnect').click()}});
-    }else if(page==='chats'){renderChats(content);}
+        const status=homeStatus({connected,initializing,generating:engineBusy||working||!!operation,onlineStatus:configuration?.onlineStatus,apiChecked});renderHomeStatus(status);renderHome(content,{status,loaded:libraryLoaded,stalled:engineStalled(),connected:connected&&!review,characters,recents,portrait,chatDate,colours:characterColours,actions:{openChat:row=>action(()=>openChat(row)),allChats:()=>navigate('chats'),allCharacters:()=>navigate('characters'),openCharacter:c=>action(()=>library.edit(c.key,{kind:'characters',fromLibrary:true})),addCharacter:()=>navigate('characters'),importCharacters:openImport,createCharacter:()=>library.createCharacter(),startChat:()=>navigate('new-chat'),reconnect:()=>$('reconnect').click()}});
+    }else if(!libraryLoaded&&['chats','characters','personas','new-chat'].includes(page)){waitingState(content);}
+    else if(page==='chats'){renderChats(content);}
     else if(page==='characters'){libraryViews.characters(content,characters,{view:listPrefs.characterView,sort:listPrefs.characterSort,tag:characters.some(c=>c.tags?.includes(listPrefs.characterTag))?listPrefs.characterTag:'',query:listQuery.characters,recents,onView:v=>setListPref('characterView',v),onSort:v=>setListPref('characterSort',v),onTag:v=>setListPref('characterTag',v)});}
     else if(page==='new-chat'){libraryViews.picker(content,characters);}
     else if(page==='personas'){libraryViews.personas(content,configuration?.personas??[],{createPersona:()=>openPersonaEditor(null),editPersona:p=>action(()=>openPersonaEditor(p)),current:configuration?.selected?.persona,query:listQuery.personas});}
@@ -375,7 +379,7 @@ async function openModels(global=false){await modelPanel.open(global?null:{...ta
 async function changeConnection(kind,value){if(engineBusy||memoryBusy)throw Error('Wait for the engine before changing global connection or persona settings.');const current=await raw('settings');await raw('configure',{kind,value,revision:current.revision},60000);await refresh();if(snapshot){snapshot=await workspace('read',{target:target(snapshot)});renderHeader();}}
 function openImport(){importUncertain=false;$('character-import-file').value='';$('character-import-file').disabled=importWaiting;$('character-import-status').textContent='Choose a character card from your device.';$('character-import-confirm').showModal();}
 // The corner of Home: one status dot, with words only when something needs attention.
-function renderHomeStatus(status){const dot=homeDot(status),button=$('home-status');button.dataset.tone=dot.tone;button.setAttribute('aria-label',`Connection · ${dot.label}`);button.title=`Connection · ${dot.label}`;$('home-status-text').textContent=dot.text;}
+function renderHomeStatus(status){const early=!libraryLoaded&&!engineStalled()&&status.engine.tone==='bad';const dot=early?{tone:'wait',text:'Connecting…',label:'Engine: Connecting… · API: Not checked'}:homeDot(status),button=$('home-status');button.dataset.tone=dot.tone;button.setAttribute('aria-label',`Connection · ${dot.label}`);button.title=`Connection · ${dot.label}`;$('home-status-text').textContent=dot.text;}
 async function openConnection(view='connection'){$('chat-settings').close();settingsPage.setTab(view);await settingsPage.open();settingsFrom=page==='settings'?settingsFrom:page;navigate('settings');}
 async function openLibrary(kind){$('library-kind').value=kind;await library.open(kind);}
 async function editCharacter(c){await library.edit(c.key,{kind:'characters',fromLibrary:page!=='chat'});}

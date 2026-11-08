@@ -1,5 +1,5 @@
-import {icon} from './icons.js?build=0.8.0-phase3';
-import {plainPreview} from './preview.js?build=0.8.0-phase3';
+import {icon} from './icons.js?build=0.8.0';
+import {plainPreview} from './preview.js?build=0.8.0';
 
 export function characterStatus(card){
     const missing=[['name','name'],['description','description'],['first_mes','main greeting']].filter(([key])=>!String(card?.[key]??'').trim()).map(([,label])=>label);

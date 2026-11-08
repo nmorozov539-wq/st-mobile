@@ -82,3 +82,19 @@
 #page-content .memory-page>.memory-hint{margin-left:0;margin-right:56px}
 .preset-caption,.model-caption{font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:4px 0 8px}
 #preset-scopes>button,#model-scopes>button{font-size:13px;min-height:40px}
+
+/* Problems push content down instead of covering it: the banners sit above the page in the flow. */
+.pocket-shell>#recovery,.pocket-shell>#save-retry{order:-1;position:static;margin:8px 12px 0;z-index:auto}
+.list-waiting strong{color:var(--muted)}
+
+/* Touch targets: at least 40px, or a larger invisible hit area where the layout must stay compact. */
+#home-meta #home-status{width:44px;height:44px;margin:0 -8px 0 -10px}
+.tag-chip{min-height:36px}
+.list-view>button{width:44px;height:36px}
+.chat-grouping>button{min-height:40px}
+.home-section-link{min-width:44px;height:40px}
+#chat-screen .chat-sub button,#chat-screen #name{position:relative}
+#chat-screen .chat-sub button::after,#chat-screen #name::after{content:'';position:absolute;inset:-8px -3px}
+#chat-screen #messages details>summary{min-height:40px}
+#messages .rx-scope details>summary{min-height:36px;display:flex;align-items:center}
+#asset-editor.character-editor .dialog-heading #close-asset,#asset-editor.character-editor .dialog-heading .character-actions-trigger{min-width:44px}

@@ -31,6 +31,11 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #chat-screen .user .bubble{font-family:var(--ui);font-size:calc(var(--t-read) * .93);line-height:calc(var(--read-line) * .95);background:var(--user-bubble);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px}
 #chat-screen .bubble em{color:var(--narration)}#chat-screen .bubble strong{color:var(--text)}
 #chat-screen .bubble p{margin:0 0 .75em}#chat-screen .bubble p:last-child{margin-bottom:0}
+#chat-screen .bubble p:empty{display:none}
+/* Display regex and model HTML keep their own colours; quotes inside a coloured span follow it. */
+#chat-screen .bubble [style*="color"] .dialogue,#chat-screen .bubble font .dialogue{color:inherit}
+#chat-screen .bubble img{max-width:100%;height:auto}
+#chat-screen .bubble .rx-scope{display:contents}
 #chat-screen .bubble a{color:var(--char)}#chat-screen .bubble blockquote{border-color:var(--line-strong);color:var(--narration)}
 /* Out-of-character text: dimmed, never coloured as speech or narration. */
 #chat-screen .bubble .ooc,#chat-screen .bubble .ooc :is(em,strong,.dialogue){color:var(--faint)}

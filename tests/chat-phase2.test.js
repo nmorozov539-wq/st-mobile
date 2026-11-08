@@ -46,3 +46,37 @@ test('side-panel swipes: direction picks the panel; short, slow or vertical drag
     assert.equal(swipeSide(40,0,{velocity:.9}),'left','short but fast');
     assert.equal(swipeSide(-80,70),null,'mostly vertical');
 });
+import {compileDisplay,applyDisplay,messageDepth,placementFor,regexFromString} from '../prototype/frontend/regex-display.js';
+import {collectDisplayScripts} from '../prototype/extension/display-regex.js';
+import {scopeSelector} from '../prototype/frontend/html-format.js';
+
+const script=(over={})=>({scriptName:'s',findRegex:'/<c=([a-z]+)>(.*?)<\\/c>/gi',replaceString:'<span style="color:$1">$2</span>',trimStrings:[],placement:[2],markdownOnly:true,promptOnly:false,disabled:false,substituteRegex:0,minDepth:null,maxDepth:null,...over});
+const fakeCtx=(over={})=>({extensionSettings:{regex:[script()],character_allowed_regex:['a.png'],preset_allowed_regex:{openai:['Stribog']}},characters:[{avatar:'a.png',name:'Mira',data:{extensions:{regex_scripts:[script({scriptName:'scoped',findRegex:'/{{char}}/g',substituteRegex:1,replaceString:'[{{match}}]'})]}}}],getPresetManager:()=>({getCompletionPresetByName:n=>n==='Stribog'?{extensions:{regex_scripts:[script({scriptName:'preset',findRegex:'/x/g',replaceString:'y'})]}}:undefined}),substituteParams:(t,o)=>t.replaceAll('{{char}}',o?.name2Override??'?'),...over});
+
+test('display scripts: global, allowed character and allowed preset; prompt-only and disabled skipped', () => {
+    const ctx=fakeCtx();ctx.extensionSettings.regex.push(script({scriptName:'prompt',markdownOnly:false,promptOnly:true}),script({scriptName:'off',disabled:true}));
+    const {scripts}=collectDisplayScripts(ctx,{characterKey:'a.png',preset:'Stribog'});
+    assert.deepEqual(scripts.map(s=>s.name),['s','scoped','preset']);
+    assert.equal(scripts[1].find,'/Mira/g','{{char}} resolved for the chat character');
+    assert.equal(scripts[1].replace,'[$0]','{{match}} becomes $0');
+    assert.deepEqual(collectDisplayScripts(ctx,{characterKey:'b.png',preset:'Other'}).scripts.map(s=>s.name),['s'],'not allowed → not applied');
+    assert.equal(collectDisplayScripts(fakeCtx({extensionSettings:{disabledExtensions:['regex'],regex:[script()]}})).scripts.length,0);
+});
+test('display regex runs like ST: groups, trims, placement and depth', () => {
+    const compiled=compileDisplay([{...collectDisplayScripts(fakeCtx()).scripts[0]},{name:'deep',find:'/END/',replace:'',trim:[],placement:[2],minDepth:null,maxDepth:1}]);
+    assert.equal(applyDisplay(compiled,'<c=red>"Hi"</c> END',{placement:2,depth:0}),'<span style="color:red">"Hi"</span> ');
+    assert.equal(applyDisplay(compiled,'END',{placement:2,depth:3}),'END','maxDepth keeps older messages');
+    assert.equal(applyDisplay(compiled,'<c=red>x</c>',{placement:1,depth:0}),'<c=red>x</c>','user input placement not listed');
+    const trimmed=compileDisplay([{find:'/<b>(.*?)<\\/b>/',replace:'$1',trim:['!'],placement:[2],minDepth:null,maxDepth:null}]);
+    assert.equal(applyDisplay(trimmed,'<b>wow!</b>',{placement:2}),'wow');
+    assert.equal(regexFromString('/a/zz')?.source,'\\/a\\/zz','invalid flags → literal');
+});
+test('message depth counts from the end over non-system messages', () => {
+    const m=[{},{is_system:true},{},{is_user:true}];
+    assert.deepEqual([0,1,2,3].map(i=>messageDepth(m,i)),[2,undefined,1,0]);
+    assert.equal(placementFor({is_user:true}),1);assert.equal(placementFor({extra:{type:'narrator'}}),3);assert.equal(placementFor({}),2);
+});
+test('message <style> rules are scoped to the message and class names renamed', () => {
+    assert.equal(scopeSelector('body .a, :root, html>.b, p.note:hover','.rx-1'),'.rx-1 .rx-c-a,.rx-1,.rx-1 >.rx-c-b,.rx-1 p.rx-c-note:hover');
+    assert.equal(scopeSelector('[class=".x"] q','.rx-2'),'.rx-2 [class=".x"] q');
+});

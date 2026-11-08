@@ -1,4 +1,5 @@
 import {icon} from './icons.js?build=0.8.0-phase2';
+import {plainPreview} from './preview.js?build=0.8.0-phase2';
 
 export function characterStatus(card){
     const missing=[['name','name'],['description','description'],['first_mes','main greeting']].filter(([key])=>!String(card?.[key]??'').trim()).map(([,label])=>label);
@@ -44,11 +45,11 @@ export function createLibraryViews({node,button,portrait,personaPortrait,windowL
         if(!rows.length){content.append(node('p','No personas yet. Create one to get started.','library-empty'));return;}
         windowList(content,characterRows(rows),group=>{const row=node('div','','character-grid-row');for(const p of group){const card=button('',()=>edit(p));card.className='character-card persona-card';card.dataset.key=p.id;card.append(personaPortrait(p),node('span',p.name,'character-card-name'));row.append(card);}return row;},150);
     }
-    function plainDescription(text){return String(text??'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,240);}
+    function plainDescription(text){return plainPreview(text,240);}
     function chat(row,characters){
         const c=characters.find(c=>c.key===row.characterKey),outer=node('div','','chat-row'),open=button('',()=>row.open());open.className='chat-open';open.setAttribute('aria-label',`Open ${c?.name??row.characterKey} · ${row.chatId}`);
         const text=node('span','','chat-row-text'),top=node('span','','chat-row-top');top.append(node('strong',c?.name??row.characterKey));const date=chatDate(row.updated);if(date){const time=node('time',date.label);time.dateTime=date.datetime;time.title=date.title;top.append(time);}
-        text.append(top,node('span',row.chatId,'chat-row-name'),node('span',String(row.preview??'').slice(0,240)||'No messages yet','preview'));open.append(portrait(c),text);
+        text.append(top,node('span',row.chatId,'chat-row-name'),node('span',plainPreview(row.preview)||'No messages yet','preview'));open.append(portrait(c),text);
         const more=button('',()=>onDelete(row));more.className='chat-row-more';more.append(icon('more'));more.setAttribute('aria-label',`Actions for ${row.chatId}`);more.title='Delete chat · confirmation and Undo';
         const del=button('Delete',()=>onDelete(row));del.className='row-delete';del.hidden=true;del.setAttribute('aria-label',`Delete ${row.chatId}`);outer.append(open,more,del);
         let pointer,suppressClick=false;

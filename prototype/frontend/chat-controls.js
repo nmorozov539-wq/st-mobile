@@ -19,33 +19,37 @@ export function createChatControls({onBack,atRoot=()=>false}) {
     const dialogs=[...document.querySelectorAll('dialog')];
     let restoreFocus,explanationTimer;
     const viewport=()=>{const v=window.visualViewport;return {left:v?.offsetLeft??0,top:v?.offsetTop??0,width:v?.width??innerWidth,height:v?.height??innerHeight};};
-    function close(dialog,focus=true){if(!dialog.open)return;dialog.close();if(focus&&dialog.classList.contains('fan-dialog')&&restoreFocus?.isConnected)restoreFocus.focus({preventScroll:true});}
-    function explain(button){
-        let held=false,timer;
-        button.addEventListener('pointerdown',()=>{held=false;timer=setTimeout(()=>{held=true;button.closest('dialog')?.append($('icon-explanation'));$('icon-explanation').textContent=button.title;$('icon-explanation').hidden=false;clearTimeout(explanationTimer);explanationTimer=setTimeout(()=>$('icon-explanation').hidden=true,3500);},550);});
-        for(const event of ['pointerup','pointercancel','pointerleave'])button.addEventListener(event,()=>clearTimeout(timer));
-        button.addEventListener('click',e=>{if(held){e.preventDefault();e.stopImmediatePropagation();held=false;}},true);
-    }
-    for(const button of document.querySelectorAll('[data-icon]')){button.replaceChildren(icon(button.dataset.icon));if(button.title)explain(button);}
+    function close(dialog,focus=true){if(!dialog.open)return;dialog.close();if(focus&&dialog.classList.contains('menu-dialog')&&restoreFocus?.isConnected)restoreFocus.focus({preventScroll:true});}
+    // Long-press on any icon-only button shows its name. Delegated, so it
+    // covers buttons created later too. A hold suppresses the click it ends.
+    const iconOnly=node=>{const b=node?.closest?.('button,[role=button]');return b&&!b.disabled&&!b.textContent.trim()&&(b.title||b.getAttribute('aria-label'))?b:null;};
+    let hold=null,suppress=null;
+    function showLabel(button){const label=$('icon-explanation');(button.closest('dialog')??document.body).append(label);label.textContent=button.title||button.getAttribute('aria-label');label.hidden=false;clearTimeout(explanationTimer);explanationTimer=setTimeout(()=>label.hidden=true,3500);}
+    document.addEventListener('pointerdown',e=>{clearTimeout(hold?.timer);hold=null;const target=iconOnly(e.target);if(!target)return;hold={target,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{suppress=target;showLabel(target);},550)};},true);
+    document.addEventListener('pointermove',e=>{if(hold&&Math.hypot(e.clientX-hold.x,e.clientY-hold.y)>10){clearTimeout(hold.timer);hold=null;}},true);
+    for(const type of ['pointerup','pointercancel'])document.addEventListener(type,()=>{clearTimeout(hold?.timer);hold=null;},true);
+    document.addEventListener('click',e=>{if(suppress&&suppress.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();}suppress=null;},true);
+    document.addEventListener('contextmenu',e=>{if(iconOnly(e.target))e.preventDefault();},true);
+    for(const node of document.querySelectorAll('[data-icon]'))node.replaceChildren(icon(node.dataset.icon));
     const dismiss=()=>{const open=dialogs.filter(d=>d.open).at(-1);if(open){const event=new Event('pocket-back',{cancelable:true});if(open.dispatchEvent(event))close(open);return true;}return false;};
     for(const dialog of dialogs) {
-        dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(dialog.classList.contains('fan-dialog')||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close(dialog);});
-        dialog.addEventListener('cancel',()=>{if(dialog.classList.contains('fan-dialog')&&restoreFocus?.isConnected)restoreFocus.focus({preventScroll:true});});
-        dialog.addEventListener('close',()=>{for(const trigger of document.querySelectorAll('[aria-controls]'))if(trigger.getAttribute('aria-controls')===dialog.id)trigger.setAttribute('aria-expanded','false');$('icon-explanation').hidden=true;document.querySelectorAll('.fan-selected').forEach(n=>n.classList.remove('fan-selected'));});
+        dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(dialog.classList.contains('menu-dialog')||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close(dialog);});
+        dialog.addEventListener('cancel',()=>{if(dialog.classList.contains('menu-dialog')&&restoreFocus?.isConnected)restoreFocus.focus({preventScroll:true});});
+        dialog.addEventListener('close',()=>{for(const trigger of document.querySelectorAll('[aria-controls]'))if(trigger.getAttribute('aria-controls')===dialog.id)trigger.setAttribute('aria-expanded','false');$('icon-explanation').hidden=true;document.querySelectorAll('.menu-selected').forEach(n=>n.classList.remove('menu-selected'));});
     }
-    function placeFan(dialog,trigger,type) {
-        const v=viewport(),r=trigger.getBoundingClientRect(),fan=dialog.querySelector('.curved-fan');
-        const buttons=[...fan.querySelectorAll('button')].filter(b=>!b.hidden);
-        const points=type==='gear'?[[0,0],[34,48],[88,68]]:[[0,0],[10,50],[38,92],[80,120],[130,130],[180,120]];
-        const width=(type==='gear'?136:buttons.length>5?228:178)+2,height=type==='gear'?118:180;
+    // Drop-down menus: right-aligned under their trigger, or above it when
+    // the space below runs out; always inside the visible viewport.
+    function placeMenu(dialog,trigger){
+        const v=viewport(),r=trigger.getBoundingClientRect(),menu=dialog.querySelector('.drop-menu');
+        menu.style.maxHeight=`${Math.max(160,v.height-16)}px`;
+        const width=menu.offsetWidth,height=menu.offsetHeight;
         const left=Math.max(v.left+8,Math.min(v.left+v.width-width-8,r.right-width));
-        const below=r.top+height+8<v.top+v.height;
-        const top=Math.max(v.top+8,Math.min(v.top+v.height-height-8,type==='gear'?r.bottom+8:below?r.top:r.top-height+48));
-        fan.style.left=`${left}px`;fan.style.top=`${top}px`;fan.style.width=`${width}px`;fan.style.height=`${height}px`;
-        buttons.forEach((b,i)=>{b.style.left=`${points[i][0]}px`;b.style.top=`${type==='message'&&!below?height-48-points[i][1]:points[i][1]}px`;});
+        const below=r.bottom+4+height<=v.top+v.height-8;
+        const top=below?r.bottom+4:Math.max(v.top+8,r.top-4-height);
+        menu.style.left=`${left}px`;menu.style.top=`${top}px`;
     }
-    function openFan(id,trigger,type){const d=$(id);if(d.open){close(d);return;}restoreFocus=trigger;d.showModal();placeFan(d,trigger,type);trigger.setAttribute('aria-expanded','true');d.querySelector('button:not([hidden]):not(:disabled)')?.focus({preventScroll:true});}
-    const resize=()=>{for(const d of dialogs.filter(d=>d.open&&d.classList.contains('fan-dialog')))if(restoreFocus?.isConnected)placeFan(d,restoreFocus,d.id==='chat-settings'?'gear':'message');};
+    function openMenu(id,trigger){const d=$(id);if(d.open){close(d);return;}restoreFocus=trigger;d.showModal();placeMenu(d,trigger);trigger.setAttribute('aria-expanded','true');d.querySelector('button:not([hidden]):not(:disabled)')?.focus({preventScroll:true});}
+    const resize=()=>{for(const d of dialogs.filter(d=>d.open&&d.classList.contains('menu-dialog')))if(restoreFocus?.isConnected)placeMenu(d,restoreFocus);};
     window.visualViewport?.addEventListener('resize',resize);window.visualViewport?.addEventListener('scroll',resize);window.addEventListener('resize',resize);
     // A browser-history sentinel lets Android/browser Back dismiss UI before
     // leaving the app. Keyboard Back may first be handled by Android's IME.
@@ -88,5 +92,5 @@ export function createChatControls({onBack,atRoot=()=>false}) {
     HTMLDialogElement.prototype.showModal=function(...args){const result=showModal.apply(this,args);if(!shown.has(this)){shown.add(this);this.addEventListener('close',()=>shown.delete(this),{once:true});}if(!backing)push();sync();return result;};
     if(!history.state?.pocketNavigation)history.replaceState({pocketNavigation:'base'},'');
     window.addEventListener('popstate',()=>{backing=true;let handled;try{handled=dismiss()||onBack();}finally{backing=false;}if(handled)owed++;else history.back();});
-    return {openFan,close,dismiss,sync,step(){if(!backing)push();}};
+    return {openMenu,close,dismiss,sync,step(){if(!backing)push();}};
 }

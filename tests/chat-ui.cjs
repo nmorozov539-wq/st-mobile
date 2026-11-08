@@ -118,9 +118,9 @@ const run=(async()=>{
  check(await page.evaluate(()=>getSelection().toString().length>0&&!document.querySelector('#message-menu').open),'text selection survives without hold-to-open behavior');await page.evaluate(()=>getSelection().removeAllRanges());
  for(const width of [320,390,430]){
     await page.setViewportSize({width,height:844});if(await page.locator('#jump').isVisible())await page.locator('#jump').click();await menu();
-    const rects=await page.locator('#message-menu .curved-fan button').evaluateAll(es=>es.filter(e=>!e.hidden).map(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
-    check(rects.every(r=>r.x>=0&&r.y>=0&&r.x+r.width<=width&&r.y+r.height<=844),'message fan stays inside '+width+'px viewport');
-    check(rects.every(r=>r.width>=48&&r.height>=48)&&rects.every((r,i)=>rects.every((s,j)=>i===j||Math.hypot(r.x-s.x,r.y-s.y)>=48)),'fan touch targets remain separated at '+width+'px');
+    const rects=await page.locator('#message-menu .drop-menu button').evaluateAll(es=>es.filter(e=>!e.hidden).map(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
+    check(rects.every(r=>r.x>=0&&r.y>=0&&r.x+r.width<=width&&r.y+r.height<=844),'message menu stays inside '+width+'px viewport');
+    check(rects.every(r=>r.height>=44)&&rects.every((r,i)=>i===0||r.y>=rects[i-1].y+rects[i-1].height-1),'menu rows are 44px tall and do not overlap at '+width+'px');
     await page.screenshot({path:`${output}/actions-${width}.png`});await page.keyboard.press('Escape');
     check(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),'no horizontal page overflow at '+width+'px');
  }

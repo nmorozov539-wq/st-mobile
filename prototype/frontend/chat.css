@@ -2,14 +2,22 @@
 body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #chat-screen{color:var(--text);background:var(--glow),var(--bg);--glow:radial-gradient(ellipse 120% 55% at 50% -10%,color-mix(in srgb,var(--char) 18%,transparent),transparent 70%)}
 #chat-screen button{color:inherit}
-#chat-screen svg,.curved-fan svg,#model-picker svg{width:20px;height:20px;flex-shrink:0}
-#chat-screen header{padding:8px 8px;padding-top:max(8px,env(safe-area-inset-top));min-height:64px;gap:5px;background:color-mix(in srgb,var(--bg) 85%,transparent);border-bottom:1px solid var(--line-strong)}
+#chat-screen svg,.drop-menu svg,#model-picker svg{width:20px;height:20px;flex-shrink:0}
+#chat-screen header{position:relative;z-index:1;padding:6px 4px 6px 4px;padding-top:max(6px,env(safe-area-inset-top));min-height:64px;gap:6px;background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 #chat-screen header>button{min-width:44px;min-height:44px;border:0;border-radius:var(--r-m);padding:8px;font-size:18px}
 #chat-screen #avatar{width:44px;height:44px;border:0;background:var(--raised);border-radius:var(--r-av);box-shadow:0 0 0 1.5px var(--char),0 0 16px color-mix(in srgb,var(--char) 45%,transparent);transition:box-shadow .4s}
 #chat-screen #avatar>.avatar{width:100%;height:100%;border-radius:var(--r-av);background:transparent;color:var(--brass)}
-#chat-screen #name{font-size:var(--t-m);font-weight:600;min-height:30px;padding:0;text-align:left}
-#chat-screen #subtitle{font-size:12px;line-height:1.5;color:var(--muted);margin:0}
-#chat-screen .chat-title{padding-left:3px}
+#chat-screen #name{font-size:var(--t-m);font-weight:600;min-height:26px;padding:0;text-align:left;display:block}
+#chat-screen .chat-title{padding-left:4px;min-width:0;flex:1}
+/* "as persona · model [preset]" — each part opens its own panel. */
+.chat-sub{display:flex;align-items:center;gap:4px;min-width:0;color:var(--muted);font-size:var(--t-xs);white-space:nowrap}
+#chat-screen .chat-sub button{min-height:28px;min-width:0;padding:2px 0;border:0;background:transparent;color:var(--muted);font-size:var(--t-xs);font-weight:400;display:inline-flex;align-items:center;gap:3px;overflow:hidden}
+#chat-screen .chat-sub button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chat-screen #active-persona{flex:0 1 auto;max-width:34%}
+#chat-screen #model-chip{flex:0 1 auto}
+#chat-screen #active-preset{flex:0 1 auto;max-width:38%;margin-left:4px;padding:2px 6px;border:1px solid var(--line-strong);border-radius:var(--r-s);color:var(--text)}
+#chat-screen #active-preset svg{width:13px;height:13px}
+.chat-sub-dot{color:var(--faint)}
 #messages{padding:12px 18px 0;overscroll-behavior:contain;scroll-behavior:auto}
 #chat-screen .message{position:relative;margin-bottom:22px;max-width:100%;touch-action:pan-y}
 /* Your turns: a faint tinted card in the interface font, a little narrower. */
@@ -47,12 +55,10 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #chat-screen .message-meta .message-model{max-width:140px;min-width:0;overflow:hidden;text-overflow:ellipsis;display:inline-block;padding:12px 0;font:inherit}
 .message.user .message-tools{justify-content:flex-end}
 #composer{border:0;padding:8px 12px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:transparent}
-.compose-input{padding:6px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-l)}
-#composer #draft{font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px;min-height:52px;max-height:min(150px,30dvh);resize:none;caret-color:var(--char)}
+.compose-input{display:flex;align-items:flex-end;gap:6px;padding:4px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-l)}
+#composer #draft{font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px 8px 10px 10px;min-height:44px;max-height:min(150px,30dvh);resize:none;flex:1;caret-color:var(--char)}
 #composer #draft:focus{outline:0}.compose-input:focus-within{border-color:color-mix(in srgb,var(--char) 70%,var(--line-strong))}
-.compose-bottom{display:flex;align-items:center;gap:8px;justify-content:space-between}
-#composer #model-chip{display:flex;align-items:center;gap:5px;font-size:12px;min-height:44px;border:0;padding:8px 10px;background:transparent;color:var(--muted);max-width:calc(100% - 58px)}
-#model-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#model-chip svg{width:18px;height:18px}
+.compose-bottom{display:flex;align-items:center;flex-shrink:0}
 #composer #send,#composer #stop{width:44px;height:44px;border:0;border-radius:var(--r-m);background:var(--char);color:#0b0c0e;transition:background .4s;display:grid;place-items:center;padding:0;flex-shrink:0}
 #composer #stop{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-strong)}
 #status{color:var(--muted);font-size:12px;line-height:1.5;min-height:0;padding:0 3px 6px;overflow-wrap:anywhere}
@@ -64,13 +70,6 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #chat-screen .inline-editor{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-m);padding:8px}
 #chat-screen .inline-editor textarea{font-size:16px;line-height:1.6;min-height:160px;max-height:40dvh;color:var(--text);background:transparent;border:0}
 .inline-edit-actions{display:flex;justify-content:end;gap:8px}.inline-edit-actions button{min-height:44px;background:var(--raised);border:0;font-size:13px}.inline-edit-actions button:last-child{background:var(--brass)!important;color:var(--brass-ink)!important}
-.fan-dialog{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;overflow:hidden;border:0;padding:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text)}
-.fan-dialog::backdrop{background:var(--scrim)}
-.curved-fan{position:fixed;pointer-events:none}
-#chat-settings .curved-fan>button,#message-menu .curved-fan>button{position:absolute;width:48px;height:48px;min-width:48px;min-height:48px;margin:0;display:grid;place-items:center;padding:0;pointer-events:auto;border-radius:50%;background:var(--raised);color:var(--text);border:1px solid var(--line-strong);box-shadow:0 6px 20px var(--shadow)}
-#message-menu #menu-delete{color:var(--bad);background:var(--bad-tint)}#message-menu #menu-reply{background:var(--selected);color:var(--brass)}
-#chat-screen .fan-selected .bubble{background:var(--raised);border-radius:var(--r-m);box-shadow:0 0 0 1px var(--line-strong)}
-#chat-screen .fan-selected .byline button{background:var(--selected);color:var(--brass);border-radius:50%}
 #icon-explanation{position:fixed;left:16px;right:16px;bottom:16px;padding:12px;background:var(--raised);color:var(--text);border:1px solid var(--line-strong);border-radius:var(--r-m);font-size:13px;pointer-events:none}
 #model-picker{width:min(760px,100vw);max-width:100vw;height:62dvh;max-height:calc(100dvh - 12px);margin:auto auto 0;padding:0;border-radius:var(--r-l) var(--r-l) 0 0;border:1px solid var(--line-strong);background:var(--surface);color:var(--text);overflow:hidden}
 #model-picker[open]{display:flex;flex-direction:column}
@@ -100,7 +99,21 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #model-list .model-row:disabled{opacity:1;color:var(--muted)}
 .model-symbol{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--raised);flex-shrink:0}
 .model-row-text{flex:1;min-width:0;overflow-wrap:anywhere}.model-row-text small{display:block;font-size:11px;color:var(--muted);line-height:1.5}
-#chat-screen :is(button,input,summary,textarea):focus-visible,#model-picker :is(button,div[tabindex]):focus-visible,.fan-dialog button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#chat-screen :is(button,input,summary,textarea):focus-visible,#model-picker :is(button,div[tabindex]):focus-visible,.menu-dialog button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 #delete-confirm,#copy-fallback{color:var(--text);background:var(--surface);border-color:var(--line-strong);font-size:14px;border-radius:var(--r-l)}
 #delete-confirm h2,#copy-fallback h2{font-size:18px;font-weight:500}#delete-target{overflow-wrap:anywhere}#confirm-delete{color:var(--bad)}
 @media(max-height:520px){#model-picker{height:90dvh}.model-fixed{padding:0 12px 4px}#model-handle{height:18px;min-height:18px!important}#model-target{margin:3px 0}.model-fixed .dialog-heading{min-height:36px}}
+
+/* Drop-down menus (chat menu, message actions): icon + name on each row. */
+.menu-dialog{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;overflow:hidden;border:0;padding:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text)}
+.menu-dialog::backdrop{background:#0000004d}
+.drop-menu{position:fixed;width:min(240px,calc(100vw - 16px));overflow:auto;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-m);box-shadow:0 16px 40px var(--shadow);padding:6px;font-size:var(--t-s)}
+.drop-menu button{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;margin:0;padding:10px;border:0;border-radius:var(--r-s);background:transparent;color:var(--text);text-align:left;font-size:var(--t-s)}
+.drop-menu button:hover,.drop-menu button:focus-visible{background:var(--hover)}
+.drop-menu button>span{display:grid;place-items:center;color:var(--muted)}
+.drop-menu button.danger,.drop-menu button.danger>span{color:var(--bad)}
+.drop-menu button:disabled{opacity:.4}
+.drop-menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.menu-caption{margin:2px 10px 6px;font-size:var(--t-xs);color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chat-screen .menu-selected .bubble{outline:1px solid var(--line-strong);outline-offset:6px;border-radius:var(--r-s)}
+#chat-screen .menu-selected .byline button{color:var(--char)}

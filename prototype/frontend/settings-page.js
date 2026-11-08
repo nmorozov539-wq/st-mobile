@@ -215,19 +215,20 @@ export function createSettingsPage({onChecked=()=>{},rpc, action, locked, notify
   };
   segmented('Line spacing', 'spacing', [['compact', 'Compact'], ['normal', 'Normal'], ['spacious', 'Spacious']]);
   segmented('Background', 'background', [['plain', 'Plain'], ['gradient', 'Gradient']]);
+  segmented('Thinking blocks', 'thinking', [['collapsed', 'Collapsed'], ['expanded', 'Expanded']]);
   page.append(el('hr', '', 'sp-rule'), el('p', 'Message details', 'sp-label'));
-  const flags = [['time', 'Generation time', 'Time taken to finish each reply.'], ['clock', 'Clock timestamp', ''], ['model', 'Model icon', 'Tap the icon to see the full model name.'], ['tokens', 'Token count', 'SillyTavern saves counts only on replies written while this is on.']];
+  const flags = [['time', 'Generation time', 'Time taken to finish each reply.'], ['clock', 'Clock timestamp', ''], ['model', 'Model name', 'Tap the name to see it in full.'], ['tokens', 'Token count', 'SillyTavern saves counts only on replies written while this is on.']];
   for (const [name, label, hint] of flags) {
    const row = el('div', '', 'sp-switch-row'); row.append(el('span', label), btn('', () => { const on = !value.details[name]; commit({details: {[name]: on}}); if (name === 'tokens' && on) enableTokenCounts(); }, 'toggle sp-switch', {role: 'switch', 'aria-checked': String(value.details[name]), 'aria-label': label}));
    page.append(row); if (hint) page.append(el('p', hint, 'sp-note'));
   }
   page.append(el('p', 'Live preview', 'sp-preview-title'));
   const preview = el('div', '', 'sp-preview');
-  const detailBits = () => { const d = getAppearance().details; return [d.time && [icon('timer'), '8.4s'], d.clock && ['9:41 PM'], d.model && [icon('model')], d.tokens && ['312 tokens']].filter(Boolean); };
+  const detailBits = () => { const d = getAppearance().details; return [d.time && [icon('timer'), '8.4s'], d.clock && ['9:41 PM'], d.model && ['deepseek-chat'], d.tokens && ['312 tokens']].filter(Boolean); };
   const line = el('p', '', 'sp-note');
   preview.append(el('p', 'Seraphina', 'who'), Object.assign(el('p', 'She smiles, tracing a faded line through the mountains.', 'bubble'), {style: 'font-style:italic'}), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Here. But we should leave before dawn. We have a long road ahead.”</span>'}), line);
   const you = el('div', '', 'user-bubble'); you.append(el('p', 'You', 'who'), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Then we’d better get some sleep.”</span>'})); preview.append(you);
-  function updatePreview() { const bits = detailBits(); line.replaceChildren(...(bits.length ? bits.flatMap((bit, i) => i ? ['  ·  ', ...bit] : bit) : ['No message details'])); }
+  function updatePreview() { const bits = detailBits(); line.replaceChildren(...(bits.length ? bits.flatMap((bit, i) => i ? [' · ', ...bit] : bit) : ['No message details'])); }
   updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }
  function render(content) {

@@ -1,6 +1,6 @@
 /* Settings page: Connection and Appearance & reading */
 html[data-background=plain] #chat-screen,html[data-background=plain] #landing.library-screen{background:var(--bg)}
-#chat-screen .bubble,#chat-screen .user .bubble{font-family:var(--read);font-size:var(--t-read);line-height:var(--read-line)}#chat-screen .user .bubble{font-family:var(--ui)}
+
 .sp-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line-strong);margin:0 -16px 14px;padding:0 16px;background:var(--surface)}
 .sp-tabs button{min-height:48px;padding:10px 14px;background:transparent;border:0;border-bottom:3px solid transparent;color:var(--muted);font-size:15px}
 .sp-tabs [aria-selected=true]{color:var(--brass);border-bottom-color:var(--brass)}

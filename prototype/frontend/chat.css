@@ -12,20 +12,40 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 #chat-screen .chat-title{padding-left:3px}
 #messages{padding:12px 18px 0;overscroll-behavior:contain;scroll-behavior:auto}
 #chat-screen .message{position:relative;margin-bottom:22px;max-width:100%;touch-action:pan-y}
-#chat-screen .message.user{margin-left:8px;margin-bottom:22px;max-width:calc(100% - 8px);background:var(--user-bubble);border-radius:var(--r-m);padding:0 12px 2px}
-#chat-screen .byline{font-size:var(--t-s);font-weight:500;letter-spacing:0;text-transform:none;color:var(--char);min-height:44px;margin-bottom:2px}
-#chat-screen .message.user .byline{color:var(--muted)}#chat-screen .byline button{min-height:44px;min-width:44px;padding:8px;margin-right:-8px;color:var(--muted);border:0;background:transparent}
-#chat-screen .bubble,#chat-screen .user .bubble{font-size:16px;line-height:1.7;background:transparent;border:0;border-radius:0;padding:0;overflow-wrap:anywhere;color:var(--text)}
+/* Your turns: a faint tinted card in the interface font, a little narrower. */
+#chat-screen .message.user{margin:0 0 22px 28px;max-width:calc(100% - 28px)}
+#chat-screen .byline{display:flex;align-items:center;gap:8px;font-size:var(--t-s);font-weight:500;letter-spacing:0;text-transform:none;color:var(--char);min-height:44px;margin-bottom:2px}
+#chat-screen .byline>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chat-screen .message.user .byline{color:var(--muted);flex-direction:row-reverse}
+#chat-screen .byline button{min-height:44px;min-width:44px;padding:8px;margin:0 -8px 0 auto;color:var(--faint);border:0;background:transparent}
+#chat-screen .message.user .byline button{margin:0 auto 0 -8px}
+#chat-screen .bubble{font-family:var(--read);font-size:var(--t-read);line-height:var(--read-line);background:transparent;border:0;border-radius:0;padding:0;overflow-wrap:anywhere;color:var(--text)}
+#chat-screen .user .bubble{font-family:var(--ui);font-size:calc(var(--t-read) * .93);line-height:calc(var(--read-line) * .95);background:var(--user-bubble);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px}
 #chat-screen .bubble em{color:var(--narration)}#chat-screen .bubble strong{color:var(--text)}
-#chat-screen .bubble p{margin:0 0 14px}#chat-screen .bubble p:last-child{margin-bottom:8px}
-#chat-screen .bubble a{color:var(--brass)}#chat-screen .bubble blockquote{border-color:var(--line-strong);color:var(--narration)}
-#chat-screen .thinking{border:0;background:transparent;padding:0;color:var(--muted);margin:0 0 12px;font-size:13px}
-#chat-screen .thinking>summary{min-height:44px;padding:8px 0}
-#chat-screen .message-tools{min-height:44px;display:flex;align-items:center;gap:2px;color:var(--muted);font-size:12px;margin:0}
-#chat-screen .message-tools button{min-width:44px;min-height:44px;padding:8px;background:transparent;border:0;color:var(--muted)}
+#chat-screen .bubble p{margin:0 0 .75em}#chat-screen .bubble p:last-child{margin-bottom:0}
+#chat-screen .bubble a{color:var(--char)}#chat-screen .bubble blockquote{border-color:var(--line-strong);color:var(--narration)}
+/* Out-of-character text: dimmed, never coloured as speech or narration. */
+#chat-screen .bubble .ooc,#chat-screen .bubble .ooc :is(em,strong,.dialogue){color:var(--faint)}
+#chat-screen .bubble .ooc-line{display:block;font-family:var(--ui);font-size:var(--t-xs);line-height:1.5;border-left:2px solid var(--line-strong);padding-left:8px;margin:.6em 0}
+#chat-screen .bubble .ooc-line:first-child{margin-top:0}#chat-screen .bubble .ooc-line:last-child{margin-bottom:0}
+/* Thinking: one quiet bordered block, collapsed or expanded per Appearance. */
+#chat-screen .thinking{font-family:var(--ui);font-size:var(--t-xs);color:var(--faint);border:1px solid var(--line);border-radius:var(--r-s);background:transparent;margin:0 0 10px;padding:0}
+#chat-screen .thinking>summary{min-height:36px;padding:6px 10px;display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer;color:var(--muted)}
+#chat-screen .thinking>summary::-webkit-details-marker{display:none}
+#chat-screen .thinking>summary::before{content:"";width:14px;height:14px;background:currentColor;-webkit-mask:var(--icon-chevron) center/contain no-repeat;mask:var(--icon-chevron) center/contain no-repeat;transition:transform .15s}
+#chat-screen .thinking[open]>summary::before{transform:rotate(90deg)}
+#chat-screen .thinking-body{padding:0 10px 8px;line-height:1.5;color:var(--faint)}
+/* Swipe control and one muted details line. */
+#chat-screen .message-tools{min-height:44px;display:flex;align-items:center;gap:6px;color:var(--faint);font-family:var(--ui);font-size:var(--t-xs);margin:6px 0 0;font-variant-numeric:tabular-nums}
+#chat-screen .message-tools>button{width:44px;height:40px;min-width:44px;min-height:40px;padding:0;display:grid;place-items:center;background:transparent;border:1px solid var(--line);border-radius:var(--r-s);color:var(--muted)}
+#chat-screen .message-tools>button:disabled{opacity:.35}
+#chat-screen .message-tools>button svg{width:22px;height:22px}
 .next-alternative svg{transform:rotate(180deg)}
-.generation-duration{margin-left:auto;display:flex;align-items:center;gap:5px;white-space:nowrap}
-#chat-screen .generation-duration svg{width:14px;height:14px}
+.message-meta{margin-left:auto;display:flex;align-items:center;min-width:0;white-space:nowrap;color:var(--faint)}
+.message-meta>*+*::before{content:"·";margin:0 6px;color:var(--faint)}
+#chat-screen .message-meta .message-detail{margin:0;min-height:0;color:var(--faint);font-size:var(--t-xs)}
+#chat-screen .message-meta .message-model{max-width:140px;min-width:0;overflow:hidden;text-overflow:ellipsis;display:inline-block;padding:12px 0;font:inherit}
+.message.user .message-tools{justify-content:flex-end}
 #composer{border:0;padding:8px 12px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:transparent}
 .compose-input{padding:6px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-l)}
 #composer #draft{font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px;min-height:52px;max-height:min(150px,30dvh);resize:none;caret-color:var(--brass)}

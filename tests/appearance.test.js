@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as ap from '../prototype/frontend/appearance.js';
 
 test('defaults match the approved reading design', () => {
-    assert.deepEqual(ap.normalizeAppearance(null), {textSize: 16, spacing: 'normal', background: 'gradient', details: {time: true, clock: false, model: false, tokens: false}});
+    assert.deepEqual(ap.normalizeAppearance(null), {textSize: 16, spacing: 'normal', background: 'gradient', thinking: 'collapsed', details: {time: true, clock: false, model: false, tokens: false}});
 });
 test('invalid stored values fall back or clamp', () => {
     const value = ap.normalizeAppearance({textSize: 99, spacing: 'huge', background: 'x', details: {time: 'yes', clock: true}});

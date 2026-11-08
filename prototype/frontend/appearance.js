@@ -1,6 +1,6 @@
 // Global reading preferences. Stored on this device only; never sent to the engine.
 export const STORAGE_KEY = 'pocket-tavern.appearance.v1';
-export const DEFAULT_APPEARANCE = Object.freeze({textSize: 16, spacing: 'normal', background: 'gradient', details: Object.freeze({time: true, clock: false, model: false, tokens: false})});
+export const DEFAULT_APPEARANCE = Object.freeze({textSize: 16, spacing: 'normal', background: 'gradient', thinking: 'collapsed', details: Object.freeze({time: true, clock: false, model: false, tokens: false})});
 export const SPACING = {compact: 1.45, normal: 1.7, spacious: 1.95};
 export const TEXT_SIZE = {min: 13, max: 24};
 
@@ -13,6 +13,7 @@ export function normalizeAppearance(raw) {
   textSize: Number.isInteger(size) ? Math.min(TEXT_SIZE.max, Math.max(TEXT_SIZE.min, size)) : DEFAULT_APPEARANCE.textSize,
   spacing: Object.hasOwn(SPACING, value.spacing) ? value.spacing : DEFAULT_APPEARANCE.spacing,
   background: value.background === 'plain' ? 'plain' : 'gradient',
+  thinking: value.thinking === 'expanded' ? 'expanded' : 'collapsed',
   details: {time: flag('time', true), clock: flag('clock', false), model: flag('model', false), tokens: flag('tokens', false)},
  };
 }

@@ -1,5 +1,5 @@
-import {icon} from './icons.js?build=0.8.0-phase1.2';
-import {renderRange} from './journal.js?build=0.8.0-phase1.2';
+import {icon} from './icons.js?build=0.8.0-phase2';
+import {renderRange} from './journal.js?build=0.8.0-phase2';
 
 // History is read without activating ST. A captured editor session owns each read.
 export function createCharacterChats({rpc,action,readChat,onChat,readState}) {

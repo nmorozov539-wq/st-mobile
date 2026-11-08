@@ -1,14 +1,14 @@
-import { createWorkspace } from './workspace.js?build=0.8.0-phase1.2';
-import { createAdapter } from './adapter.js?build=0.8.0-phase1.2';
-import { createGenerationRuntime } from './runtime.js?build=0.8.0-phase1.2';
+import { createWorkspace } from './workspace.js?build=0.8.0-phase2';
+import { createAdapter } from './adapter.js?build=0.8.0-phase2';
+import { createGenerationRuntime } from './runtime.js?build=0.8.0-phase2';
 import { isGenerating, isChatSaving, saveSettings } from '/script.js';
 
-import { createConfigurationRuntime } from './configuration.js?build=0.8.0-phase1.2';
+import { createConfigurationRuntime } from './configuration.js?build=0.8.0-phase2';
 
-import { createAssetRuntime } from './assets.js?build=0.8.0-phase1.2';
-import { createWorldInfoRuntime } from './worldinfo.js?build=0.8.0-phase1.2';
-import { repairDoubledCards } from './card-repair.js?build=0.8.0-phase1.2';
-import { collectDisplayScripts } from './display-regex.js?build=0.8.0-phase1.2';
+import { createAssetRuntime } from './assets.js?build=0.8.0-phase2';
+import { createWorldInfoRuntime } from './worldinfo.js?build=0.8.0-phase2';
+import { repairDoubledCards } from './card-repair.js?build=0.8.0-phase2';
+import { collectDisplayScripts } from './display-regex.js?build=0.8.0-phase2';
 
 const getContext = () => SillyTavern.getContext();
 const ctx = getContext();
@@ -39,7 +39,7 @@ window.pocketSaveSettings = async expected => {
 // page into the Backgrounds tab, duplicating #form_create and doubling every saved character field.
 if (window.parent !== window && (window.name === 'pocket-engine' || new URLSearchParams(location.search).has('mobileRuntime'))) {
     let port;
-    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.8.0-phase1.2'};}, characters: () => adapter.listCharacters(),
+    const methods = { workspace: arg => arg.action==='read'?workspace.read(arg.target):arg.action==='recent'?workspace.recent():arg.action==='history'?workspace.history(arg.characterKey):arg.action==='scopes'?workspace.scopes(arg.target):arg.action==='presetData'?workspace.presetData(arg.name):workspace.run(arg), handshake: async () => {adapter.handshake();await workspace.initialize();return {...adapter.handshake(),sessionId,bridgeBuild:'0.8.0-phase2'};}, characters: () => adapter.listCharacters(),
         display: arg => collectDisplayScripts(getContext(), {characterKey: arg?.characterKey ?? null, preset: arg?.preset ?? null}),
         select: arg => adapter.selectCharacter(arg), snapshot: () => adapter.snapshot(),
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),

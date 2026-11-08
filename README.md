@@ -1,4 +1,4 @@
-# Pocket Tavern — v0.8.0-phase2
+# Pocket Tavern — v0.8.0-phase3
 
 Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
 
@@ -6,7 +6,7 @@ For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern
 
 ## Current release
 
-`pocket-tavern-combined-v0.8.0-phase2.zip` is built into `dist/` by `scripts/build-phone-package.py`; the matching `repair-pocket.cjs` is `phone-package/repair-pocket.cjs`. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
+`pocket-tavern-combined-v0.8.0-phase3.zip` is built into `dist/` by `scripts/build-phone-package.py`; the matching `repair-pocket.cjs` is `phone-package/repair-pocket.cjs`. The download contains our frontend/bridge and preparation/update tools; preparation copies ST and installed dependencies from your existing phone installation.
 
 For an existing phone installation: stop Pocket Tavern, copy both files to Android Downloads, then run:
 
@@ -45,6 +45,8 @@ Home 0.7.12 is the approved lightweight landing page: Pocket Tavern header with 
 0.7.13 is a review pass over the three new screens before phone testing: activation sliders no longer cancel a drag under the finger, the Settings endpoint field no longer steals the next tap, Settings and its reading preferences stay reachable while the engine is down, book deletion refreshes SillyTavern’s own book list first, and the entry editor tolerates books with missing or malformed fields. That checklist, filled in on the phone, is now `docs/PHONE_TEST_RESULTS_0.7.13.md`.
 
 0.7.14 fixes what the first full phone test found (your filled-in checklist is kept as `docs/PHONE_TEST_RESULTS_0.7.13.md`). Memory acts on the chat on screen, and its page no longer reappears over every other page. Android Back now does what the on-screen back arrow does, and World Info asks before Back discards edits. The engine reloads by itself when the browser comes back from the background, and Send reconnects the API first if SillyTavern dropped it. Saving a persona with a portrait works, and importing a character with an embedded lorebook offers to import and link that book. Starting a fresh chat for the character the engine already has open no longer copies the old messages. Linking a persona to a character replaces the old link, and "This chat" links work. In Settings, the eye button, a visible manual model ID, a wrong-OpenRouter-key check on Connect, the proxy probe, Test message and token counts are fixed. Home, notifications, dialogs and the loading screen use the new colours. Pocket Tavern can now be installed from Chrome's menu (Install app / Add to Home screen); opened from that icon it stays in portrait. A normal browser tab can't lock rotation, so it still turns sideways.
+
+0.8.0-phase3 makes Home a starting point: a small muted name, version and status dot in the corner (tap the dot for Connection), a Continue card for the last chat in that character's colour, the next three recent chats, and a sideways row of character portraits with + at the end. With no characters it shows a first-run screen with Import and Create; with characters but no chats, a Start your first story card. Chat previews on Home and in the Chats list drop markdown marks and tags. The splash tagline, the Engine/API rows and the counts are gone.
 
 0.8.0-phase2 is the chat screen pass: chat text in Literata following the size slider, `OOC:` lines and ((double parentheses)) dimmed, your turns as a tinted card, one muted details line under replies, a Collapsed/Expanded setting for thinking blocks, the character's colour (hand-picked in the card, or read from the avatar by a compact Colorizinator port) for the name, scene light, halo and Send, a header with "as persona · model" and a preset chip, drop-down menus instead of fans, long-press names on every icon-only button, side panels from header/composer swipes, and display regex (global, character and preset scripts with depth) with a sanitizer that allows filtered inline styles and message-scoped `<style>` (phone checklist `docs/PHONE_TEST_CHECKLIST-0.8.0-phase2.md`).
 

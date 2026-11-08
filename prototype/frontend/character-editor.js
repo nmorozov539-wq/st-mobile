@@ -1,4 +1,5 @@
 import {icon} from './icons.js?build=0.8.0-phase1.2';
+import {validColour} from './char-colour.js?build=0.8.0-phase1.2';
 import {createCharacterAssociations} from './character-associations.js?build=0.8.0-phase1.2';
 import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.8.0-phase1.2';
 
@@ -31,6 +32,16 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         const heading=node('div');if(mode==='edit')field(heading,'Name',draft.name,value=>draft.name=value,{rows:1,type:'text'});else heading.append(node('h3',draft.name||'Unnamed character'));
         const metadata=[draft.creator&&`by ${draft.creator}`,draft.character_version&&`v${draft.character_version}`].filter(Boolean).join(' · ');if(metadata)heading.append(node('small',metadata));
         if(mode==='read'){const tags=node('div');tags.className='character-tags';for(const value of draft.tags??[])tags.append(node('span',String(value)));heading.append(tags);}else field(heading,'Tags (comma separated)',(draft.tags??[]).join(', '),value=>draft.tags=value.split(',').map(x=>x.trim()).filter(Boolean),{rows:1,type:'text'});identity.append(heading);body.append(identity);
+        if(mode==='edit'){
+            // Chat colour: saved in the card so it travels with it. Empty means automatic (read from the portrait).
+            const own=validColour(draft.extensions?.pocket_tavern?.color),row=node('div');row.className='character-colour';
+            const label=node('label');label.append(node('span','Chat colour'));const input=node('input');input.type='color';input.value=own??'#d9b46a';input.setAttribute('aria-label','Chat colour');
+            const note=node('small',own?'Picked by hand':'Automatic, from the portrait');
+            const set=value=>{draft.extensions={...(draft.extensions??{}),pocket_tavern:{...(draft.extensions?.pocket_tavern??{}),color:value}};changed();};
+            input.oninput=()=>{set(input.value);note.textContent='Picked by hand';reset.hidden=false;};
+            const reset=button('Automatic',()=>{set('');note.textContent='Automatic, from the portrait';reset.hidden=true;});reset.hidden=!own;
+            label.append(input);row.append(label,note,reset);body.append(row);
+        }
         if(mode==='read'&&String(draft.creator_notes??'').trim()){
             const notes=node('details');notes.className='character-notes';notes.append(node('summary',"Creator’s Notes"));
             const frame=node('iframe');frame.title=`Creator’s Notes for ${draft.name||'this character'}`;frame.setAttribute('sandbox','');frame.referrerPolicy='no-referrer';frame.srcdoc=creatorNotesDocument(draft.creator_notes,{converter,sanitize,document});notes.append(frame);body.append(notes);

@@ -43,3 +43,4 @@ import './home.test.js';
 import './interface-helpers.test.js';
 import './card-repair.test.js';
 import './connection-pass.test.js';
+import './chat-phase2.test.js';

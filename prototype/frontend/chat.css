@@ -1,11 +1,11 @@
 /* Approved chat phase. The other screens retain their existing styles. */
 body:has(#chat-screen:not([hidden])){background:var(--bg)}
-#chat-screen{color:var(--text);background:var(--glow),var(--bg)}
+#chat-screen{color:var(--text);background:var(--glow),var(--bg);--glow:radial-gradient(ellipse 120% 55% at 50% -10%,color-mix(in srgb,var(--char) 18%,transparent),transparent 70%)}
 #chat-screen button{color:inherit}
 #chat-screen svg,.curved-fan svg,#model-picker svg{width:20px;height:20px;flex-shrink:0}
 #chat-screen header{padding:8px 8px;padding-top:max(8px,env(safe-area-inset-top));min-height:64px;gap:5px;background:color-mix(in srgb,var(--bg) 85%,transparent);border-bottom:1px solid var(--line-strong)}
 #chat-screen header>button{min-width:44px;min-height:44px;border:0;border-radius:var(--r-m);padding:8px;font-size:18px}
-#chat-screen #avatar{width:44px;height:44px;border:1px solid var(--line-strong);background:var(--raised);border-radius:var(--r-av)}
+#chat-screen #avatar{width:44px;height:44px;border:0;background:var(--raised);border-radius:var(--r-av);box-shadow:0 0 0 1.5px var(--char),0 0 16px color-mix(in srgb,var(--char) 45%,transparent);transition:box-shadow .4s}
 #chat-screen #avatar>.avatar{width:100%;height:100%;border-radius:var(--r-av);background:transparent;color:var(--brass)}
 #chat-screen #name{font-size:var(--t-m);font-weight:600;min-height:30px;padding:0;text-align:left}
 #chat-screen #subtitle{font-size:12px;line-height:1.5;color:var(--muted);margin:0}
@@ -48,12 +48,12 @@ body:has(#chat-screen:not([hidden])){background:var(--bg)}
 .message.user .message-tools{justify-content:flex-end}
 #composer{border:0;padding:8px 12px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:transparent}
 .compose-input{padding:6px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-l)}
-#composer #draft{font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px;min-height:52px;max-height:min(150px,30dvh);resize:none;caret-color:var(--brass)}
-#composer #draft:focus{outline:0}.compose-input:focus-within{border-color:var(--brass)}
+#composer #draft{font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--text);padding:10px;min-height:52px;max-height:min(150px,30dvh);resize:none;caret-color:var(--char)}
+#composer #draft:focus{outline:0}.compose-input:focus-within{border-color:color-mix(in srgb,var(--char) 70%,var(--line-strong))}
 .compose-bottom{display:flex;align-items:center;gap:8px;justify-content:space-between}
 #composer #model-chip{display:flex;align-items:center;gap:5px;font-size:12px;min-height:44px;border:0;padding:8px 10px;background:transparent;color:var(--muted);max-width:calc(100% - 58px)}
 #model-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#model-chip svg{width:18px;height:18px}
-#composer #send,#composer #stop{width:44px;height:44px;border:0;border-radius:var(--r-m);background:var(--brass);color:var(--brass-ink);display:grid;place-items:center;padding:0;flex-shrink:0}
+#composer #send,#composer #stop{width:44px;height:44px;border:0;border-radius:var(--r-m);background:var(--char);color:#0b0c0e;transition:background .4s;display:grid;place-items:center;padding:0;flex-shrink:0}
 #composer #stop{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-strong)}
 #status{color:var(--muted);font-size:12px;line-height:1.5;min-height:0;padding:0 3px 6px;overflow-wrap:anywhere}
 #chat-screen #send-error{font-size:13px;margin-bottom:8px}

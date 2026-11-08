@@ -41,7 +41,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                     ...(generation ? ['generation.send', 'generation.stop', 'generation.status', 'message.edit', 'swipes.select', 'swipes.generate'] : [])] };
         },
         listCharacters() {
-            return context().characters.map(character => ({ key: character.avatar, name: character.name, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()) }));
+            return context().characters.map(character => ({ key: character.avatar, name: character.name, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()), color:/^#[0-9a-f]{6}$/i.test(character.data?.extensions?.pocket_tavern?.color??'')?character.data.extensions.pocket_tavern.color:null }));
         },
         snapshot,
         async selectCharacter(key) {

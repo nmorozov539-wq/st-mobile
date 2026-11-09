@@ -1,0 +1,9 @@
+.gradle/
+.kotlin/
+**/build/
+**/.cxx/
+local.properties
+# Downloaded at build time from the pinned runtime zip; never commit.
+app/src/main/jniLibs/
+app/src/main/cpp/node-include/
+app/src/main/assets/licenses/

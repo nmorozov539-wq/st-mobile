@@ -18,8 +18,14 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.0.1-spike"
-        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
-        externalNativeBuild { cmake { arguments += "-DANDROID_STL=c++_shared" } }
+        // ABIs are chosen by the splits block below (ndk.abiFilters conflicts with it);
+        // CMake gets the same list so it only builds ABIs that libnode.so exists for.
+        externalNativeBuild {
+            cmake {
+                arguments += "-DANDROID_STL=c++_shared"
+                abiFilters += listOf("arm64-v8a", "x86_64")
+            }
+        }
     }
     // One APK per ABI: phones take arm64-v8a, emulators take x86_64.
     splits {

@@ -16,8 +16,8 @@ android {
         applicationId = "app.pockettavern"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.0.1-spike"
+        versionCode = 2
+        versionName = "0.0.2-step2"
         // ABIs are chosen by the splits block below (ndk.abiFilters conflicts with it);
         // CMake gets the same list so it only builds ABIs that libnode.so exists for.
         externalNativeBuild {
@@ -47,6 +47,10 @@ android {
     externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
     // Compress libnode.so in the APK (~120 MB per ABI uncompressed); Android extracts it on install.
     packaging { jniLibs.useLegacyPackaging = true }
+    // The SillyTavern zip and its version stamp are generated at build time (see packSillyTavern).
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/sillytavern-assets"))
+    // Store the (already deflated) zip as-is so the app can stream it and measure its length.
+    androidResources { noCompress += "zip" }
 }
 
 kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
@@ -115,4 +119,52 @@ tasks.configureEach {
     if (name.startsWith("configureCMake") || name.startsWith("buildCMake") || name.startsWith("generateJsonModel")) {
         dependsOn(unpackNodeRuntime)
     }
+}
+
+// ---- SillyTavern (unmodified), bundled as assets/engine/sillytavern.zip ----
+// prepare-sillytavern.mjs fetches the pinned commit and runs `npm ci --omit=dev` (needs git, node, npm).
+val stProps = Properties().apply { rootProject.file("sillytavern.properties").inputStream().use { load(it) } }
+val stPrepared = layout.buildDirectory.dir("sillytavern/prepared")
+val stAssets = layout.buildDirectory.dir("generated/sillytavern-assets")
+
+val prepareSillyTavern by tasks.registering(Exec::class) {
+    description = "Fetches the pinned SillyTavern commit and installs its production dependencies."
+    val script = rootProject.file("scripts/prepare-sillytavern.mjs")
+    val props = rootProject.file("sillytavern.properties")
+    inputs.files(script, props)
+    outputs.dir(stPrepared)
+    workingDir = rootProject.projectDir
+    commandLine("node", script.absolutePath, props.absolutePath, stPrepared.get().asFile.absolutePath)
+}
+
+val zipSillyTavern by tasks.registering(Zip::class) {
+    description = "Zips the prepared SillyTavern tree for the APK's assets."
+    dependsOn(prepareSillyTavern)
+    from(stPrepared) { exclude(".pocket-prepared") }
+    archiveFileName.set("sillytavern.zip")
+    destinationDirectory.set(stAssets.map { it.dir("engine") })
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+    isZip64 = true
+}
+
+val stampSillyTavern by tasks.registering {
+    description = "Writes engine/sillytavern.version (version + zip SHA-256); the app re-unpacks when it changes."
+    dependsOn(zipSillyTavern)
+    val zip = zipSillyTavern.flatMap { it.archiveFile }
+    val stamp = stAssets.map { it.file("engine/sillytavern.version") }
+    val version = stProps.getProperty("version")
+    inputs.file(zip)
+    outputs.file(stamp)
+    doLast {
+        val md = MessageDigest.getInstance("SHA-256")
+        zip.get().asFile.inputStream().use { s -> val buf = ByteArray(1 shl 16); while (true) { val n = s.read(buf); if (n < 0) break; md.update(buf, 0, n) } }
+        val hash = md.digest().joinToString("") { "%02x".format(it) }
+        stamp.get().asFile.writeText("$version $hash\n")
+    }
+}
+
+tasks.named("preBuild") { dependsOn(stampSillyTavern) }
+tasks.configureEach {
+    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(stampSillyTavern)
 }

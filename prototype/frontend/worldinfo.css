@@ -9,7 +9,7 @@
 
 .wi-note{color:var(--color-muted-text);font-size:14px;line-height:1.6;margin:10px 4px}
 .wi-error,.wi-form-error{color:var(--color-danger);font-size:14px;line-height:1.5;margin:10px 0}
-.wi-book,.wi-folder{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--r-l);margin:0 0 10px;overflow:hidden}
+.wi-book,.wi-folder{background:var(--color-surface);border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-large);margin:0 0 10px;overflow:hidden}
 .wi-folder-books{padding:0 8px 8px}.wi-folder-books .wi-book{background:var(--color-surface);margin-bottom:8px}
 .wi-book-head,.wi-folder-head{display:flex;align-items:center}
 .wi-book-toggle{flex:1;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 6px 8px 14px;background:transparent;border:0;color:inherit;text-align:left;min-width:0}
@@ -20,7 +20,7 @@
 .wi-count{color:var(--color-muted-text);font-size:12px;margin-top:2px}
 .wi-source{color:var(--color-faint-text);font-size:12px;margin-top:2px;overflow-wrap:anywhere}
 .wi-more{min-width:44px;min-height:44px;background:transparent;border:0;color:var(--color-muted-text);font-size:20px;flex-shrink:0}
-.wi-entries{border-top:1px solid var(--color-border);padding:4px 8px 10px}
+.wi-entries{border-top:var(--shape-border-width) solid var(--color-border);padding:4px 8px 10px}
 .wi-entry{display:flex;align-items:center;gap:6px}
 .wi-entry.off .wi-entry-title,.wi-entry.off .wi-mark{opacity:.45}
 .wi-entry-open{flex:1;display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 6px;background:transparent;border:0;color:inherit;text-align:left;min-width:0}
@@ -28,12 +28,12 @@
 .wi-entry-title{flex:1;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wi-entry-kind{color:var(--color-faint-text);font-size:11px;flex-shrink:0}
 .wi-entry input[type=checkbox]{width:24px;height:24px;margin:0 12px;accent-color:var(--color-accent);flex-shrink:0}
-.wi-add{display:block;width:100%;min-height:44px;margin-top:6px;background:transparent;border:1px dashed var(--color-border-strong);border-radius:var(--r-m);color:var(--color-accent);font-size:14px}
+.wi-add{display:block;width:100%;min-height:44px;margin-top:6px;background:transparent;border:var(--shape-border-width) dashed var(--color-border-strong);border-radius:var(--shape-radius-medium);color:var(--color-accent);font-size:14px}
 .wi-add:disabled{opacity:.4}
 
 .wi-field{display:block;font-size:14px;color:var(--color-text);margin:0 0 14px;min-width:0}
 .wi-field>span,.wi-content-head span{display:block}
-.wi-field input:not([type=checkbox]):not([type=range]),.wi-field select,.wi-field textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:44px;padding:8px 10px;background:var(--color-raised);border:1px solid var(--color-border-strong);border-radius:var(--r-m);color:inherit;font-size:16px;line-height:1.5}
+.wi-field input:not([type=checkbox]):not([type=range]),.wi-field select,.wi-field textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:44px;padding:8px 10px;background:var(--color-raised);border:var(--shape-border-width) solid var(--color-border-strong);border-radius:var(--shape-radius-medium);color:inherit;font-size:16px;line-height:1.5}
 .wi-field textarea{resize:vertical}
 .wi-hint{display:block;color:var(--color-muted-text);font-size:12px;margin-top:4px}
 .wi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -44,11 +44,11 @@
 .wi-subhead{color:var(--color-muted-text);font-size:13px;margin:12px 0 4px}
 .wi-content-head{display:flex;align-items:center;justify-content:space-between}
 .wi-content{min-height:160px}
-.wi-expanded{width:100%;box-sizing:border-box;min-height:55dvh;padding:10px;background:var(--color-surface);border:1px solid var(--color-border-strong);border-radius:var(--r-m);color:inherit;font-size:16px;line-height:1.5;margin-bottom:12px}
-.wi-section{border-bottom:1px solid var(--color-border)}
+.wi-expanded{width:100%;box-sizing:border-box;min-height:55dvh;padding:10px;background:var(--color-surface);border:var(--shape-border-width) solid var(--color-border-strong);border-radius:var(--shape-radius-medium);color:inherit;font-size:16px;line-height:1.5;margin-bottom:12px}
+.wi-section{border-bottom:var(--shape-border-width) solid var(--color-border)}
 .wi-section summary{position:relative;display:block;min-height:56px;cursor:pointer;list-style:none;padding:14px 0 14px 20px;box-sizing:border-box}
 .wi-section summary::-webkit-details-marker{display:none}
-.wi-section summary::before{content:'';position:absolute;left:0;top:19px;width:14px;height:14px;background:currentColor;-webkit-mask:var(--icon-chevron) center/contain no-repeat;mask:var(--icon-chevron) center/contain no-repeat;color:var(--color-muted-text);transition:transform .15s}
+.wi-section summary::before{content:'';position:absolute;left:0;top:19px;width:14px;height:14px;background:currentColor;-webkit-mask:var(--icon-chevron) center/contain no-repeat;mask:var(--icon-chevron) center/contain no-repeat;color:var(--color-muted-text);transition:transform var(--motion-fast)}
 .wi-section[open] summary::before{transform:rotate(90deg)}
 .wi-section summary strong{display:block;font-size:15px;font-weight:500}
 .wi-section summary small{display:block;color:var(--color-muted-text);font-size:13px;margin-top:2px}
@@ -60,7 +60,7 @@
 .wi-footer{position:sticky;bottom:0;display:flex;gap:10px;justify-content:flex-end;padding:12px 0;background:var(--color-canvas);z-index:2}
 .wi-footer .wi-btn{min-width:96px}
 
-.wi-dialog{width:min(420px,calc(100vw - 24px));box-sizing:border-box;margin:auto;padding:18px;border:1px solid var(--color-border-strong);border-radius:var(--r-l);background:var(--color-surface);color:var(--color-text);max-height:90dvh;overflow:auto}
+.wi-dialog{width:min(420px,calc(100vw - 24px));box-sizing:border-box;margin:auto;padding:18px;border:var(--shape-border-width) solid var(--color-border-strong);border-radius:var(--shape-radius-large);background:var(--color-surface);color:var(--color-text);max-height:90dvh;overflow:auto}
 .wi-dialog::backdrop{background:var(--color-scrim)}
 .wi-dialog h3{font-size:17px;font-weight:500;margin:0 0 10px;overflow-wrap:anywhere}
 .wi-dialog p{font-size:14px;line-height:1.6;color:var(--color-muted-text);margin:0 0 14px}

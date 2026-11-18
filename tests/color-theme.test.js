@@ -6,6 +6,7 @@ import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
 import {COLOR_THEME_STORAGE_KEY, createColorThemeStore} from '../prototype/frontend/color-theme-store.js';
 
 const hearth = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json', import.meta.url), 'utf8'));
+const frontend = new URL('../prototype/frontend/', import.meta.url);
 const memoryStorage = (initial = {}) => {
     const values = new Map(Object.entries(initial));
     return {
@@ -69,6 +70,15 @@ test('theme resolution emits stable public and calculated CSS variables', () => 
     assert.equal(props['--color-accent'], '#d9b46a');
     assert.equal(props['color-scheme'], 'dark');
     assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading'});
+});
+
+test('component CSS uses semantic shape, blur and motion variables', () => {
+    const css = fs.readdirSync(frontend).filter(name => name.endsWith('.css')).map(name => fs.readFileSync(new URL(name, frontend), 'utf8')).join('\n');
+    assert.doesNotMatch(css, /var\(--r-(?:s|m|l|av)\)/);
+    assert.doesNotMatch(css, /backdrop-filter:blur\(\d/);
+    assert.doesNotMatch(css, /transition:[^;}]*\d(?:\.\d+)?s/);
+    assert.match(css, /var\(--shape-radius-message\)/);
+    assert.match(css, /var\(--effect-shadow-large\)/);
 });
 
 test('the interface loader fetches and applies a validated theme file', async () => {

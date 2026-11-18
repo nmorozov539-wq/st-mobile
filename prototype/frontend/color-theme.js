@@ -177,7 +177,11 @@ export function themeToCssVariables(value) {
         '--effect-chrome-opacity': String(effects.chromeOpacity), '--effect-surface-blur': px(effects.blur), '--effect-shadow-color': shadow,
         '--effect-shadow-small': `0 4px 20px ${shadow}`, '--effect-shadow-medium': `0 8px 24px ${shadow}`, '--effect-shadow-large': `0 16px 40px ${shadow}`,
         '--effect-background-glow': String(effects.backgroundGlow), '--effect-character-glow': String(effects.characterGlow),
-        '--density-scale': String(densityScale(theme.presentation.density)), '--motion-fast': `${Math.round(150 * motion.scale)}ms`, '--motion-slow': `${Math.round(400 * motion.scale)}ms`,
+        '--effect-chrome-opacity-percent': `${Math.round(effects.chromeOpacity * 100)}%`,
+        '--effect-glow-base': `${13 * effects.backgroundGlow}%`, '--effect-glow-chat': `${18 * effects.backgroundGlow}%`, '--effect-glow-panel': `${16 * effects.backgroundGlow}%`,
+        '--effect-character-glow-subtle': `${22 * effects.characterGlow}%`, '--effect-character-glow-soft': `${45 * effects.characterGlow}%`,
+        '--effect-character-glow-cast': `${55 * effects.characterGlow}%`, '--effect-character-glow-strong': `${70 * effects.characterGlow}%`, '--effect-character-tint': `${28 * effects.characterGlow}%`,
+        '--density-scale': String(densityScale(theme.presentation.density)), '--motion-fast': `${Math.round(150 * motion.scale)}ms`, '--motion-panel': `${Math.round(180 * motion.scale)}ms`, '--motion-slow': `${Math.round(400 * motion.scale)}ms`,
     });
     return variables;
 }

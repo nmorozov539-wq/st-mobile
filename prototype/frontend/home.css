@@ -16,14 +16,14 @@ html[data-background=plain] #landing.home-screen{background:var(--color-canvas)}
 #home-status-text{color:var(--color-muted-text);font-size:12px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:-6px}
 #home-status[data-tone=bad]~#home-status-text{color:var(--color-danger)}
 #home-status[data-tone=warn]~#home-status-text{color:var(--color-warning)}
-#landing.home-screen #app-settings{display:grid;place-items:center;padding:0;width:44px;height:44px;border-radius:var(--r-l);background:transparent;border:0;color:var(--color-muted-text);font-size:22px}
+#landing.home-screen #app-settings{display:grid;place-items:center;padding:0;width:44px;height:44px;border-radius:var(--shape-radius-large);background:transparent;border:0;color:var(--color-muted-text);font-size:22px}
 #landing.home-screen #page-content{padding:8px 16px 28px}
 .home-page{display:flex;flex-direction:column;gap:28px;max-width:640px;margin:0 auto}
 
 /* Continue: the last chat, lit by its character's colour */
-.home-continue{--glow:radial-gradient(ellipse 120% 90% at 0% 0%,color-mix(in srgb,var(--char) 16%,transparent),transparent 70%);position:relative;display:flex;flex-direction:column;gap:14px;padding:18px 18px 16px;border-radius:var(--r-l);background:var(--glow),var(--color-surface);border:1px solid color-mix(in srgb,var(--char) 22%,var(--color-border));cursor:pointer;margin-top:4px}
+.home-continue{--glow:radial-gradient(ellipse 120% 90% at 0% 0%,color-mix(in srgb,var(--char) var(--effect-glow-panel),transparent),transparent 70%);position:relative;display:flex;flex-direction:column;gap:14px;padding:18px 18px 16px;border-radius:var(--shape-radius-large);background:var(--glow),var(--color-surface);border:var(--shape-border-width) solid color-mix(in srgb,var(--char) var(--effect-character-glow-subtle),var(--color-border));cursor:pointer;margin-top:4px}
 .home-continue-top{display:flex;align-items:center;gap:14px;min-width:0}
-.home-continue .avatar{width:64px;height:64px;flex:none;border-radius:var(--r-av);background:linear-gradient(150deg,color-mix(in srgb,var(--char) 28%,var(--color-raised)),var(--color-surface));box-shadow:0 0 0 2px var(--color-canvas),0 0 0 3.5px color-mix(in srgb,var(--char) 70%,transparent);font:26px var(--read);display:grid;place-items:center;color:var(--char)}
+.home-continue .avatar{width:64px;height:64px;flex:none;border-radius:var(--shape-radius-avatar);background:linear-gradient(150deg,color-mix(in srgb,var(--char) var(--effect-character-tint),var(--color-raised)),var(--color-surface));box-shadow:0 0 0 2px var(--color-canvas),0 0 0 3.5px color-mix(in srgb,var(--char) var(--effect-character-glow-strong),transparent);font:26px var(--read);display:grid;place-items:center;color:var(--char)}
 .home-continue-who{display:flex;flex-direction:column;gap:2px;min-width:0}
 .home-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-muted-text)}
 .home-continue-name{font:500 22px/1.2 var(--read);color:var(--char);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -35,7 +35,7 @@ html[data-background=plain] #landing.home-screen{background:var(--color-canvas)}
 .home-continue-go svg{width:18px;height:18px}
 
 /* No chats yet */
-.home-start{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:22px 18px;border-radius:var(--r-l);background:var(--color-surface);border:1px solid var(--color-border)}
+.home-start{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:22px 18px;border-radius:var(--shape-radius-large);background:var(--color-surface);border:var(--shape-border-width) solid var(--color-border)}
 #page-content .home-start-title{font:400 24px/1.25 var(--read);margin:0;color:var(--color-text)}
 .home-start-text{margin:0 0 10px;color:var(--color-muted-text)}
 
@@ -46,9 +46,9 @@ html[data-background=plain] #landing.home-screen{background:var(--color-canvas)}
 .home-section-link{height:36px;font-size:14px}
 
 .home-recent-list{display:flex;flex-direction:column}
-.home-recent{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:8px 4px;border:0;border-radius:var(--r-m);background:transparent;text-align:left;color:var(--color-text)}
-.home-recent+.home-recent{border-top:1px solid var(--color-border);border-radius:0}
-.home-recent .avatar{width:42px;height:42px;flex:none;border-radius:var(--r-av);border:1px solid var(--color-border-strong);background:linear-gradient(150deg,color-mix(in srgb,var(--char) 28%,var(--color-raised)),var(--color-surface));font:18px var(--read);display:grid;place-items:center;color:var(--char)}
+.home-recent{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:8px 4px;border:0;border-radius:var(--shape-radius-medium);background:transparent;text-align:left;color:var(--color-text)}
+.home-recent+.home-recent{border-top:var(--shape-border-width) solid var(--color-border);border-radius:0}
+.home-recent .avatar{width:42px;height:42px;flex:none;border-radius:var(--shape-radius-avatar);border:var(--shape-border-width) solid var(--color-border-strong);background:linear-gradient(150deg,color-mix(in srgb,var(--char) var(--effect-character-tint),var(--color-raised)),var(--color-surface));font:18px var(--read);display:grid;place-items:center;color:var(--char)}
 .home-recent-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .home-recent-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .home-recent-head strong{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -59,14 +59,14 @@ html[data-background=plain] #landing.home-screen{background:var(--color-canvas)}
 .home-cast{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 -16px;padding:4px 16px 6px;scroll-padding:0 16px}
 .home-cast::-webkit-scrollbar{display:none}
 .home-cast-item{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:72px;padding:4px 0;border:0;background:transparent;color:var(--color-text)}
-.home-cast-item .avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(150deg,color-mix(in srgb,var(--char) 28%,var(--color-raised)),var(--color-surface));box-shadow:0 0 0 2px var(--color-canvas),0 0 0 3px color-mix(in srgb,var(--char) 55%,transparent);font:22px var(--read);display:grid;place-items:center;color:var(--char)}
+.home-cast-item .avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(150deg,color-mix(in srgb,var(--char) var(--effect-character-tint),var(--color-raised)),var(--color-surface));box-shadow:0 0 0 2px var(--color-canvas),0 0 0 3px color-mix(in srgb,var(--char) var(--effect-character-glow-cast),transparent);font:22px var(--read);display:grid;place-items:center;color:var(--char)}
 .home-cast-name{font-size:12px;color:var(--color-muted-text);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home-cast-add .avatar{background:transparent;box-shadow:none;border:1.5px dashed var(--color-border-strong);color:var(--color-accent)}
 .home-cast-add .avatar svg{width:22px;height:22px}
 
 /* First run: nothing in the library yet */
 .home-empty{display:flex;flex-direction:column;align-items:flex-start;padding:48px 8px 16px}
-.home-badge{width:56px;height:56px;display:grid;place-items:center;border-radius:var(--r-l);background:var(--color-surface);color:var(--color-accent)}
+.home-badge{width:56px;height:56px;display:grid;place-items:center;border-radius:var(--shape-radius-large);background:var(--color-surface);color:var(--color-accent)}
 .home-badge svg{width:30px;height:30px}
 #page-content .home-empty-title{font:400 clamp(28px,8vw,36px)/1.15 var(--read);color:var(--color-text);margin:28px 0 10px}
 .home-empty-text{color:var(--color-muted-text);font-size:16px;line-height:1.5;margin:0 0 28px;max-width:30em}

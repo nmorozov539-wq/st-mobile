@@ -6,6 +6,8 @@ SillyTavern remains the engine: it owns characters, chats, settings, prompt buil
 
 ## Working areas
 
+Current documentation starts at [docs/README.md](docs/README.md). The ongoing [Layout v4 discussion](docs/LAYOUT.md) and parked [extension integration investigation](docs/EXTENSION_INTEGRATION.md) replace older design guidance.
+
 - `prototype/frontend/` — interface and theme system
 - `prototype/frontend/themes/` — built-in complete themes
 - `prototype/extension/` — bridge to SillyTavern

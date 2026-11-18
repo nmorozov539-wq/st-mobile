@@ -1,6 +1,6 @@
-# Pocket Tavern: Android, themes and branding roadmap
+# Pocket Tavern: product, Android and release roadmap
 
-Status: active, updated 18 November 2026 after repository convergence and Android CI validation.
+Status: active, realigned 18 November 2026 around the Layout v4 product pass.
 
 Android work has started, but it should not slow ordinary product development. Pocket Tavern will keep its fast browser/Termux workflow while a bounded Kotlin packaging track proves that the same web product can eventually ship as a self-contained Android application.
 
@@ -17,14 +17,14 @@ The eventual product is an **Android application with a web-native interface**:
 
 This separates two different concerns: fast feature development and eventual consumer packaging.
 
-## Starting point and convergence status
+## Starting point and current branches
 
-The repository histories were converged on 18 November 2026:
+The separate web and Android histories were converged on 18 November 2026. The repository now has two active branches:
 
-- `0.8-phase4-6` at `d9e437b` remains the complete Pocket Tavern 0.8.0 interface, bridge and browser/Termux package.
-- `main` at `73113df` remains the Android Step 1 checkpoint, proving pinned Node.js 22 runs in-process in a foreground `:runtime` service and can be displayed through a WebView.
-- `claude/project-thread-w10vig` at `f45a36b` remains the Android Step 2 checkpoint, bundling unmodified SillyTavern 1.19.0, separating application code from user data, adding file-picker handling and defining an emulator smoke test.
-- `integration/0.8-android-step2` at `cad0d50` now contains the complete web product and Android Step 2 in one inspectable history. Its explicit merge commit preserves both parent histories.
+- `main` is the stable integration and APK-packaging line. It contains the converged web/Android history and the validated thin Kotlin host.
+- `dev` is the active browser/Termux product line. Layout, bridge, theme and feature work happens here before a stable checkpoint is promoted to `main`.
+
+Historical checkpoints remain inspectable in Git, including the complete 0.8.0 product at `d9e437b`, Android Step 1 at `73113df`, Android Step 2 at `f45a36b` and the convergence merge at `cad0d50`. Old checkpoint branches were removed only after their history was contained in the active lines; the `pre-0.8` and `android-debug-latest` tags remain.
 
 The Android foundation is adapted from `RodneyCw1/SillyTavern-Android`, with its prebuilt Node 22.23.2 runtime pinned by SHA-256. SillyTavern 1.19.0 is also pinned by exact commit. Preserve the AGPL and third-party notices throughout convergence.
 
@@ -56,7 +56,7 @@ It owns:
 - user-visible state, drafts, recovery and errors;
 - theme resolution and rendering.
 
-The browser/Termux package remains the canonical fast development surface and a compatibility/fallback release until the APK passes its migration and recovery gates. The 0.8 layout is the current baseline, not an immutable final layout.
+The browser/Termux package remains the canonical fast development surface and a compatibility/fallback release until the APK passes its migration and recovery gates. The 0.8 layout is an implemented reference, not the product structure to preserve. Layout v4 is a major product pass covering navigation, hierarchy, configuration ownership, extension access, phone/tablet composition and visual behavior.
 
 ### 3. Theme and brand
 
@@ -151,16 +151,11 @@ Recorded result:
 - runtime crash auto-recovery, stable APK signing, the private gateway and later distribution/recovery work remain explicit native risks;
 - exact device, timing, checksum, security and limitation evidence is in [the Milestone 1 phone report](ANDROID_MILESTONE1_PHONE_VALIDATION.md).
 
-## Milestone 2: theme API and continued web-product development
+## Milestone 2: layout-resilient theme contract
 
-**Contract progress on 18 November 2026:** the versioned engine, semantic
-colors, bounded geometry/material/message/motion roles, local typography,
-semantic Lucide treatment, character-accent policy, v1 migration and two proof
-themes are implemented on `dev`. The engine/store also provide staged preview,
-import/export and reset primitives. Their product UI and user-facing recovery
-route are intentionally deferred to the broader UI pass rather than being
-bolted onto the current Settings layout. This does not mark the milestone
-complete or freeze the current navigation.
+**Status: contract foundation complete on `dev` on 18 November 2026. Product-facing theme management moves into Milestone 3 so it is designed with Layout v4 rather than bolted onto the outgoing Settings structure.**
+
+The versioned engine, semantic colors, bounded geometry/material/message/motion roles, local typography, semantic Lucide treatment, character-accent policy, v1 migration and two proof themes are implemented. The engine/store provide staged preview, import/export and reset primitives. Corrupt, incomplete and future-version themes fall back safely.
 
 Continue feature and UX development through the browser/Termux loop. Establish the theme API before permanent branding, without making APK packaging a prerequisite.
 
@@ -200,7 +195,7 @@ Implementation requirements:
 - durable, exportable theme selection and settings;
 - a semantic icon registry such as `icon('home')`, `icon('send')` and `icon('settings')`.
 
-Acceptance:
+Foundation acceptance:
 
 - ordinary feature work retains the fast edit/reload/test loop;
 - the current charcoal/brass appearance renders equivalently after refactoring;
@@ -208,26 +203,61 @@ Acceptance:
 - themes cannot shrink accessible hit targets or hide recovery controls;
 - one broken or incomplete theme cannot make the interface unrecoverable.
 
-## Milestone 3: prove theme range and import ST colors
+## Milestone 3: Layout v4 product and visual pass
 
-Build deliberately different first-party themes to expose missing roles before documenting the format as stable:
+**Status: structural direction approved; detailed technical planning and implementation have not begun.**
 
-- the current charcoal/brass design, provisionally named **Hearth**;
-- a dark theme where character color acts as controlled scene light;
-- a light or high-contrast theme;
-- at least one geometry/material stress test, such as round translucent glass or an opaque pastel skin.
+Layout v4 is the next major product milestone, not a cosmetic cleanup after the theme work. Build structure, interaction and visual range together so the new layout does not quietly hard-code Hearth, while the theme contract is exercised against real screens instead of abstract token samples.
 
-Add **import-and-convert** support for SillyTavern color themes. Do not ingest arbitrary ST CSS. Map supported ST colors into Pocket semantic roles, normalize alpha where necessary, validate contrast, preview the result and repair or warn about unsafe combinations. Geometry, icons and other Pocket-only roles inherit from a selected safe base skin.
+Authoritative product decisions and remaining detail live in [Layout v4](LAYOUT.md). The parked extension questions live in [Extension integration](EXTENSION_INTEGRATION.md). Those documents may evolve during implementation, but superseded 0.7/0.8 handoffs do not regain authority.
+
+### Product structure
+
+- use configurable bottom navigation with Home centered by default and destinations for WI, Home, Chats, Library and an official Extensions hub; exact default order remains a detailed design choice;
+- make Home the operational starting point for connection state, preset/generation access, continuing recent conversations and starting a new chat;
+- open Library directly to Characters or Personas through top-level tabs, with full editors and no intermediate landing page;
+- replace the old grouped Settings screen with an Android-style category index and dedicated Connection, Presets & generation, Appearance, Layout & reading and About pages;
+- retain explicit chat-header tools while retiring header/composer swipe side panels and duplicate entrances;
+- replace persistent character Read/Edit modes with a stable reading page and explicit Save/Cancel editing;
+- preserve the base World Info editor, while treating WIhero as an optional extension workspace rather than a forked Pocket feature;
+- reserve an Extensions destination without claiming general compatibility before the dedicated hosting investigation succeeds.
+
+### SillyTavern ownership and migration
+
+- follow native SillyTavern connection, model, preset and generation behavior instead of maintaining Pocket-owned global/character/chat configuration copies;
+- first prove that original ST connection controls and handlers can be hosted in the existing engine document with Pocket framing and mobile adaptation—do not clone forms or start a second engine;
+- design a deliberate migration that preserves existing Pocket customizations before removing old ownership and scope behavior;
+- account for both Chat Completion and Text Completion paths, including API-specific presets and formatting tools;
+- keep extension work inside actual ST and prove synchronization, routing, Back/focus behavior and target ownership before promising a general host contract.
+
+### Visual development within the layout pass
+
+Use every implemented screen as a theme-contract test. Visual decisions belong in the Layout v4 design process rather than a later reskin.
+
+- preserve **Hearth** as the dark compatibility/reference theme and **Light Paper** as the existing light, compact, low-effect proof;
+- add a dark character-lit treatment and at least one strong geometry/material stress theme while the new components are still being shaped;
+- test reading and messenger message presentations without allowing themes to move navigation, hide capability or reduce accessible hit targets;
+- design phone and tablet composition deliberately; do not scale the phone layout upward;
+- validate small width, large text, reduced motion, light/dark schemes, long content, low-resolution portraits and browser/WebView behavior throughout the pass;
+- make shape grammar, hierarchy, portrait treatment, persistent-chrome budget and context-capacity signaling coherent across themes;
+- implement the approved Appearance flow: active-theme preview, theme cards, whole-interface preview with Apply/Cancel, personal copies, import/export and theme-only reset;
+- keep layout/reading preferences above theme presentation where they overlap, including the global reading/messenger selection;
+- import SillyTavern themes as reviewed color mappings onto a safe Pocket base theme; never ingest arbitrary ST CSS or silently accept unreadable combinations.
 
 Acceptance:
 
-- the proof themes feel materially different without changing layout or capability;
-- the same screen remains usable under every built-in theme at small width and large font scale;
-- ST palette import produces a reviewable Pocket theme and never silently installs unreadable colors.
+- the approved Layout v4 destinations, Home hierarchy, Library structure, Settings topic pages, character flow and explicit chat tools work through the existing browser/Termux loop;
+- native ST connection and preset behavior is either hosted successfully or a documented fallback is chosen from observed evidence, without duplicated configuration ownership;
+- existing Pocket-scoped configuration data has an explicit tested preservation/migration path before old behavior is retired;
+- Appearance exposes preview, Apply/Cancel, import/export and recovery without making a broken theme capable of trapping the user;
+- Hearth, Light Paper and the additional stress themes keep the same functions usable while feeling materially different;
+- representative screens pass at phone and tablet widths, large text and reduced motion, with accessible targets and no theme-dependent navigation;
+- extension and WIhero entrances degrade to honest placeholders or the base WI editor until their contracts are actually proven;
+- automated behavior tests, reproducible visual references and focused real-device/browser checks cover each migrated vertical slice.
 
 ## Milestone 4: package a stable Pocket milestone
 
-At a meaningful product checkpoint, bundle the then-current Pocket frontend, bridge and required patched extension with SillyTavern. The Kotlin-hosted WebView opens `/st-mobile/`; the full native ST interface remains an explicit diagnostic escape hatch rather than the default product.
+After Layout v4 reaches a stable browser/Termux checkpoint, bundle the same frontend, bridge and required patched extension with SillyTavern. The Kotlin-hosted WebView opens `/st-mobile/`; the full native ST interface remains an explicit diagnostic escape hatch rather than the default product.
 
 Required work:
 
@@ -240,10 +270,11 @@ Required work:
 
 Acceptance:
 
-- Home, Chats, Characters, Personas, World Info, Settings and chat open inside the Kotlin-hosted WebView;
+- Home, Chats, Library, World Info, Extensions, Settings and chat open inside the Kotlin-hosted WebView with the same routing and fallback behavior as the browser build;
 - mock Send, streaming, Stop, alternatives, edits and durable saves work;
 - browser and APK runs use the same frontend/bridge source rather than forks;
-- the selected stable appearance renders equivalently in browser and WebView;
+- the selected themes and layout/reading preferences render equivalently in browser and WebView;
+- hosted native ST tools preserve focus, Back and persistence behavior in the WebView;
 - an APK snapshot can be produced without changing the daily web-development workflow.
 
 Repeat this packaging checkpoint only for milestones where Android evidence is useful.
@@ -312,8 +343,10 @@ The browser/Termux package may be retired only after the APK passes the recovery
 
 ## Immediate next actions
 
-1. Return primary effort to web-first product and theme development.
-2. Keep the validated Android host bounded while carrying its recorded native risks forward.
-3. Package the next stable product milestone into the Kotlin host when it provides useful integration evidence.
+1. Plan Layout v4 implementation on `dev` as a sequence of independently testable vertical slices. The plan must include migration and rollback boundaries rather than proposing a one-shot rewrite.
+2. Begin with the highest-risk feasibility work: hosting original ST connection controls in the existing engine document, mapping current Pocket-owned configuration data and proving representative Chat Completion and Text Completion behavior.
+3. Design the new navigation, Home, Settings, Library and character flows alongside Hearth, Light Paper and the new visual stress themes. Do not postpone tablet, large-text or theme-range checks until the end.
+4. Keep extension integration as a dedicated evidence-driven track. Use WIhero as a concrete workspace-hosting stress case while retaining Pocket's base WI fallback.
+5. Keep the validated Android host bounded during ordinary product work. Package Layout v4 only when a stable browser/Termux checkpoint makes WebView evidence useful.
 
 This keeps the eventual APK technically credible without imposing Android’s slower build/install/debug cycle on functions and design work that do not need it.

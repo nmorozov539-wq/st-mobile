@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/prototype/frontend/tokens.css">
+<link rel="stylesheet" href="/prototype/frontend/base.css">
+<link rel="stylesheet" href="/prototype/frontend/style.css">
+<link rel="stylesheet" href="/prototype/frontend/chat.css">
+<style>
+html,body,.pocket-shell{width:100%;height:100%;overflow:hidden}.reference-label{position:absolute;left:15px;bottom:90px;z-index:3;color:var(--color-faint-text);font:12px var(--ui)}
+</style>
+</head>
+<body>
+<main class="pocket-shell">
+<section id="chat-screen" class="conversation">
+<header><button aria-label="Back">‹</button><button id="avatar"><span class="avatar">S</span></button><div class="chat-title"><button id="name">Seraphina</button><div class="chat-sub"><button>as Rowan</button><span>·</span><button>DeepSeek V3</button><button>Storyteller</button></div></div><button aria-label="Menu">•••</button></header>
+<div id="messages">
+<article class="message"><div class="byline"><span>Seraphina</span><button>•••</button></div><div class="bubble"><p><em>She rests one hand on the weathered map, studying the road ahead.</em></p><p><span class="dialogue">“The pass should still be open. If we leave before dawn, we can reach the old observatory by nightfall.”</span></p></div><div class="message-tools"><button>‹</button><span>1 / 2</span><button>›</button><span style="margin-left:auto">8.4s · 312 tokens</span></div></article>
+<article class="message user"><div class="byline"><button>•••</button><span>You</span></div><div class="bubble"><p>Then we should pack light. I’ll take the lantern and meet you at the eastern gate.</p></div></article>
+<article class="message"><div class="byline"><span>Seraphina</span><button>•••</button></div><div class="bubble"><p><span class="dialogue">“Good.”</span> A quiet smile crosses her face. <em>Outside, rain whispers against the shutters.</em></p></div></article>
+</div>
+<span class="reference-label"></span>
+<form id="composer"><div class="compose-input"><textarea aria-label="Message" placeholder="Write your reply…" rows="1"></textarea><div class="compose-bottom"><button id="send" type="button">↑</button></div></div></form>
+</section>
+</main>
+<script type="module">
+import {applyTheme,loadTheme,resolveCharacterAccent} from '/prototype/frontend/color-theme.js';
+const id=new URLSearchParams(location.search).get('theme')==='paper'?'paper':'hearth';
+const theme=await loadTheme(`/prototype/frontend/themes/${id}.json`);applyTheme(theme);
+const character=resolveCharacterAccent(theme,'#d2aa55');const chat=document.querySelector('#chat-screen');chat.style.setProperty('--char',character.color);chat.style.setProperty('--color-character-ink',character.ink);
+document.querySelector('.reference-label').textContent=id==='paper'?'Light Paper · card layout':'Hearth · reading layout';document.documentElement.dataset.ready='true';
+</script>
+</body>
+</html>
+

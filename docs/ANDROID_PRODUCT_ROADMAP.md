@@ -119,7 +119,7 @@ Recorded result:
 
 ## Milestone 1: bounded Android-host validation
 
-**Status: in progress. CI builds and emulator boot are proven; physical arm64 phone validation remains.**
+**Status: complete on 18 November 2026 at validation commit `b1b793e`.**
 
 Finish enough of Android Step 2 to prove the selected Kotlin host remains viable, then return primary effort to the web product.
 
@@ -142,6 +142,15 @@ Acceptance:
 - no network download is required on first app start; all runtime payloads are already in the APK.
 
 After this gate, native work may pause while the product track continues.
+
+Recorded result:
+
+- CI run 44303995381 built both ABI APKs and passed the API 34 x86_64 emulator smoke test at `b1b793e`;
+- the checksum-pinned arm64 APK completed fresh and warm starts, background/foreground, secure lock/unlock, runtime-loss observation and full stop/reopen on a Xiaomi 2201116SC;
+- the demonstrated unbounded runtime log was fixed with two private 1 MiB rotating files and validated by a native stress harness, CI and physical boot;
+- a saved default profile survived full app restarts, confirming the current code/data separation within this milestone's scope;
+- runtime crash auto-recovery, stable APK signing, the private gateway and later distribution/recovery work remain explicit native risks;
+- exact device, timing, checksum, security and limitation evidence is in [the Milestone 1 phone report](ANDROID_MILESTONE1_PHONE_VALIDATION.md).
 
 ## Milestone 2: theme API and continued web-product development
 
@@ -295,10 +304,8 @@ The browser/Termux package may be retired only after the APK passes the recovery
 
 ## Immediate next actions
 
-1. Create the integration branch from `0.8-phase4-6` and merge the Android Step 2 history without changing the daily product workflow.
-2. Run the existing web test baseline after convergence.
-3. Repair Android CI and complete one bounded emulator/phone validation of bundled ST.
-4. Return primary effort to web-first product and theme development.
-5. Package the next stable product milestone into the Kotlin host when it provides useful integration evidence.
+1. Return primary effort to web-first product and theme development.
+2. Keep the validated Android host bounded while carrying its recorded native risks forward.
+3. Package the next stable product milestone into the Kotlin host when it provides useful integration evidence.
 
 This keeps the eventual APK technically credible without imposing Android’s slower build/install/debug cycle on functions and design work that do not need it.

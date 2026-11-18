@@ -1,5 +1,29 @@
 # Verification report
 
+## Milestone 2 — Versioned theme contract v2
+
+Verified 18 November 2026 on `dev` with no Android-source changes.
+
+- **284 of 285 automated tests pass.** The sole failure remains the pre-existing
+  phone-package repair subprocess assertion: it expects `Repair stopped: the
+  update stalled` and receives empty output. Theme/schema, syntax, character
+  color and all other existing checks pass.
+- Complete `ui-theme` v1 and legacy `ui-color-theme` v1 migration, future and
+  corrupt theme rejection, bounded local typography, registered icon treatment,
+  fixed/portrait/disabled character accents, rendered-surface contrast, store
+  callbacks and Light Paper/Hearth behavior have deterministic coverage.
+- The Playwright reference harness passes Hearth and Light Paper at 320×640,
+  390×844, 430×844 and 768×1024 with 24px reading text, correct light/dark
+  control scheme, reduced motion and no horizontal document overflow or page
+  errors. This check found and fixed an inline-variable precedence bug that had
+  prevented the reduced-motion media rule from overriding theme durations.
+- The two supplied 390×844 reference PNGs are committed byte-for-byte under
+  `docs/theme-references/`. The deterministic harness writes to `/tmp` unless
+  its explicit `--write` option is used.
+- Theme selection/preview/import/export/reset remain engine/store operations.
+  Per approval, no Settings or other product UI was added; those controls and a
+  user-facing recovery route remain for the broader UI pass.
+
 ## 0.7.15 — Second phone test, preset import, several personas, DeepSeek
 
 Every 0.7.14 phone-test failure that can be reproduced off the phone was reproduced against a fresh ST 1.19.0 mock fixture before it was fixed.

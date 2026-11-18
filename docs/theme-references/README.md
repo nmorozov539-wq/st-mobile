@@ -29,4 +29,3 @@ POCKET_PLAYWRIGHT_MODULE=/path/to/playwright node scripts/capture-theme-referenc
 ```
 
 Ordinary tests never overwrite these references.
-

@@ -28,4 +28,3 @@ const server=http.createServer((request,response)=>{
  finally{await browser.close();server.close();}
  console.log(output);
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
-

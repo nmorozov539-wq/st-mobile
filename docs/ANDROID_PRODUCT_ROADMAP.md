@@ -153,6 +153,15 @@ Recorded result:
 
 ## Milestone 2: theme API and continued web-product development
 
+**Contract progress on 18 November 2026:** the versioned engine, semantic
+colors, bounded geometry/material/message/motion roles, local typography,
+semantic Lucide treatment, character-accent policy, v1 migration and two proof
+themes are implemented on `dev`. The engine/store also provide staged preview,
+import/export and reset primitives. Their product UI and user-facing recovery
+route are intentionally deferred to the broader UI pass rather than being
+bolted onto the current Settings layout. This does not mark the milestone
+complete or freeze the current navigation.
+
 Continue feature and UX development through the browser/Termux loop. Establish the theme API before permanent branding, without making APK packaging a prerequisite.
 
 Refactor the existing 0.8 appearance without changing its rendered result. The current design becomes the first built-in compatibility theme rather than the permanent definition of the brand.

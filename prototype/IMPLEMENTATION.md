@@ -138,6 +138,26 @@ Settings is a page (`settings-page.js`) rather than the old dialog; the gear on 
 
 **Appearance & reading** (`appearance.js`) stores text size 13–24 px, line spacing, background and four message-detail switches in browser storage (`pocket-tavern.appearance.v1`) and applies them as CSS variables. Generation time is the only detail on by default. Clock, model icon and token count appear only when the saved message actually has a `send_date`, `extra.model` or `extra.token_count`; nothing is fabricated.
 
+## Theme contract — Milestone 2
+
+`color-theme.js` validates and applies complete `ui-theme` v2 manifests. The
+contract covers semantic colors, bounded shape/material effects, message
+presentation, motion, allowlisted local typography, a registered semantic icon
+pack treatment and fixed/portrait/disabled character accents. Complete v1 and
+legacy color-only v1 themes upgrade with deterministic Hearth defaults; future
+and corrupt themes are rejected. `tokens.css` mirrors Hearth for safe first
+paint.
+
+Portrait extraction caches theme-neutral image color and repairs it against the
+active canvas at render time. Actual character ink is calculated from the
+resolved accent, so light and dark themes do not share an unsafe dark-theme
+result. The detailed public schema and compatibility policy are in
+`docs/THEME_API.md`.
+
+The store already supports selection, preview/cancel, import, export, removal
+and reset. Product controls for those operations are intentionally deferred to
+the broader UI pass; this contract work does not add a Settings workflow.
+
 
 ## Home — 0.7.12
 

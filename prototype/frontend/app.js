@@ -25,7 +25,11 @@ import {createSidePanels} from './side-panels.js?build=0.8.0';
 import {compileDisplay,applyDisplay,messageDepth,placementFor,PLACEMENT} from './regex-display.js?build=0.8.0';
 import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.8.0';
 import {loadAndApplyColorTheme} from './color-theme.js?build=0.8.0';
-loadAndApplyColorTheme(new URL('./themes/hearth.json',import.meta.url)).catch(error=>console.error('Using safe built-in theme colors:',error));
+import {createColorThemeStore} from './color-theme-store.js?build=0.8.0';
+let colorThemes;
+loadAndApplyColorTheme(new URL('./themes/hearth.json',import.meta.url))
+    .then(baseTheme=>{colorThemes=createColorThemeStore({baseTheme});})
+    .catch(error=>console.error('Using safe built-in theme colors:',error));
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});
 const state=createLocalState(localStorage),journal=createJournal(localStorage),connection=new RuntimeConnection(onEvent);

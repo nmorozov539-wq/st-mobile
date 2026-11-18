@@ -3,8 +3,19 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, parseColor, validateColorTheme} from '../prototype/frontend/color-theme.js';
 import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
+import {COLOR_THEME_STORAGE_KEY, createColorThemeStore} from '../prototype/frontend/color-theme-store.js';
 
 const hearth = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json', import.meta.url), 'utf8'));
+const memoryStorage = (initial = {}) => {
+    const values = new Map(Object.entries(initial));
+    return {
+        getItem: key => values.get(key) ?? null,
+        setItem: (key, value) => values.set(key, String(value)),
+        removeItem: key => values.delete(key),
+        value: key => values.get(key),
+    };
+};
+const themeRoot = () => ({style: {values: {}, setProperty(name, value) { this.values[name] = value; }}, dataset: {}});
 
 test('Hearth is a complete versioned compatibility theme', () => {
     const result = validateColorTheme(hearth);
@@ -104,4 +115,50 @@ test('incomplete ST themes use visible compatibility fallbacks and report them',
     assert.ok(warnings.some(message => message.includes('chat_tint_color')));
     assert.ok(warnings.some(message => message.includes('border_color')));
     assert.equal(validateColorTheme(theme).valid, true);
+});
+
+test('theme store previews without saving and cancel restores the selection', () => {
+    const storage = memoryStorage(), root = themeRoot();
+    const store = createColorThemeStore({storage, root, baseTheme: hearth});
+    const preview = structuredClone(hearth); preview.id = 'preview'; preview.name = 'Preview'; preview.colors.canvas = '#010203';
+    store.preview(preview);
+    assert.equal(store.current().id, 'preview');
+    assert.equal(root.style.values['--color-canvas'], '#010203');
+    assert.equal(storage.value(COLOR_THEME_STORAGE_KEY), undefined);
+    store.cancelPreview();
+    assert.equal(store.current().id, 'hearth');
+    assert.equal(root.style.values['--color-canvas'], '#141519');
+});
+
+test('theme store saves, restores, exports and safely resets custom themes', () => {
+    const storage = memoryStorage(), root = themeRoot();
+    const first = createColorThemeStore({storage, root, baseTheme: hearth});
+    const custom = structuredClone(hearth); custom.id = 'quiet'; custom.name = 'Quiet'; custom.colors.accent = '#abcdef';
+    first.preview(custom);
+    assert.equal(first.commitPreview().id, 'quiet');
+    const restored = createColorThemeStore({storage, root: themeRoot(), baseTheme: hearth});
+    assert.equal(restored.current().id, 'quiet');
+    assert.equal(JSON.parse(restored.export()).colors.accent, '#abcdef');
+    assert.equal(restored.reset().id, 'hearth');
+    assert.equal(storage.value(COLOR_THEME_STORAGE_KEY), undefined);
+});
+
+test('theme store converts ST colors for preview and avoids import name collisions', () => {
+    const storage = memoryStorage(), root = themeRoot();
+    const store = createColorThemeStore({storage, root, baseTheme: hearth});
+    const st = {name: 'Tiny', main_text_color: '#eeeeee'};
+    const result = store.previewSillyTavern(st);
+    assert.equal(result.theme.id, 'st-tiny');
+    assert.ok(result.warnings.length);
+    assert.equal(store.commitPreview().id, 'st-tiny');
+    store.previewSillyTavern(st);
+    assert.equal(store.commitPreview().id, 'st-tiny-2');
+});
+
+test('theme store ignores corrupt saved themes and refuses to delete Hearth', () => {
+    const storage = memoryStorage({[COLOR_THEME_STORAGE_KEY]: JSON.stringify({version: 1, selected: 'broken', themes: [{nope: true}]})});
+    const store = createColorThemeStore({storage, root: themeRoot(), baseTheme: hearth});
+    assert.equal(store.current().id, 'hearth');
+    assert.throws(() => store.remove('hearth'), /cannot be removed/);
+    assert.throws(() => store.select('missing'), /Unknown color theme/);
 });

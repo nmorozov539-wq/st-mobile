@@ -1,10 +1,13 @@
 // 0.8 phase 2: chat screen helpers that run without a browser.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {colourFromPixels,refineForChat,contrastRatio,fromHex,validColour,rgbToOklch} from '../prototype/frontend/char-colour.js';
+import fs from 'node:fs';
+import {colourFromPixels,createCharacterColours,refineForChat,contrastRatio,fromHex,validColour,rgbToOklch} from '../prototype/frontend/char-colour.js';
 import {normalizeAppearance} from '../prototype/frontend/appearance.js';
 
 const BG={r:0x14,g:0x15,b:0x19};
+const hearth=JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json',import.meta.url),'utf8'));
+const paper=JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/paper.json',import.meta.url),'utf8'));
 function image(fill,size=64){const px=new Uint8ClampedArray(size*size*4);for(let i=0;i<size*size;i++){const [r,g,b,a=255]=fill(i%size,Math.floor(i/size));px.set([r,g,b,a],i*4);}return px;}
 
 test('character colour comes from the dominant vivid hue and reads on the chat background', () => {
@@ -32,6 +35,14 @@ test('a dark saturated colour is lifted, keeping its hue', () => {
 });
 test('hand-picked colours are validated', () => {
     assert.equal(validColour('#A1B2C3'),'#a1b2c3');assert.equal(validColour(''),null);assert.equal(validColour('red'),null);assert.equal(validColour('#abc'),null);
+});
+test('character resolver follows the active theme policy and returns matching ink', async() => {
+    const colours=createCharacterColours({storage:{getItem:()=>null,setItem(){}},document:{}});
+    colours.setTheme(hearth);const portrait=await colours.resolve({color:'#310060'});
+    assert.equal(portrait.mode,'portrait');assert.ok(contrastRatio(fromHex(portrait.color),fromHex(hearth.colors.canvas))>=4.5);
+    colours.setTheme(paper);const fixed=await colours.resolve({color:'#00ff00'});
+    assert.equal(fixed.mode,'fixed');assert.equal(fixed.color,paper.colors.characterFallback);
+    assert.ok(contrastRatio(fromHex(fixed.ink),fromHex(fixed.color))>=4.5);
 });
 test('thinking blocks setting defaults to collapsed', () => {
     assert.equal(normalizeAppearance({}).thinking,'collapsed');

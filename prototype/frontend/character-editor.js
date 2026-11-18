@@ -86,10 +86,11 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         const start=button('Start chat',()=>original?.click());start.className='btn primary';start.id='character-hero-start';start.prepend(icon('chat'));start.disabled=!!original?.disabled;
         const edit=button('Edit',()=>{mode='edit';organizing=false;try{if(cardKey)storage.setItem(`pocket-character-mode:${cardKey}`,mode);}catch{}rerender();});edit.className='btn secondary';edit.id='character-hero-edit';edit.prepend(icon('edit'));
         actions.append(start,edit);hero.append(actions);body.append(hero);
-        const own=validColour(draft.extensions?.pocket_tavern?.color);
-        const paint=hex=>{if(hex&&hero.isConnected){const panel=document.getElementById('asset-editor');panel.style.setProperty('--char',hex);}};
+        const savedColour=draft.extensions?.pocket_tavern?.color,own=validColour(savedColour);
+        const paint=value=>{if(value?.color&&hero.isConnected){const panel=document.getElementById('asset-editor');panel.style.setProperty('--char',value.color);panel.style.setProperty('--color-character-ink',value.ink);}};
         document.getElementById('asset-editor').style.removeProperty('--char');
-        if(own)paint(own);else if(key)Promise.resolve(colourOf(key)).then(paint).catch(()=>{});
+        document.getElementById('asset-editor').style.removeProperty('--color-character-ink');
+        if(key)Promise.resolve(colourOf(key,savedColour)).then(paint).catch(()=>{});
         chats?.render(body,key);
         if(String(draft.creator_notes??'').trim()){
             const notes=node('details');notes.className='character-notes workshop-section';notes.append(node('summary',"Creator’s Notes"));

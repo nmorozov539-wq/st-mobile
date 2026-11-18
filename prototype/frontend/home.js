@@ -44,7 +44,11 @@ function btn(text, className, onClick, glyph) {
 }
 function tint(element, character, colours) {
  if (!character || !colours) return;
- colours.resolve(character).then(hex => { if (hex) element.style.setProperty('--char', hex); }).catch(() => {});
+ colours.resolve(character).then(value => {
+  if (!value?.color) return;
+  element.style.setProperty('--char', value.color);
+  element.style.setProperty('--color-character-ink', value.ink);
+ }).catch(() => {});
 }
 function section(title, link, onLink) {
  const head = node('div', null, 'home-section');

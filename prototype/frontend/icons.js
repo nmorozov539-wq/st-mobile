@@ -56,7 +56,7 @@ const paths={
 export const ICON_NAMES=Object.freeze(Object.keys(paths));
 export function icon(name,document=globalThis.document) {
     const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');
-    svg.setAttribute('stroke-width','1.75');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');
+    svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','var(--icon-fill,none)');svg.setAttribute('stroke','currentColor');
+    svg.setAttribute('stroke-width','var(--icon-stroke-width,1.75)');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');
     svg.setAttribute('class','icon');svg.setAttribute('aria-hidden','true');svg.innerHTML=paths[name]??paths.model;return svg;
 }

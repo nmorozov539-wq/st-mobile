@@ -30,6 +30,7 @@ export function createThemeStore({
     root = globalThis.document?.documentElement,
     builtInThemes,
     baseTheme,
+    onApply = () => {},
 } = {}) {
     const builtIns = (builtInThemes ?? [baseTheme]).map(normalizeTheme);
     if (!builtIns.length) throw new ColorThemeError('At least one built-in color theme is required.');
@@ -56,7 +57,7 @@ export function createThemeStore({
         while (find(`${theme.id}-${number}`)) number++;
         return {...theme, id: `${theme.id}-${number}`, name: `${theme.name} ${number}`};
     };
-    const show = theme => applyTheme(theme, root);
+    const show = theme => { const applied = applyTheme(theme, root); onApply(copy(applied)); return applied; };
     const showPreview = value => {
         preview = normalizeTheme(value);
         return copy(show(preview));

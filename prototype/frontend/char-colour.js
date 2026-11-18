@@ -1,9 +1,12 @@
+import {resolveCharacterAccent} from './color-theme.js?build=0.8.0';
+
 // Character colour: a compact browser port of Colorizinator's accent maths
-// (OKLab/OKLCH, hue-window "most saturated" pick, accent refine against the
-// dark background). Reads the whole avatar, not a strip. The result is
-// lightened so it reads as text on the chat background, and cached per
-// avatar on this device. A colour picked by hand (saved in the card) wins;
-// with neither, callers fall back to brass.
+// (OKLab/OKLCH and a hue-window "most saturated" pick). Reads the whole avatar,
+// not a strip. The raw result is cached per avatar, then refined against the
+// active theme canvas. A colour picked by hand (saved in the card) wins;
+// with neither, callers fall back to the active theme. Portrait extraction is
+// cached before theme-dependent contrast repair, so light and dark themes can
+// safely resolve different accents from the same image.
 const SRGB_TO_LINEAR=new Float64Array(256);
 for(let i=0;i<256;i++){const c=i/255;SRGB_TO_LINEAR[i]=c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);}
 const linearToSrgb=c=>(c<=.0031308?c*12.92:1.055*Math.pow(c,1/2.4)-.055)*255;
@@ -70,36 +73,42 @@ export function refineForChat(colour,bg=BG){
     return out;
 }
 /** RGBA pixel data of the whole avatar → '#rrggbb', or null for a grey image. */
-export function colourFromPixels(pixels){
+export function rawColourFromPixels(pixels){
     const {opaque,groups}=quantize(pixels);if(!opaque)return null;
-    const picked=refineForChat(mostSaturated(groups,opaque));return picked?toHex(picked):null;
+    const picked=mostSaturated(groups,opaque);return picked?toHex(picked):null;
 }
+export function colourFromPixels(pixels,bg=BG){const raw=rawColourFromPixels(pixels);const picked=refineForChat(fromHex(raw),bg);return picked?toHex(picked):null;}
 
-const CACHE_KEY='pocket-tavern.char-colour.v1';
+const CACHE_KEY='pocket-tavern.char-colour.v2';
 function readCache(storage){try{const v=JSON.parse(storage.getItem(CACHE_KEY));return v&&typeof v==='object'?v:{};}catch{return {};}}
 function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.decoding='async';img.onload=()=>resolve(img);img.onerror=()=>reject(Error('Avatar did not load'));img.src=src;});}
 // A small fingerprint of the picture: the cache follows the avatar, so a new
 // portrait under the same file name is read again.
 function fingerprint(img,document){const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,8,8);let h=2166136261;for(const v of x.getImageData(0,0,8,8).data){h^=v>>3;h=Math.imul(h,16777619);}return (h>>>0).toString(36);}
 export function createCharacterColours({storage=localStorage,document=globalThis.document,source=key=>`/thumbnail?type=avatar&file=${encodeURIComponent(key)}`}={}){
-    const pending=new Map();
+    const pending=new Map();let theme=null;
     async function auto(key){
         if(!key)return null;
         if(pending.has(key))return pending.get(key);
         const job=(async()=>{
             try{
                 const img=await loadImage(source(key)),print=fingerprint(img,document),cache=readCache(storage);
-                if(cache[key]?.print===print)return cache[key].colour;
+                if(cache[key]?.print===print)return cache[key].raw;
                 const scale=Math.min(1,96/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
                 const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(img,0,0,w,h);
-                const colour=colourFromPixels(context.getImageData(0,0,w,h).data);
-                cache[key]={print,colour};try{storage.setItem(CACHE_KEY,JSON.stringify(cache));}catch{}
-                return colour;
+                const raw=rawColourFromPixels(context.getImageData(0,0,w,h).data);
+                cache[key]={print,raw};try{storage.setItem(CACHE_KEY,JSON.stringify(cache));}catch{}
+                return raw;
             }catch{return null;}finally{pending.delete(key);}
         })();
         pending.set(key,job);return job;
     }
-    /** Hand-picked colour if valid, else the avatar's, else null (use brass). */
-    async function resolve(character){return validColour(character?.color)??await auto(character?.key);}
-    return {resolve,auto,forget(key){const cache=readCache(storage);delete cache[key];try{storage.setItem(CACHE_KEY,JSON.stringify(cache));}catch{}}};
+    /** Hand-picked colour if valid, else the avatar's raw colour, then the theme policy. */
+    async function resolve(character){
+        const candidate=validColour(character?.color)??await auto(character?.key);
+        if(theme)return resolveCharacterAccent(theme,candidate);
+        const color=candidate?toHex(refineForChat(fromHex(candidate))):null;
+        return {mode:'portrait',color,ink:color?(contrastRatio(fromHex(color),{r:11,g:12,b:14})>=contrastRatio(fromHex(color),{r:255,g:255,b:255})?'#0b0c0e':'#ffffff'):null,glow:1};
+    }
+    return {resolve,auto,setTheme(value){theme=value;},forget(key){const cache=readCache(storage);delete cache[key];try{storage.setItem(CACHE_KEY,JSON.stringify(cache));}catch{}}};
 }

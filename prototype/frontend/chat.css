@@ -27,8 +27,8 @@ body:has(#chat-screen:not([hidden])){background:var(--color-canvas)}
 #chat-screen .message.user .byline{color:var(--color-muted-text);flex-direction:row-reverse}
 #chat-screen .byline button{min-height:44px;min-width:44px;padding:8px;margin:0 -8px 0 auto;color:var(--color-faint-text);border:0;background:transparent}
 #chat-screen .message.user .byline button{margin:0 auto 0 -8px}
-#chat-screen .bubble{font-family:var(--read);font-size:var(--t-read);line-height:var(--read-line);background:var(--color-assistant-message);border:0;border-radius:0;padding:0;overflow-wrap:anywhere;color:var(--color-text)}
-#chat-screen .user .bubble{font-family:var(--ui);font-size:calc(var(--t-read) * .93);line-height:calc(var(--read-line) * .95);background:var(--color-user-message);border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-message);padding:10px 12px}
+#chat-screen .bubble{font-family:var(--read);font-weight:var(--weight-reading);font-size:var(--t-read);line-height:var(--read-line);background:var(--color-assistant-message);border:0;border-radius:0;padding:0;overflow-wrap:anywhere;color:var(--color-text)}
+#chat-screen .user .bubble{font-family:var(--ui);font-weight:var(--weight-ui);font-size:calc(var(--t-read) * .93);line-height:calc(var(--read-line) * .95);background:var(--color-user-message);border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-message);padding:10px 12px}
 #chat-screen .bubble em{color:var(--color-narration-text)}#chat-screen .bubble strong{color:var(--color-text)}
 #chat-screen .bubble p{margin:0 0 .75em}#chat-screen .bubble p:last-child{margin-bottom:0}
 #chat-screen .bubble p:empty{display:none}

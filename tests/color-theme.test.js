@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, normalizeTheme, parseColor, THEME_KIND, upgradeColorTheme, validateColorTheme, validateTheme} from '../prototype/frontend/color-theme.js';
+import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, normalizeTheme, parseColor, resolveCharacterAccent, THEME_KIND, THEME_VERSION, upgradeColorTheme, validateColorTheme, validateTheme} from '../prototype/frontend/color-theme.js';
 import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
 import {COLOR_THEME_STORAGE_KEY, createColorThemeStore, createThemeStore, THEME_STORAGE_KEY} from '../prototype/frontend/color-theme-store.js';
 
@@ -30,11 +30,21 @@ test('Hearth is a complete unified theme', () => {
 });
 
 test('legacy color themes upgrade with safe Hearth visuals', () => {
-    const legacy = structuredClone(hearth); legacy.kind = 'ui-color-theme'; delete legacy.shape; delete legacy.effects; delete legacy.presentation; delete legacy.motion;
+    const legacy = structuredClone(hearth); legacy.kind = 'ui-color-theme'; legacy.version = 1; delete legacy.shape; delete legacy.effects; delete legacy.presentation; delete legacy.motion; delete legacy.typography; delete legacy.icons; delete legacy.characterAccent;
     const upgraded = upgradeColorTheme(legacy);
     assert.equal(upgraded.kind, THEME_KIND);
+    assert.equal(upgraded.version, THEME_VERSION);
     assert.equal(normalizeTheme(legacy).shape.largeRadius, 16);
     assert.equal(normalizeTheme(legacy).effects.blur, 8);
+});
+
+test('complete v1 themes upgrade with bounded typography, icons and character accents', () => {
+    const old = structuredClone(hearth); old.version = 1; delete old.typography; delete old.icons; delete old.characterAccent;
+    const upgraded = normalizeTheme(old);
+    assert.equal(upgraded.version, 2);
+    assert.deepEqual(upgraded.typography, hearth.typography);
+    assert.deepEqual(upgraded.icons, hearth.icons);
+    assert.deepEqual(upgraded.characterAccent, {mode: 'portrait'});
 });
 
 test('Light Paper proves light, compact, square and low-effect themes', () => {
@@ -60,12 +70,14 @@ test('validation rejects missing, transparent essential and future-version color
     assert.equal(validateColorTheme(missing).valid, false);
     const transparent = structuredClone(hearth); transparent.colors.canvas = '#14151980';
     assert.match(validateColorTheme(transparent).errors.join(' '), /canvas must be a valid opaque color/);
-    const future = structuredClone(hearth); future.version = 2;
-    assert.match(validateColorTheme(future).errors.join(' '), /version must be 1/);
+    const future = structuredClone(hearth); future.version = 3;
+    assert.match(validateColorTheme(future).errors.join(' '), /version must be 2/);
     const unsafe = structuredClone(hearth); unsafe.effects.blur = 99; unsafe.shape.mediumRadius = -1; unsafe.presentation.messages = 'css';
     assert.match(validateTheme(unsafe).errors.join(' '), /shape\.mediumRadius.*effects\.blur.*presentation\.messages/);
     const unreadable = structuredClone(hearth); unreadable.colors.text = unreadable.colors.canvas;
     assert.match(validateTheme(unreadable).errors.join(' '), /text needs 4\.5:1 contrast/);
+    const injected = structuredClone(hearth); injected.typography.uiFamily = 'url(https://example.com/font.woff2)'; injected.icons.pack = '<svg>'; injected.characterAccent.mode = 'css';
+    assert.match(validateTheme(injected).errors.join(' '), /installed family.*not installed.*portrait/);
 });
 
 test('theme resolution emits stable public and calculated CSS variables', () => {
@@ -79,11 +91,29 @@ test('theme resolution emits stable public and calculated CSS variables', () => 
     assert.equal(variables['--shape-radius-medium'], '10px');
     assert.equal(variables['--effect-surface-blur'], '8px');
     assert.equal(variables['--motion-fast'], '150ms');
+    assert.equal(variables['--font-ui'], 'Rubik,system-ui,sans-serif');
+    assert.equal(variables['--font-reading'], 'Literata,Georgia,serif');
+    assert.equal(variables['--icon-stroke-width'], '1.75');
     const props = {}, root = {style: {setProperty: (name, value) => { props[name] = value; }}, dataset: {}};
     applyColorTheme(hearth, root);
     assert.equal(props['--color-accent'], '#d9b46a');
     assert.equal(props['color-scheme'], 'dark');
-    assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading'});
+    assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading', iconPack: 'lucide', characterAccent: 'portrait'});
+});
+
+test('character accent modes are readable against both built-in canvases', () => {
+    const portrait = resolveCharacterAccent(hearth, '#310060');
+    assert.equal(portrait.mode, 'portrait');
+    assert.ok(contrastRatio(portrait.color, hearth.colors.canvas) >= 4.5);
+    assert.ok(contrastRatio(portrait.ink, portrait.color) >= 4.5);
+    const fixed = resolveCharacterAccent(paper, '#00ff00');
+    assert.equal(fixed.mode, 'fixed');
+    assert.equal(fixed.color, paper.colors.characterFallback);
+    const disabledTheme = structuredClone(hearth); disabledTheme.characterAccent.mode = 'disabled';
+    const disabled = resolveCharacterAccent(disabledTheme, '#00ff00');
+    assert.equal(disabled.color, hearth.colors.accent);
+    assert.equal(disabled.glow, 0);
+    assert.equal(colorThemeToCssVariables(disabledTheme)['--effect-character-glow-strong'], '0%');
 });
 
 test('component CSS uses semantic shape, blur and motion variables', () => {
@@ -106,7 +136,7 @@ test('the interface loader fetches and applies a validated theme file', async ()
     assert.equal(theme.id, 'hearth');
     assert.equal(props['--color-canvas'], '#141519');
     assert.equal(props['color-scheme'], 'dark');
-    assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading'});
+    assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading', iconPack: 'lucide', characterAccent: 'portrait'});
 });
 
 test('a failed theme load leaves the safe CSS fallback alone', async () => {
@@ -198,7 +228,8 @@ test('theme store converts ST colors for preview and avoids import name collisio
 });
 
 test('theme store ignores corrupt saved themes and refuses to delete Hearth', () => {
-    const storage = memoryStorage({[COLOR_THEME_STORAGE_KEY]: JSON.stringify({version: 1, selected: 'broken', themes: [{nope: true}]})});
+    const future = structuredClone(hearth); future.id = 'future'; future.version = 3;
+    const storage = memoryStorage({[COLOR_THEME_STORAGE_KEY]: JSON.stringify({version: 1, selected: 'future', themes: [{nope: true}, future]})});
     const store = createColorThemeStore({storage, root: themeRoot(), baseTheme: hearth});
     assert.equal(store.current().id, 'hearth');
     assert.throws(() => store.remove('hearth'), /cannot be removed/);
@@ -206,18 +237,19 @@ test('theme store ignores corrupt saved themes and refuses to delete Hearth', ()
 });
 
 test('built-in themes can switch the complete rendered visual contract', () => {
-    const root = themeRoot(), store = createThemeStore({storage: memoryStorage(), root, builtInThemes: [hearth, paper]});
+    const root = themeRoot(), applied = [], store = createThemeStore({storage: memoryStorage(), root, builtInThemes: [hearth, paper], onApply: theme => applied.push(theme.id)});
     assert.deepEqual(store.list().map(theme => theme.id), ['hearth', 'paper']);
     store.select('paper');
     assert.equal(store.current().id, 'paper');
     assert.equal(root.dataset.colorScheme, 'light');
     assert.equal(root.dataset.messageStyle, 'cards');
     assert.equal(root.style.values['--effect-surface-blur'], '0px');
+    assert.deepEqual(applied, ['hearth', 'paper']);
 });
 
 test('complete theme store reads legacy color storage and writes forward without erasing rollback data', () => {
-    const legacy = structuredClone(hearth); legacy.kind = 'ui-color-theme'; legacy.id = 'legacy'; legacy.name = 'Legacy';
-    delete legacy.shape; delete legacy.effects; delete legacy.presentation; delete legacy.motion;
+    const legacy = structuredClone(hearth); legacy.kind = 'ui-color-theme'; legacy.version = 1; legacy.id = 'legacy'; legacy.name = 'Legacy';
+    delete legacy.shape; delete legacy.effects; delete legacy.presentation; delete legacy.motion; delete legacy.typography; delete legacy.icons; delete legacy.characterAccent;
     const oldRecord = JSON.stringify({version: 1, selected: 'legacy', themes: [legacy]});
     const storage = memoryStorage({[COLOR_THEME_STORAGE_KEY]: oldRecord});
     const store = createThemeStore({storage, root: themeRoot(), baseTheme: hearth});

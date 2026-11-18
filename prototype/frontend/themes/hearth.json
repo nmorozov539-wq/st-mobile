@@ -1,6 +1,6 @@
 {
     "kind": "ui-theme",
-    "version": 1,
+    "version": 2,
     "id": "hearth",
     "name": "Hearth",
     "scheme": "dark",
@@ -48,5 +48,22 @@
     },
     "motion": {
         "scale": 1
+    },
+    "typography": {
+        "uiFamily": "rubik",
+        "readingFamily": "literata",
+        "uiScale": 1,
+        "readingScale": 1,
+        "uiWeight": 400,
+        "readingWeight": 400,
+        "readingLineHeight": 1.62
+    },
+    "icons": {
+        "pack": "lucide",
+        "strokeWidth": 1.75,
+        "fill": "none"
+    },
+    "characterAccent": {
+        "mode": "portrait"
     }
 }

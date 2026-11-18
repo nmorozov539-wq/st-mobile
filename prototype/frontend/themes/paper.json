@@ -1,6 +1,6 @@
 {
     "kind": "ui-theme",
-    "version": 1,
+    "version": 2,
     "id": "paper",
     "name": "Light Paper",
     "scheme": "light",
@@ -48,5 +48,22 @@
     },
     "motion": {
         "scale": 0
+    },
+    "typography": {
+        "uiFamily": "rubik",
+        "readingFamily": "literata",
+        "uiScale": 1,
+        "readingScale": 1.04,
+        "uiWeight": 400,
+        "readingWeight": 400,
+        "readingLineHeight": 1.68
+    },
+    "icons": {
+        "pack": "lucide",
+        "strokeWidth": 1.5,
+        "fill": "none"
+    },
+    "characterAccent": {
+        "mode": "fixed"
     }
 }

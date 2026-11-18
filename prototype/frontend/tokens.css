@@ -23,23 +23,26 @@
   --effect-background-glow:1;--effect-character-glow:1;--effect-glow-base:13%;--effect-glow-chat:18%;--effect-glow-panel:16%;
   --effect-character-glow-subtle:22%;--effect-character-glow-soft:45%;--effect-character-glow-cast:55%;--effect-character-glow-strong:70%;--effect-character-tint:28%;
   --density-scale:1;--motion-fast:150ms;--motion-panel:180ms;--motion-slow:400ms;
+  --font-ui:Rubik,system-ui,sans-serif;--font-reading:Literata,Georgia,serif;
+  --type-ui-scale:1;--type-reading-scale:1;--weight-ui:400;--weight-reading:400;--theme-reading-line-ratio:.9529411765;
+  --icon-stroke-width:1.75;--icon-fill:none;
   /* Character color remains per-card, with the theme providing its fallback. */
   --char:var(--color-character-fallback);
   /* Background "Gradient" setting: a faint glow of the character colour.
      Resolved where it is declared, so re-declare it wherever --char changes. */
   --glow:radial-gradient(ellipse 130% 60% at 50% -12%,color-mix(in srgb,var(--char) var(--effect-glow-base),transparent),transparent 72%);
   /* Type */
-  --t-xs:12px;--t-s:14px;--t-m:16px;--t-l:20px;--t-xl:28px;
-  --ui:Rubik,system-ui,sans-serif;--read:Literata,Georgia,serif;
+  --t-xs:calc(12px * var(--type-ui-scale));--t-s:calc(14px * var(--type-ui-scale));--t-m:calc(16px * var(--type-ui-scale));--t-l:calc(20px * var(--type-ui-scale));--t-xl:calc(28px * var(--type-ui-scale));
+  --ui:var(--font-ui);--read:var(--font-reading);
   /* Chat body: about 15.5px / 1.62 at the default slider settings (16px, Normal). */
-  --t-read:calc(var(--chat-font,16px) * .97);--read-line:calc(var(--chat-line,1.7) * .953);
+  --t-read:calc(var(--chat-font,16px) * .97 * var(--type-reading-scale));--read-line:calc(var(--chat-line,1.7) * var(--theme-reading-line-ratio));
   /* Lucide chevron-right for CSS-drawn markers (summary carets). */
   --icon-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
   /* Spacing */
   --s-1:calc(4px * var(--density-scale));--s-2:calc(8px * var(--density-scale));--s-3:calc(12px * var(--density-scale));--s-4:calc(16px * var(--density-scale));--s-5:calc(20px * var(--density-scale));--s-6:calc(24px * var(--density-scale));--s-7:calc(32px * var(--density-scale));
 }
-html{background:var(--color-canvas);color:var(--color-text);font-family:var(--ui)}
-@media(prefers-reduced-motion:reduce){:root{--motion-fast:0ms;--motion-panel:0ms;--motion-slow:0ms}}
+html{background:var(--color-canvas);color:var(--color-text);font-family:var(--ui);font-weight:var(--weight-ui)}
+@media(prefers-reduced-motion:reduce){:root{--motion-fast:0ms!important;--motion-panel:0ms!important;--motion-slow:0ms!important}}
 
 /* Bundled fonts (OFL, see fonts/). Never loaded from the network. */
 @font-face{font-family:Rubik;font-style:normal;font-weight:400;font-display:swap;src:url(fonts/rubik-cyrillic-ext-400-normal.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}

@@ -1,5 +1,5 @@
 export const THEME_KIND = 'ui-theme';
-export const THEME_VERSION = 1;
+export const THEME_VERSION = 2;
 export const COLOR_THEME_KIND = 'ui-color-theme';
 export const COLOR_THEME_VERSION = 1;
 
@@ -18,6 +18,9 @@ export const HEARTH_VISUALS = Object.freeze({
     effects: Object.freeze({chromeOpacity: 0.7, blur: 8, shadowStrength: 1, backgroundGlow: 1, characterGlow: 1}),
     presentation: Object.freeze({density: 'comfortable', messages: 'reading'}),
     motion: Object.freeze({scale: 1}),
+    typography: Object.freeze({uiFamily: 'rubik', readingFamily: 'literata', uiScale: 1, readingScale: 1, uiWeight: 400, readingWeight: 400, readingLineHeight: 1.62}),
+    icons: Object.freeze({pack: 'lucide', strokeWidth: 1.75, fill: 'none'}),
+    characterAccent: Object.freeze({mode: 'portrait'}),
 });
 
 const OPAQUE_ROLES = new Set([
@@ -31,6 +34,16 @@ const SHAPE_RULES = Object.freeze({smallRadius: [0, 12], mediumRadius: [0, 20], 
 const EFFECT_RULES = Object.freeze({chromeOpacity: [0.6, 1], blur: [0, 24], shadowStrength: [0, 1.5], backgroundGlow: [0, 1.5], characterGlow: [0, 1.5]});
 const DENSITIES = new Set(['compact', 'comfortable', 'spacious']);
 const MESSAGE_STYLES = new Set(['reading', 'bubbles', 'cards']);
+const FONT_FAMILIES = Object.freeze({
+    rubik: 'Rubik,system-ui,sans-serif',
+    literata: 'Literata,Georgia,serif',
+    system: 'system-ui,sans-serif',
+    serif: 'Georgia,serif',
+});
+const FONT_WEIGHTS = new Set([400, 500, 600]);
+const ICON_PACKS = new Set(['lucide']);
+const ICON_FILLS = new Set(['none']);
+const CHARACTER_ACCENTS = new Set(['portrait', 'fixed', 'disabled']);
 
 export class ColorThemeError extends Error {
     constructor(message, errors = []) {
@@ -107,13 +120,20 @@ export function bestContrastingText(background) {
 const normalizedId = value => typeof value === 'string' && /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(value) ? value : null;
 const boundedNumber = (value, [minimum, maximum]) => typeof value === 'number' && Number.isFinite(value) && value >= minimum && value <= maximum ? value : null;
 
-export function upgradeColorTheme(value) {
-    if (!value || typeof value !== 'object' || value.kind !== COLOR_THEME_KIND || value.version !== COLOR_THEME_VERSION) return value;
-    return {...clone(value), kind: THEME_KIND, version: THEME_VERSION, ...clone(HEARTH_VISUALS)};
+export function upgradeTheme(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+    if (value.kind === COLOR_THEME_KIND && value.version === COLOR_THEME_VERSION) {
+        return {...clone(value), kind: THEME_KIND, version: THEME_VERSION, ...clone(HEARTH_VISUALS)};
+    }
+    if (value.kind === THEME_KIND && value.version === 1) {
+        return {...clone(value), version: THEME_VERSION, typography: clone(HEARTH_VISUALS.typography), icons: clone(HEARTH_VISUALS.icons), characterAccent: clone(HEARTH_VISUALS.characterAccent)};
+    }
+    return value;
 }
+export const upgradeColorTheme = upgradeTheme;
 
 export function validateTheme(input) {
-    const value = upgradeColorTheme(input), errors = [];
+    const value = upgradeTheme(input), errors = [];
     if (!value || typeof value !== 'object' || Array.isArray(value)) return {valid: false, errors: ['Theme must be an object.'], theme: null};
     if (value.kind !== THEME_KIND) errors.push(`kind must be "${THEME_KIND}".`);
     if (value.version !== THEME_VERSION) errors.push(`version must be ${THEME_VERSION}.`);
@@ -131,8 +151,16 @@ export function validateTheme(input) {
         ['text', 'canvas', 4.5], ['mutedText', 'canvas', 4.5], ['faintText', 'canvas', 3],
         ['dialogueText', 'canvas', 4.5], ['narrationText', 'canvas', 3], ['onAccent', 'accent', 4.5],
         ['link', 'canvas', 4.5], ['focus', 'canvas', 3], ['success', 'surface', 3], ['warning', 'surface', 3], ['danger', 'surface', 3],
+        ['text', 'surface', 4.5], ['text', 'raised', 4.5], ['mutedText', 'surface', 4.5], ['characterFallback', 'canvas', 4.5],
     ]) {
         if (colors[foreground] && colors[background] && contrastRatio(colors[foreground], colors[background]) < minimum) errors.push(`${foreground} needs ${minimum}:1 contrast against ${background}.`);
+    }
+    if (colors.canvas && colors.text) {
+        for (const [role, foreground, minimum] of [['userMessage', 'text', 4.5], ['assistantMessage', 'text', 4.5], ['assistantMessage', 'dialogueText', 4.5], ['assistantMessage', 'narrationText', 3]]) {
+            if (!colors[role] || !colors[foreground]) continue;
+            const rendered = compositeColor(colors[role], colors.canvas);
+            if (contrastRatio(colors[foreground], rendered) < minimum) errors.push(`${foreground} needs ${minimum}:1 contrast against rendered ${role}.`);
+        }
     }
     const shape = {}, effects = {};
     for (const [role, bounds] of Object.entries(SHAPE_RULES)) {
@@ -148,8 +176,25 @@ export function validateTheme(input) {
     if (!MESSAGE_STYLES.has(messages)) errors.push('presentation.messages is invalid.');
     const motionScale = boundedNumber(value.motion?.scale, [0, 2]);
     if (motionScale === null) errors.push('motion.scale must be between 0 and 2.');
+    const typography = {};
+    if (!Object.hasOwn(FONT_FAMILIES, value.typography?.uiFamily)) errors.push('typography.uiFamily is not an installed family.'); else typography.uiFamily = value.typography.uiFamily;
+    if (!Object.hasOwn(FONT_FAMILIES, value.typography?.readingFamily)) errors.push('typography.readingFamily is not an installed family.'); else typography.readingFamily = value.typography.readingFamily;
+    for (const [role, bounds] of [['uiScale', [0.9, 1.2]], ['readingScale', [0.9, 1.2]], ['readingLineHeight', [1.4, 2]]]) {
+        const number = boundedNumber(value.typography?.[role], bounds);
+        if (number === null) errors.push(`typography.${role} must be between ${bounds[0]} and ${bounds[1]}.`); else typography[role] = number;
+    }
+    for (const role of ['uiWeight', 'readingWeight']) {
+        if (!FONT_WEIGHTS.has(value.typography?.[role])) errors.push(`typography.${role} is not an installed weight.`); else typography[role] = value.typography[role];
+    }
+    const icons = {};
+    if (!ICON_PACKS.has(value.icons?.pack)) errors.push('icons.pack is not installed.'); else icons.pack = value.icons.pack;
+    const strokeWidth = boundedNumber(value.icons?.strokeWidth, [1.5, 2.25]);
+    if (strokeWidth === null) errors.push('icons.strokeWidth must be between 1.5 and 2.25.'); else icons.strokeWidth = strokeWidth;
+    if (!ICON_FILLS.has(value.icons?.fill)) errors.push('icons.fill is not supported by this icon pack.'); else icons.fill = value.icons.fill;
+    const characterMode = value.characterAccent?.mode;
+    if (!CHARACTER_ACCENTS.has(characterMode)) errors.push('characterAccent.mode must be "portrait", "fixed" or "disabled".');
     if (errors.length) return {valid: false, errors, theme: null};
-    const theme = {kind: THEME_KIND, version: THEME_VERSION, id: value.id, name: value.name.trim(), scheme: value.scheme, colors, shape, effects, presentation: {density, messages}, motion: {scale: motionScale}};
+    const theme = {kind: THEME_KIND, version: THEME_VERSION, id: value.id, name: value.name.trim(), scheme: value.scheme, colors, shape, effects, presentation: {density, messages}, motion: {scale: motionScale}, typography, icons, characterAccent: {mode: characterMode}};
     if (value.source && typeof value.source === 'object' && !Array.isArray(value.source)) {
         const type = typeof value.source.type === 'string' ? value.source.type.trim() : '';
         const name = typeof value.source.name === 'string' ? value.source.name.trim() : '';
@@ -170,24 +215,47 @@ const scaledAlpha = (value, scale) => { const color = parseColor(value); return 
 const px = value => `${value}px`;
 const densityScale = value => ({compact: 0.88, comfortable: 1, spacious: 1.12})[value];
 
+function readableAccent(value, background, minimum = 4.5) {
+    const initial = normalizeColor(value, {opaque: true});
+    if (!initial) return null;
+    if (contrastRatio(initial, background) >= minimum) return initial;
+    const target = bestContrastingText(background);
+    for (let weight = 0.9; weight >= 0; weight -= 0.05) {
+        const candidate = colorToHex(mixColors(initial, target, weight), false);
+        if (contrastRatio(candidate, background) >= minimum) return candidate;
+    }
+    return target;
+}
+
+export function resolveCharacterAccent(value, candidate = null) {
+    const theme = normalizeTheme(value), mode = theme.characterAccent.mode;
+    const source = mode === 'portrait' ? candidate ?? theme.colors.characterFallback : mode === 'fixed' ? theme.colors.characterFallback : theme.colors.accent;
+    const color = readableAccent(source, theme.colors.canvas) ?? theme.colors.characterFallback;
+    return {mode, color, ink: bestContrastingText(color), glow: mode === 'disabled' ? 0 : theme.effects.characterGlow};
+}
+
 export function themeToCssVariables(value) {
-    const theme = normalizeTheme(value), {colors, shape, effects, motion} = theme;
+    const theme = normalizeTheme(value), {colors, shape, effects, motion, typography, icons} = theme;
     const variables = Object.fromEntries(COLOR_ROLES.map(role => [CSS_NAMES[role], colors[role]]));
     const shadow = scaledAlpha(colors.shadow, effects.shadowStrength);
+    const character = resolveCharacterAccent(theme);
     Object.assign(variables, {
         '--color-border-strong': strongerBorder(colors.border), '--color-hover': withAlpha(colors.text, 0.06), '--color-selected': withAlpha(colors.accent, 0.14),
         '--color-warning-surface': colorToHex(mixColors(colors.warning, colors.surface, 0.12), false), '--color-warning-border': withAlpha(colors.warning, 0.4),
         '--color-danger-surface': colorToHex(mixColors(colors.danger, colors.surface, 0.12), false), '--color-danger-border': withAlpha(colors.danger, 0.4),
-        '--color-backdrop-soft': withAlpha(colors.scrim, 0.3), '--color-backdrop-strong': withAlpha(colors.scrim, 0.55), '--color-character-ink': bestContrastingText(colors.characterFallback),
+        '--color-backdrop-soft': withAlpha(colors.scrim, 0.3), '--color-backdrop-strong': withAlpha(colors.scrim, 0.55), '--color-character-fallback': character.color, '--color-character-ink': character.ink,
         '--shape-radius-small': px(shape.smallRadius), '--shape-radius-medium': px(shape.mediumRadius), '--shape-radius-large': px(shape.largeRadius),
         '--shape-radius-avatar': px(shape.avatarRadius), '--shape-radius-message': px(shape.messageRadius), '--shape-border-width': px(shape.borderWidth),
         '--effect-chrome-opacity': String(effects.chromeOpacity), '--effect-surface-blur': px(effects.blur), '--effect-shadow-color': shadow,
         '--effect-shadow-small': `0 4px 20px ${shadow}`, '--effect-shadow-medium': `0 8px 24px ${shadow}`, '--effect-shadow-large': `0 16px 40px ${shadow}`,
-        '--effect-background-glow': String(effects.backgroundGlow), '--effect-character-glow': String(effects.characterGlow),
+        '--effect-background-glow': String(effects.backgroundGlow), '--effect-character-glow': String(character.glow),
         '--effect-chrome-opacity-percent': `${Math.round(effects.chromeOpacity * 100)}%`,
         '--effect-glow-base': `${13 * effects.backgroundGlow}%`, '--effect-glow-chat': `${18 * effects.backgroundGlow}%`, '--effect-glow-panel': `${16 * effects.backgroundGlow}%`,
-        '--effect-character-glow-subtle': `${22 * effects.characterGlow}%`, '--effect-character-glow-soft': `${45 * effects.characterGlow}%`,
-        '--effect-character-glow-cast': `${55 * effects.characterGlow}%`, '--effect-character-glow-strong': `${70 * effects.characterGlow}%`, '--effect-character-tint': `${28 * effects.characterGlow}%`,
+        '--effect-character-glow-subtle': `${22 * character.glow}%`, '--effect-character-glow-soft': `${45 * character.glow}%`,
+        '--effect-character-glow-cast': `${55 * character.glow}%`, '--effect-character-glow-strong': `${70 * character.glow}%`, '--effect-character-tint': `${28 * character.glow}%`,
+        '--font-ui': FONT_FAMILIES[typography.uiFamily], '--font-reading': FONT_FAMILIES[typography.readingFamily],
+        '--type-ui-scale': String(typography.uiScale), '--type-reading-scale': String(typography.readingScale), '--weight-ui': String(typography.uiWeight), '--weight-reading': String(typography.readingWeight), '--theme-reading-line-ratio': String(typography.readingLineHeight / 1.7),
+        '--icon-stroke-width': String(icons.strokeWidth), '--icon-fill': icons.fill,
         '--density-scale': String(densityScale(theme.presentation.density)), '--motion-fast': `${Math.round(150 * motion.scale)}ms`, '--motion-panel': `${Math.round(180 * motion.scale)}ms`, '--motion-slow': `${Math.round(400 * motion.scale)}ms`,
     });
     return variables;
@@ -200,6 +268,7 @@ export function applyTheme(value, root = globalThis.document?.documentElement) {
     root.style.setProperty('color-scheme', theme.scheme);
     root.dataset.colorScheme = theme.scheme; root.dataset.theme = theme.id; root.dataset.colorTheme = theme.id;
     root.dataset.density = theme.presentation.density; root.dataset.messageStyle = theme.presentation.messages;
+    root.dataset.iconPack = theme.icons.pack; root.dataset.characterAccent = theme.characterAccent.mode;
     root.ownerDocument?.querySelector?.('meta[name="theme-color"]')?.setAttribute('content', theme.colors.canvas);
     return theme;
 }

@@ -28,4 +28,3 @@ __pycache__/
 *.b64
 *.pid
 /.handoff/
-.obsidian/workspace.json

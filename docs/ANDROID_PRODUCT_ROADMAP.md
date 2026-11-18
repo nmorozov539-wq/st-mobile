@@ -115,7 +115,6 @@ Recorded result:
 - `git diff --check`, Android build-script syntax checks and Gradle-wrapper integrity checks passed;
 - 261 of 262 web tests pass under the literal local `npm test`. The remaining phone-repair subprocess assertion reproduces unchanged from clean `d9e437b` and is tracked as pre-existing test-harness debt, not an integration regression;
 - the Android Step 1 tag is preserved. A dedicated 0.8 web-release tag remains optional housekeeping because the source branch and exact revision `d9e437b` are retained remotely;
-- the unrelated local `.obsidian/appearance.json` modification remains uncommitted and outside this milestone.
 
 ## Milestone 1: bounded Android-host validation
 

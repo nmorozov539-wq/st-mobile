@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, normalizeTheme, parseColor, THEME_KIND, upgradeColorTheme, validateColorTheme, validateTheme} from '../prototype/frontend/color-theme.js';
 import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
-import {COLOR_THEME_STORAGE_KEY, createColorThemeStore} from '../prototype/frontend/color-theme-store.js';
+import {COLOR_THEME_STORAGE_KEY, createColorThemeStore, createThemeStore, THEME_STORAGE_KEY} from '../prototype/frontend/color-theme-store.js';
 
 const hearth = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json', import.meta.url), 'utf8'));
 const frontend = new URL('../prototype/frontend/', import.meta.url);
@@ -127,6 +127,9 @@ test('ST import translates only colors and calculates a complete safe theme', ()
     assert.equal(theme.source.type, 'sillytavern');
     assert.equal(theme.colors.canvas, '#000000');
     assert.equal(theme.colors.userMessage, '#001cae33');
+    assert.deepEqual(theme.shape, hearth.shape);
+    assert.deepEqual(theme.effects, hearth.effects);
+    assert.deepEqual(theme.presentation, hearth.presentation);
     assert.ok(contrastRatio(theme.colors.onAccent, theme.colors.accent) >= 4.5);
     assert.equal(Object.hasOwn(theme, 'custom_css'), false);
     assert.equal(Object.hasOwn(theme, 'chat_width'), false);
@@ -149,7 +152,7 @@ test('theme store previews without saving and cancel restores the selection', ()
     store.preview(preview);
     assert.equal(store.current().id, 'preview');
     assert.equal(root.style.values['--color-canvas'], '#010203');
-    assert.equal(storage.value(COLOR_THEME_STORAGE_KEY), undefined);
+    assert.equal(storage.value(THEME_STORAGE_KEY), undefined);
     store.cancelPreview();
     assert.equal(store.current().id, 'hearth');
     assert.equal(root.style.values['--color-canvas'], '#141519');
@@ -165,7 +168,7 @@ test('theme store saves, restores, exports and safely resets custom themes', () 
     assert.equal(restored.current().id, 'quiet');
     assert.equal(JSON.parse(restored.export()).colors.accent, '#abcdef');
     assert.equal(restored.reset().id, 'hearth');
-    assert.equal(storage.value(COLOR_THEME_STORAGE_KEY), undefined);
+    assert.equal(storage.value(THEME_STORAGE_KEY), undefined);
 });
 
 test('theme store converts ST colors for preview and avoids import name collisions', () => {
@@ -186,4 +189,20 @@ test('theme store ignores corrupt saved themes and refuses to delete Hearth', ()
     assert.equal(store.current().id, 'hearth');
     assert.throws(() => store.remove('hearth'), /cannot be removed/);
     assert.throws(() => store.select('missing'), /Unknown color theme/);
+});
+
+test('complete theme store reads legacy color storage and writes forward without erasing rollback data', () => {
+    const legacy = structuredClone(hearth); legacy.kind = 'ui-color-theme'; legacy.id = 'legacy'; legacy.name = 'Legacy';
+    delete legacy.shape; delete legacy.effects; delete legacy.presentation; delete legacy.motion;
+    const oldRecord = JSON.stringify({version: 1, selected: 'legacy', themes: [legacy]});
+    const storage = memoryStorage({[COLOR_THEME_STORAGE_KEY]: oldRecord});
+    const store = createThemeStore({storage, root: themeRoot(), baseTheme: hearth});
+    assert.equal(store.current().id, 'legacy');
+    assert.equal(store.current().shape.mediumRadius, 10);
+    store.select('hearth');
+    assert.equal(JSON.parse(storage.value(THEME_STORAGE_KEY)).selected, 'hearth');
+    assert.equal(storage.value(COLOR_THEME_STORAGE_KEY), oldRecord);
+    store.reset();
+    assert.equal(storage.value(THEME_STORAGE_KEY), undefined);
+    assert.equal(storage.value(COLOR_THEME_STORAGE_KEY), undefined);
 });

@@ -1,6 +1,7 @@
-import {applyColorTheme, ColorThemeError, normalizeColorTheme} from './color-theme.js';
+import {applyTheme, ColorThemeError, normalizeTheme} from './color-theme.js';
 import {importSillyTavernTheme} from './st-theme-import.js';
 
+export const THEME_STORAGE_KEY = 'pocket-tavern.themes.v1';
 export const COLOR_THEME_STORAGE_KEY = 'pocket-tavern.color-themes.v1';
 const STORAGE_VERSION = 1;
 
@@ -8,12 +9,13 @@ const copy = value => JSON.parse(JSON.stringify(value));
 
 function readStored(storage, builtInIds) {
     try {
-        const value = JSON.parse(storage?.getItem(COLOR_THEME_STORAGE_KEY) ?? 'null');
+        const current = storage?.getItem(THEME_STORAGE_KEY), legacy = storage?.getItem(COLOR_THEME_STORAGE_KEY);
+        const value = JSON.parse(current ?? legacy ?? 'null');
         if (!value || value.version !== STORAGE_VERSION || !Array.isArray(value.themes)) return {selected: null, themes: []};
         const themes = [];
         for (const candidate of value.themes) {
             try {
-                const theme = normalizeColorTheme(candidate);
+                const theme = normalizeTheme(candidate);
                 if (!builtInIds.has(theme.id) && !themes.some(item => item.id === theme.id)) themes.push(theme);
             } catch {}
         }
@@ -23,13 +25,13 @@ function readStored(storage, builtInIds) {
     }
 }
 
-export function createColorThemeStore({
+export function createThemeStore({
     storage = globalThis.localStorage,
     root = globalThis.document?.documentElement,
     builtInThemes,
     baseTheme,
 } = {}) {
-    const builtIns = (builtInThemes ?? [baseTheme]).map(normalizeColorTheme);
+    const builtIns = (builtInThemes ?? [baseTheme]).map(normalizeTheme);
     if (!builtIns.length) throw new ColorThemeError('At least one built-in color theme is required.');
     const builtIn = new Map(builtIns.map(theme => [theme.id, theme]));
     if (builtIn.size !== builtIns.length) throw new ColorThemeError('Built-in color theme IDs must be unique.');
@@ -42,7 +44,7 @@ export function createColorThemeStore({
     const find = id => builtIn.get(id) ?? custom.get(id) ?? null;
     const persist = (nextSelected = selected, nextCustom = custom) => {
         if (!storage?.setItem) throw new ColorThemeError('Theme storage is unavailable.');
-        storage.setItem(COLOR_THEME_STORAGE_KEY, JSON.stringify({
+        storage.setItem(THEME_STORAGE_KEY, JSON.stringify({
             version: STORAGE_VERSION,
             selected: nextSelected,
             themes: [...nextCustom.values()],
@@ -54,9 +56,9 @@ export function createColorThemeStore({
         while (find(`${theme.id}-${number}`)) number++;
         return {...theme, id: `${theme.id}-${number}`, name: `${theme.name} ${number}`};
     };
-    const show = theme => applyColorTheme(theme, root);
+    const show = theme => applyTheme(theme, root);
     const showPreview = value => {
-        preview = normalizeColorTheme(value);
+        preview = normalizeTheme(value);
         return copy(show(preview));
     };
 
@@ -117,6 +119,7 @@ export function createColorThemeStore({
         },
         reset() {
             if (!storage?.removeItem) throw new ColorThemeError('Theme storage is unavailable.');
+            storage.removeItem(THEME_STORAGE_KEY);
             storage.removeItem(COLOR_THEME_STORAGE_KEY);
             custom = new Map();
             selected = fallback.id;
@@ -125,3 +128,5 @@ export function createColorThemeStore({
         },
     };
 }
+
+export const createColorThemeStore = createThemeStore;

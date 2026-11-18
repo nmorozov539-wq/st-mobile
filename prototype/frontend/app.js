@@ -24,11 +24,11 @@ import {createCharacterColours} from './char-colour.js?build=0.8.0';
 import {createSidePanels} from './side-panels.js?build=0.8.0';
 import {compileDisplay,applyDisplay,messageDepth,placementFor,PLACEMENT} from './regex-display.js?build=0.8.0';
 import {projectSettings,rebaseSettingsGuard} from './scoped-settings.js?build=0.8.0';
-import {loadAndApplyColorTheme} from './color-theme.js?build=0.8.0';
-import {createColorThemeStore} from './color-theme-store.js?build=0.8.0';
+import {loadTheme} from './color-theme.js?build=0.8.0';
+import {createThemeStore} from './color-theme-store.js?build=0.8.0';
 let colorThemes;
-loadAndApplyColorTheme(new URL('./themes/hearth.json',import.meta.url))
-    .then(baseTheme=>{colorThemes=createColorThemeStore({baseTheme});})
+loadTheme(new URL('./themes/hearth.json',import.meta.url))
+    .then(baseTheme=>{colorThemes=createThemeStore({baseTheme});})
     .catch(error=>console.error('Using safe built-in theme colors:',error));
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});

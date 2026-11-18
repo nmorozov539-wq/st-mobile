@@ -1,13 +1,13 @@
 import {
-    COLOR_THEME_KIND,
-    COLOR_THEME_VERSION,
+    THEME_KIND,
+    THEME_VERSION,
     ColorThemeError,
     bestContrastingText,
     colorToHex,
     compositeColor,
     contrastRatio,
     mixColors,
-    normalizeColorTheme,
+    normalizeTheme,
     parseColor,
 } from './color-theme.js';
 
@@ -50,7 +50,7 @@ function sourceColor(stTheme, field, fallback, warnings) {
 export function importSillyTavernTheme(stTheme, {baseTheme} = {}) {
     if (!stTheme || typeof stTheme !== 'object' || Array.isArray(stTheme)) throw new ColorThemeError('SillyTavern theme must be an object.');
     if (typeof stTheme.name !== 'string' || !stTheme.name.trim()) throw new ColorThemeError('SillyTavern theme is missing its name.');
-    const base = normalizeColorTheme(baseTheme), warnings = [];
+    const base = normalizeTheme(baseTheme), warnings = [];
     if (typeof stTheme.custom_css === 'string' && stTheme.custom_css.trim()) warnings.push('Custom CSS was ignored.');
 
     const pick = (field, role) => sourceColor(stTheme, field, base.colors[role], warnings);
@@ -66,8 +66,9 @@ export function importSillyTavernTheme(stTheme, {baseTheme} = {}) {
     const accent = readable(pick('quote_text_color', 'accent'), surface, 3);
 
     const theme = {
-        kind: COLOR_THEME_KIND,
-        version: COLOR_THEME_VERSION,
+        ...base,
+        kind: THEME_KIND,
+        version: THEME_VERSION,
         id: `st-${slug(stTheme.name)}`,
         name: stTheme.name.trim(),
         scheme,
@@ -96,5 +97,5 @@ export function importSillyTavernTheme(stTheme, {baseTheme} = {}) {
             characterFallback: accent,
         },
     };
-    return {theme: normalizeColorTheme(theme), warnings};
+    return {theme: normalizeTheme(theme), warnings};
 }

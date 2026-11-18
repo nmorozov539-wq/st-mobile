@@ -1,8 +1,10 @@
 # Pocket Tavern — v0.8.0
 
-Pocket Tavern is intended to become an Android app for using SillyTavern 1.19.0 locally through Termux. The current browser build is a proof of concept for the app’s interface, ST integration and operational safeguards; it is not the final delivery format.
+Android development has started on separate repository branches. Kotlin remains the planned thin host for the same web frontend, while browser/Termux remains the primary feature-development loop. The convergence, theme and eventual packaging plan is in [the Android product roadmap](docs/ANDROID_PRODUCT_ROADMAP.md).
 
-For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern and copied installed dependencies; one launcher serves both interfaces. ST owns normal `data/default-user` files and generation. An Android APK is not implemented yet. App packaging, lifecycle and system integration remain future work; the app architecture/framework has not been selected.
+Pocket Tavern is becoming an Android app for running SillyTavern 1.19.0 locally. The current 0.8 release is the browser/Termux proof of concept for the interface, ST integration and operational safeguards; Android runtime work exists on separate branches but has not yet been integrated with this product line.
+
+For this proof of concept, one prepared Termux folder contains ST, Pocket Tavern and copied installed dependencies; one launcher serves both interfaces. ST owns normal `data/default-user` files and generation. The planned APK keeps that ownership but bundles ST and Node inside the application, removing the Termux requirement while retaining Pocket’s web-native interface.
 
 ## Current release
 

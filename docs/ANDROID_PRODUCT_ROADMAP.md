@@ -1,6 +1,6 @@
 # Pocket Tavern: Android, themes and branding roadmap
 
-Status: planning baseline, updated 16 November 2026 after the packaging-strategy review.
+Status: active, updated 18 November 2026 after repository convergence and Android CI validation.
 
 Android work has started, but it should not slow ordinary product development. Pocket Tavern will keep its fast browser/Termux workflow while a bounded Kotlin packaging track proves that the same web product can eventually ship as a self-contained Android application.
 
@@ -17,13 +17,14 @@ The eventual product is an **Android application with a web-native interface**:
 
 This separates two different concerns: fast feature development and eventual consumer packaging.
 
-## Starting point
+## Starting point and convergence status
 
-The repository currently has two deliberately separate histories:
+The repository histories were converged on 18 November 2026:
 
-- `0.8-phase4-6` at `d9e437b`: the complete Pocket Tavern 0.8.0 interface, bridge and browser/Termux package.
-- `main` at `73113df`: Android Step 1, proving pinned Node.js 22 runs in-process in a foreground `:runtime` service and can be displayed through a WebView.
-- `claude/project-thread-w10vig` at `f45a36b`: Android Step 2, bundling unmodified SillyTavern 1.19.0, separating application code from user data, adding file-picker handling and defining an emulator smoke test. This branch is not yet merged and has no recorded successful CI run.
+- `0.8-phase4-6` at `d9e437b` remains the complete Pocket Tavern 0.8.0 interface, bridge and browser/Termux package.
+- `main` at `73113df` remains the Android Step 1 checkpoint, proving pinned Node.js 22 runs in-process in a foreground `:runtime` service and can be displayed through a WebView.
+- `claude/project-thread-w10vig` at `f45a36b` remains the Android Step 2 checkpoint, bundling unmodified SillyTavern 1.19.0, separating application code from user data, adding file-picker handling and defining an emulator smoke test.
+- `integration/0.8-android-step2` at `cad0d50` now contains the complete web product and Android Step 2 in one inspectable history. Its explicit merge commit preserves both parent histories.
 
 The Android foundation is adapted from `RodneyCw1/SillyTavern-Android`, with its prebuilt Node 22.23.2 runtime pinned by SHA-256. SillyTavern 1.19.0 is also pinned by exact commit. Preserve the AGPL and third-party notices throughout convergence.
 
@@ -86,6 +87,8 @@ Browser tests establish product correctness. APK tests establish lifecycle, plat
 
 ## Milestone 0: converge safely
 
+**Status: complete on 18 November 2026.**
+
 Create a dedicated integration branch from `0.8-phase4-6`, then merge the Android Step 2 history into it. This puts the Kotlin project and web product in one history without making Android the daily development loop.
 
 Before resolving or deleting any historical branches:
@@ -102,7 +105,21 @@ Acceptance:
 - Android Step 1 and Step 2 history and attribution remain inspectable;
 - CI can address web tests and Android builds independently from the same revision.
 
+Recorded result:
+
+- strategy documentation was committed at `a504508` and the explicit integration merge at `cad0d50`;
+- `origin/integration/0.8-android-step2` tracks the same merge revision;
+- the merge had no textual conflicts and did not change or delete established 0.8 web/product files;
+- Android source, workflow, AGPL license and third-party notices are present alongside the web product;
+- Android CI run 8 built arm64-v8a and x86_64 debug APKs and passed the x86_64 emulator smoke test;
+- `git diff --check`, Android build-script syntax checks and Gradle-wrapper integrity checks passed;
+- 261 of 262 web tests pass under the literal local `npm test`. The remaining phone-repair subprocess assertion reproduces unchanged from clean `d9e437b` and is tracked as pre-existing test-harness debt, not an integration regression;
+- the Android Step 1 tag is preserved. A dedicated 0.8 web-release tag remains optional housekeeping because the source branch and exact revision `d9e437b` are retained remotely;
+- the unrelated local `.obsidian/appearance.json` modification remains uncommitted and outside this milestone.
+
 ## Milestone 1: bounded Android-host validation
+
+**Status: in progress. CI builds and emulator boot are proven; physical arm64 phone validation remains.**
 
 Finish enough of Android Step 2 to prove the selected Kotlin host remains viable, then return primary effort to the web product.
 

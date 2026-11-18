@@ -1,0 +1,52 @@
+{
+    "kind": "ui-theme",
+    "version": 1,
+    "id": "paper",
+    "name": "Light Paper",
+    "scheme": "light",
+    "colors": {
+        "canvas": "#f4f0e7",
+        "surface": "#fffdf8",
+        "raised": "#ebe5d9",
+        "text": "#26231f",
+        "mutedText": "#686158",
+        "faintText": "#81796e",
+        "dialogueText": "#4f463b",
+        "narrationText": "#6d6256",
+        "accent": "#8b4a32",
+        "onAccent": "#fffaf2",
+        "link": "#7a3f2b",
+        "focus": "#8b4a32",
+        "success": "#3f7a54",
+        "warning": "#9a681e",
+        "danger": "#a33f3f",
+        "userMessage": "#e8ddcf",
+        "assistantMessage": "#fffdf8",
+        "border": "#3a30251f",
+        "shadow": "#2c241a26",
+        "scrim": "#1f1a14a6",
+        "characterFallback": "#8b4a32"
+    },
+    "shape": {
+        "smallRadius": 2,
+        "mediumRadius": 4,
+        "largeRadius": 8,
+        "avatarRadius": 4,
+        "messageRadius": 4,
+        "borderWidth": 1
+    },
+    "effects": {
+        "chromeOpacity": 0.94,
+        "blur": 0,
+        "shadowStrength": 0.35,
+        "backgroundGlow": 0,
+        "characterGlow": 0.25
+    },
+    "presentation": {
+        "density": "compact",
+        "messages": "cards"
+    },
+    "motion": {
+        "scale": 0
+    }
+}

@@ -28,7 +28,11 @@ import {loadTheme} from './color-theme.js?build=0.8.0';
 import {createThemeStore} from './color-theme-store.js?build=0.8.0';
 let colorThemes;
 loadTheme(new URL('./themes/hearth.json',import.meta.url))
-    .then(baseTheme=>{colorThemes=createThemeStore({baseTheme});})
+    .then(async baseTheme=>{
+        let paper;
+        try{paper=await loadTheme(new URL('./themes/paper.json',import.meta.url));}catch(error){console.error('Light Paper theme unavailable:',error);}
+        colorThemes=createThemeStore({builtInThemes:[baseTheme,...(paper?[paper]:[])]});
+    })
     .catch(error=>console.error('Using safe built-in theme colors:',error));
 const $=id=>document.getElementById(id), el=(tag,text='',className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;};
 const format=createHTMLFormatter({converter:new showdown.Converter({tables:true,strikethrough:true,simpleLineBreaks:true}),sanitize:(html,options)=>DOMPurify.sanitize(html,options),document});

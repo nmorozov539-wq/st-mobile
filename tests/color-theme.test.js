@@ -6,6 +6,7 @@ import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
 import {COLOR_THEME_STORAGE_KEY, createColorThemeStore, createThemeStore, THEME_STORAGE_KEY} from '../prototype/frontend/color-theme-store.js';
 
 const hearth = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json', import.meta.url), 'utf8'));
+const paper = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/paper.json', import.meta.url), 'utf8'));
 const frontend = new URL('../prototype/frontend/', import.meta.url);
 const memoryStorage = (initial = {}) => {
     const values = new Map(Object.entries(initial));
@@ -36,6 +37,17 @@ test('legacy color themes upgrade with safe Hearth visuals', () => {
     assert.equal(normalizeTheme(legacy).effects.blur, 8);
 });
 
+test('Light Paper proves light, compact, square and low-effect themes', () => {
+    const theme = normalizeTheme(paper), variables = colorThemeToCssVariables(theme);
+    assert.equal(theme.scheme, 'light');
+    assert.deepEqual(theme.presentation, {density: 'compact', messages: 'cards'});
+    assert.equal(variables['--shape-radius-medium'], '4px');
+    assert.equal(variables['--effect-surface-blur'], '0px');
+    assert.equal(variables['--motion-fast'], '0ms');
+    assert.ok(contrastRatio(theme.colors.text, theme.colors.canvas) >= 4.5);
+    assert.ok(contrastRatio(theme.colors.onAccent, theme.colors.accent) >= 4.5);
+});
+
 test('CSS color parsing accepts ST rgba and normalizes our hex format', () => {
     assert.deepEqual(parseColor('rgba(23, 30, 33, 0.61)'), {r: 23, g: 30, b: 33, a: 0.61});
     assert.equal(normalizeColor('rgb(217, 180, 106)'), '#d9b46a');
@@ -52,6 +64,8 @@ test('validation rejects missing, transparent essential and future-version color
     assert.match(validateColorTheme(future).errors.join(' '), /version must be 1/);
     const unsafe = structuredClone(hearth); unsafe.effects.blur = 99; unsafe.shape.mediumRadius = -1; unsafe.presentation.messages = 'css';
     assert.match(validateTheme(unsafe).errors.join(' '), /shape\.mediumRadius.*effects\.blur.*presentation\.messages/);
+    const unreadable = structuredClone(hearth); unreadable.colors.text = unreadable.colors.canvas;
+    assert.match(validateTheme(unreadable).errors.join(' '), /text needs 4\.5:1 contrast/);
 });
 
 test('theme resolution emits stable public and calculated CSS variables', () => {
@@ -189,6 +203,16 @@ test('theme store ignores corrupt saved themes and refuses to delete Hearth', ()
     assert.equal(store.current().id, 'hearth');
     assert.throws(() => store.remove('hearth'), /cannot be removed/);
     assert.throws(() => store.select('missing'), /Unknown color theme/);
+});
+
+test('built-in themes can switch the complete rendered visual contract', () => {
+    const root = themeRoot(), store = createThemeStore({storage: memoryStorage(), root, builtInThemes: [hearth, paper]});
+    assert.deepEqual(store.list().map(theme => theme.id), ['hearth', 'paper']);
+    store.select('paper');
+    assert.equal(store.current().id, 'paper');
+    assert.equal(root.dataset.colorScheme, 'light');
+    assert.equal(root.dataset.messageStyle, 'cards');
+    assert.equal(root.style.values['--effect-surface-blur'], '0px');
 });
 
 test('complete theme store reads legacy color storage and writes forward without erasing rollback data', () => {

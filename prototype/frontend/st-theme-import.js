@@ -78,7 +78,7 @@ export function importSillyTavernTheme(stTheme, {baseTheme} = {}) {
             surface,
             raised: colorToHex(mixColors(text, surface, 0.07), false),
             text,
-            mutedText: readable(narration, surface, 3),
+            mutedText: readable(narration, canvas, 4.5),
             faintText: readable(colorToHex(mixColors(narration, canvas, 0.82), false), canvas, 3),
             dialogueText: dialogue,
             narrationText: narration,

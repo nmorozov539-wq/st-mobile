@@ -147,8 +147,8 @@ body:has(#chat-screen:not([hidden])){background:var(--color-canvas)}
 /* Message presentation changes shape and material, never message order or controls. */
 html[data-message-style=bubbles] #chat-screen .message{max-width:92%}
 html[data-message-style=bubbles] #chat-screen .message.user{margin-left:auto;max-width:82%}
-html[data-message-style=bubbles] #chat-screen .bubble{padding:10px 12px;border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-message);background:var(--color-surface)}
+html[data-message-style=bubbles] #chat-screen .bubble{padding:10px 12px;border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-message);background:var(--color-assistant-message)}
 html[data-message-style=bubbles] #chat-screen .user .bubble{background:var(--color-user-message)}
 html[data-message-style=cards] #chat-screen .message,html[data-message-style=cards] #chat-screen .message.user{margin-inline:0;max-width:100%}
-html[data-message-style=cards] #chat-screen .bubble{padding:12px 14px;border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-message);background:var(--color-surface);box-shadow:var(--effect-shadow-small)}
+html[data-message-style=cards] #chat-screen .bubble{padding:12px 14px;border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-message);background:var(--color-assistant-message);box-shadow:var(--effect-shadow-small)}
 html[data-message-style=cards] #chat-screen .user .bubble{background:var(--color-user-message)}

@@ -127,6 +127,13 @@ export function validateTheme(input) {
         if (!color) errors.push(`${role} must be a valid${OPAQUE_ROLES.has(role) ? ' opaque' : ''} color.`);
         else colors[role] = color;
     }
+    for (const [foreground, background, minimum] of [
+        ['text', 'canvas', 4.5], ['mutedText', 'canvas', 4.5], ['faintText', 'canvas', 3],
+        ['dialogueText', 'canvas', 4.5], ['narrationText', 'canvas', 3], ['onAccent', 'accent', 4.5],
+        ['link', 'canvas', 4.5], ['focus', 'canvas', 3], ['success', 'surface', 3], ['warning', 'surface', 3], ['danger', 'surface', 3],
+    ]) {
+        if (colors[foreground] && colors[background] && contrastRatio(colors[foreground], colors[background]) < minimum) errors.push(`${foreground} needs ${minimum}:1 contrast against ${background}.`);
+    }
     const shape = {}, effects = {};
     for (const [role, bounds] of Object.entries(SHAPE_RULES)) {
         const number = boundedNumber(value.shape?.[role], bounds);
@@ -193,6 +200,7 @@ export function applyTheme(value, root = globalThis.document?.documentElement) {
     root.style.setProperty('color-scheme', theme.scheme);
     root.dataset.colorScheme = theme.scheme; root.dataset.theme = theme.id; root.dataset.colorTheme = theme.id;
     root.dataset.density = theme.presentation.density; root.dataset.messageStyle = theme.presentation.messages;
+    root.ownerDocument?.querySelector?.('meta[name="theme-color"]')?.setAttribute('content', theme.colors.canvas);
     return theme;
 }
 

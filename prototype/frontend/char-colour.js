@@ -59,7 +59,7 @@ function mostSaturated(groups,opaque){
     return {r:Math.round(r/total),g:Math.round(g/total),b:Math.round(b/total)};
 }
 // Refine for text on the dark chat: lightness 0.68–0.84 and contrast ≥ 4.5
-// against --bg; a near-grey pick borrows the image's hue at a soft chroma.
+// against --color-canvas; a near-grey pick borrows the image's hue at a soft chroma.
 const BG={r:0x14,g:0x15,b:0x19};
 export function refineForChat(colour,bg=BG){
     if(!colour)return null;let {L,C,h}=rgbToOklch(colour);

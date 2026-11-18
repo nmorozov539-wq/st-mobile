@@ -15,63 +15,63 @@ details[open]>summary::before{transform:rotate(90deg)}
 /* Buttons: 40px, medium weight. Later variants win when classes combine. */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2);height:40px;min-height:40px;padding:0 var(--s-4);border-radius:var(--r-m);font:500 var(--t-s)/1 var(--ui);white-space:nowrap}
 .btn:disabled{opacity:.45;cursor:default}
-.btn.secondary{background:transparent;border:1px solid var(--line-strong);color:var(--text)}
-.btn.quiet{background:transparent;border:1px solid transparent;color:var(--brass);padding:0 var(--s-2)}
-.btn.primary{background:var(--brass);border:1px solid var(--brass);color:var(--brass-ink)}
-.btn.destructive{background:transparent;border:1px solid var(--bad-line);color:var(--bad)}
-.btn:not(:disabled):hover{background:var(--hover)}
-.btn.primary:not(:disabled):hover{background:color-mix(in srgb,var(--text) 12%,var(--brass))}
+.btn.secondary{background:transparent;border:1px solid var(--color-border-strong);color:var(--color-text)}
+.btn.quiet{background:transparent;border:1px solid transparent;color:var(--color-accent);padding:0 var(--s-2)}
+.btn.primary{background:var(--color-accent);border:1px solid var(--color-accent);color:var(--color-on-accent)}
+.btn.destructive{background:transparent;border:1px solid var(--color-danger-border);color:var(--color-danger)}
+.btn:not(:disabled):hover{background:var(--color-hover)}
+.btn.primary:not(:disabled):hover{background:color-mix(in srgb,var(--color-text) 12%,var(--color-accent))}
 
 /* Text field and select */
-.field,select.field{display:block;width:100%;min-height:40px;padding:var(--s-2) var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--raised);color:var(--text);font:400 var(--t-m) var(--ui)}
-.field:focus{outline:0;border-color:var(--brass)}
-.field::placeholder{color:var(--faint)}
+.field,select.field{display:block;width:100%;min-height:40px;padding:var(--s-2) var(--s-3);border:1px solid var(--color-border);border-radius:var(--r-m);background:var(--color-raised);color:var(--color-text);font:400 var(--t-m) var(--ui)}
+.field:focus{outline:0;border-color:var(--color-focus)}
+.field::placeholder{color:var(--color-faint-text)}
 
 /* Toggle: 40x24; on is brass. Works on a role=switch button or a checkbox. */
-.toggle{appearance:none;position:relative;flex:none;width:40px;height:24px;min-width:40px;min-height:24px;margin:0;padding:0;border:1px solid var(--line-strong);border-radius:12px;background:var(--raised);cursor:pointer}
-.toggle::after,.toggle::before{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .15s}
+.toggle{appearance:none;position:relative;flex:none;width:40px;height:24px;min-width:40px;min-height:24px;margin:0;padding:0;border:1px solid var(--color-border-strong);border-radius:12px;background:var(--color-raised);cursor:pointer}
+.toggle::after,.toggle::before{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--color-muted-text);transition:transform .15s}
 .toggle::before{display:none}
-.toggle:is(:checked,[aria-checked=true]){background:var(--brass);border-color:var(--brass)}
-.toggle:is(:checked,[aria-checked=true])::after{transform:translateX(16px);background:var(--brass-ink)}
+.toggle:is(:checked,[aria-checked=true]){background:var(--color-accent);border-color:var(--color-accent)}
+.toggle:is(:checked,[aria-checked=true])::after{transform:translateX(16px);background:var(--color-on-accent)}
 .toggle:disabled{opacity:.45;cursor:default}
 
 /* Segmented control: the chosen segment is raised. */
-.segmented{display:flex;gap:2px;padding:2px;border:1px solid var(--line-strong);border-radius:var(--r-s);background:transparent}
-.segmented>button{flex:1;min-width:0;border:0;border-radius:calc(var(--r-s) - 2px);background:transparent;color:var(--muted)}
-.segmented>button:is([aria-pressed=true],[aria-checked=true]){background:var(--raised);color:var(--text)}
+.segmented{display:flex;gap:2px;padding:2px;border:1px solid var(--color-border-strong);border-radius:var(--r-s);background:transparent}
+.segmented>button{flex:1;min-width:0;border:0;border-radius:calc(var(--r-s) - 2px);background:transparent;color:var(--color-muted-text)}
+.segmented>button:is([aria-pressed=true],[aria-checked=true]){background:var(--color-raised);color:var(--color-text)}
 
 /* List row with a hairline divider */
-.list-row{display:flex;align-items:center;gap:var(--s-3);border-bottom:1px solid var(--line)}
+.list-row{display:flex;align-items:center;gap:var(--s-3);border-bottom:1px solid var(--color-border)}
 .list-row:last-child{border-bottom:0}
 
 /* Card, chip, sheet */
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m)}
-.chip{display:inline-flex;align-items:center;gap:var(--s-1);padding:2px var(--s-2);border:1px solid var(--line-strong);border-radius:var(--r-s);font-size:var(--t-xs);color:var(--muted)}
-.sheet{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:var(--r-l) var(--r-l) 0 0}
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--r-m)}
+.chip{display:inline-flex;align-items:center;gap:var(--s-1);padding:2px var(--s-2);border:1px solid var(--color-border-strong);border-radius:var(--r-s);font-size:var(--t-xs);color:var(--color-muted-text)}
+.sheet{background:var(--color-surface);color:var(--color-text);border:1px solid var(--color-border);border-radius:var(--r-l) var(--r-l) 0 0}
 
 /* Banner: for problems only */
-.banner{padding:10px var(--s-3);border:1px solid var(--bad-line);border-radius:var(--r-m);background:var(--bad-tint);color:var(--text)}
+.banner{padding:10px var(--s-3);border:1px solid var(--color-danger-border);border-radius:var(--r-m);background:var(--color-danger-surface);color:var(--color-text)}
 
 /* Status dot */
-.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--faint)}
-.status-dot.ok{background:var(--ok)}.status-dot.warn{background:var(--warn)}.status-dot.bad{background:var(--bad)}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-faint-text)}
+.status-dot.ok{background:var(--color-success)}.status-dot.warn{background:var(--color-warning)}.status-dot.bad{background:var(--color-danger)}
 
 /* Drop-down menu */
-.menu{min-width:200px;padding:6px;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-m);box-shadow:0 16px 40px var(--shadow)}
-.menu>button{display:flex;align-items:center;gap:var(--s-3);width:100%;padding:10px;border:0;border-radius:var(--r-s);background:transparent;color:var(--text);text-align:left}
-.menu>button:hover{background:var(--hover)}
-.menu>.destructive{color:var(--bad)}
+.menu{min-width:200px;padding:6px;background:var(--color-raised);border:1px solid var(--color-border-strong);border-radius:var(--r-m);box-shadow:0 16px 40px var(--color-shadow)}
+.menu>button{display:flex;align-items:center;gap:var(--s-3);width:100%;padding:10px;border:0;border-radius:var(--r-s);background:transparent;color:var(--color-text);text-align:left}
+.menu>button:hover{background:var(--color-hover)}
+.menu>.destructive{color:var(--color-danger)}
 
 /* Long-press label: names an icon-only button while it is held. */
-.press-label,#icon-explanation{padding:10px var(--s-3);background:var(--raised);color:var(--text);border:1px solid var(--line-strong);border-radius:var(--r-m);font-size:var(--t-s);box-shadow:0 8px 24px var(--shadow)}
+.press-label,#icon-explanation{padding:10px var(--s-3);background:var(--color-raised);color:var(--color-text);border:1px solid var(--color-border-strong);border-radius:var(--r-m);font-size:var(--t-s);box-shadow:0 8px 24px var(--color-shadow)}
 
 /* Icon placement inside existing screens */
 .wi-mark .icon,.wi-caret .icon{width:14px;height:14px}
-.wi-folder-icon .icon{width:18px;height:18px;color:var(--muted)}
+.wi-folder-icon .icon{width:18px;height:18px;color:var(--color-muted-text)}
 .wi-mark,.wi-caret,.wi-folder-icon{display:inline-grid;place-items:center}
 .character-chat-line .icon{width:16px;height:16px;margin-left:6px;vertical-align:-3px}
-.persona-check .icon,.model-row>span:last-child>.icon,.preset-choice>span:last-child>.icon{color:var(--brass)}
+.persona-check .icon,.model-row>span:last-child>.icon,.preset-choice>span:last-child>.icon{color:var(--color-accent)}
 #jump .icon,#new-chat .icon,.memory-secondary .icon{width:18px;height:18px;margin-right:6px;vertical-align:-4px}
 
 /* Keyboard focus is always visible, everywhere. */
-:is(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+:is(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}

@@ -1,31 +1,23 @@
-/* Pocket Tavern 0.8 design tokens. Every colour, corner, size and font in the
-   app refers to these; change a value here and the whole app follows.
-   Linked first, before every other stylesheet. Dark only; there is no light theme. */
+/* Pocket Tavern design tokens. The colour values mirror Hearth so the first
+   paint is safe; color-theme.js replaces them from the validated theme file. */
 :root{
   color-scheme:dark;
-  /* Surfaces: depth comes from these three levels, not shadows. */
-  --bg:#141519;--surface:#1c1e23;--raised:#25282e;
-  --line:#ffffff14;--line-strong:#ffffff24;
-  /* Text */
-  --text:#e6e4df;--muted:#9a9ca3;--faint:#868993;
-  /* Brand accent and the text that sits on it */
-  --brass:#d9b46a;--brass-ink:#1a1609;
-  /* Chat reading */
-  --speech:#efe2c4;--narration:#b3b5bc;
-  /* Status */
-  --ok:#7fbf8e;--warn:#d9a54a;--bad:#d9736a;
-  /* Character accent; phase 2 sets it per character from the avatar. */
-  --char:var(--brass);
-  /* Roles derived from the palette above (no new colours). */
-  --scrim:#000000a6;
-  --shadow:#00000080;
-  --hover:color-mix(in srgb,var(--text) 6%,transparent);
-  --selected:color-mix(in srgb,var(--brass) 14%,transparent);
-  --user-bubble:color-mix(in srgb,var(--brass) 7%,var(--surface));
-  --bad-tint:color-mix(in srgb,var(--bad) 12%,var(--surface));
-  --bad-line:color-mix(in srgb,var(--bad) 40%,transparent);
-  --warn-tint:color-mix(in srgb,var(--warn) 12%,var(--surface));
-  --warn-line:color-mix(in srgb,var(--warn) 40%,transparent);
+  /* Safe first-paint values. These are the public color API. */
+  --color-canvas:#141519;--color-surface:#1c1e23;--color-raised:#25282e;
+  --color-text:#e6e4df;--color-muted-text:#9a9ca3;--color-faint-text:#868993;
+  --color-dialogue-text:#efe2c4;--color-narration-text:#b3b5bc;
+  --color-accent:#d9b46a;--color-on-accent:#1a1609;--color-link:#d9b46a;--color-focus:#d9b46a;
+  --color-success:#7fbf8e;--color-warning:#d9a54a;--color-danger:#d9736a;
+  --color-user-message:#292828;--color-assistant-message:#00000000;
+  --color-border:#ffffff14;--color-shadow:#00000080;--color-scrim:#000000a6;
+  --color-character-fallback:#d9b46a;
+  /* Values calculated by the theme API. */
+  --color-border-strong:#ffffff24;--color-hover:#e6e4df0f;--color-selected:#d9b46a24;
+  --color-warning-surface:#332e28;--color-warning-border:#d9a54a66;
+  --color-danger-surface:#33282c;--color-danger-border:#d9736a66;
+  --color-backdrop-soft:#0000004d;--color-backdrop-strong:#0000008c;--color-character-ink:#0b0c0e;
+  /* Character color remains per-card, with the theme providing its fallback. */
+  --char:var(--color-character-fallback);
   /* Background "Gradient" setting: a faint glow of the character colour.
      Resolved where it is declared, so re-declare it wherever --char changes. */
   --glow:radial-gradient(ellipse 130% 60% at 50% -12%,color-mix(in srgb,var(--char) 13%,transparent),transparent 72%);
@@ -41,7 +33,7 @@
   /* Spacing */
   --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;
 }
-html{background:var(--bg);color:var(--text);font-family:var(--ui)}
+html{background:var(--color-canvas);color:var(--color-text);font-family:var(--ui)}
 
 /* Bundled fonts (OFL, see fonts/). Never loaded from the network. */
 @font-face{font-family:Rubik;font-style:normal;font-weight:400;font-display:swap;src:url(fonts/rubik-cyrillic-ext-400-normal.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}

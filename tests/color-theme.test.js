@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {applyColorTheme, colorThemeToCssVariables, contrastRatio, normalizeColor, normalizeColorTheme, parseColor, validateColorTheme} from '../prototype/frontend/color-theme.js';
+import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, parseColor, validateColorTheme} from '../prototype/frontend/color-theme.js';
 import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
 
 const hearth = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json', import.meta.url), 'utf8'));
@@ -36,10 +36,37 @@ test('theme resolution emits stable public and calculated CSS variables', () => 
     assert.equal(variables['--color-border-strong'], '#ffffff24');
     assert.equal(variables['--color-selected'], '#d9b46a24');
     assert.ok(variables['--color-danger-surface']);
+    assert.equal(variables['--color-backdrop-soft'], '#0000004d');
+    assert.equal(variables['--color-character-ink'], '#0b0c0e');
     const props = {}, root = {style: {setProperty: (name, value) => { props[name] = value; }}, dataset: {}};
     applyColorTheme(hearth, root);
     assert.equal(props['--color-accent'], '#d9b46a');
+    assert.equal(props['color-scheme'], 'dark');
     assert.deepEqual(root.dataset, {colorScheme: 'dark', colorTheme: 'hearth'});
+});
+
+test('the interface loader fetches and applies a validated theme file', async () => {
+    const props = {}, root = {style: {setProperty: (name, value) => { props[name] = value; }}, dataset: {}};
+    const fetch = async (url, options) => {
+        assert.equal(String(url), '/themes/hearth.json');
+        assert.deepEqual(options, {cache: 'no-store'});
+        return {ok: true, json: async () => hearth};
+    };
+    const theme = await loadAndApplyColorTheme('/themes/hearth.json', {fetch, root});
+    assert.equal(theme.id, 'hearth');
+    assert.equal(props['--color-canvas'], '#141519');
+    assert.equal(props['color-scheme'], 'dark');
+    assert.deepEqual(root.dataset, {colorScheme: 'dark', colorTheme: 'hearth'});
+});
+
+test('a failed theme load leaves the safe CSS fallback alone', async () => {
+    const writes = [];
+    const root = {style: {setProperty: (...args) => writes.push(args)}, dataset: {}};
+    await assert.rejects(
+        loadAndApplyColorTheme('/missing.json', {fetch: async () => ({ok: false, status: 404}), root}),
+        /Could not load color theme \(404\)/,
+    );
+    assert.deepEqual(writes, []);
 });
 
 test('ST import translates only colors and calculates a complete safe theme', () => {

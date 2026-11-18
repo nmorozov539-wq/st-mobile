@@ -186,6 +186,9 @@ export function colorThemeToCssVariables(value) {
         '--color-warning-border': withAlpha(colors.warning, 0.4),
         '--color-danger-surface': colorToHex(mixColors(colors.danger, colors.surface, 0.12), false),
         '--color-danger-border': withAlpha(colors.danger, 0.4),
+        '--color-backdrop-soft': withAlpha(colors.scrim, 0.3),
+        '--color-backdrop-strong': withAlpha(colors.scrim, 0.55),
+        '--color-character-ink': bestContrastingText(colors.characterFallback),
     });
     return variables;
 }
@@ -194,7 +197,24 @@ export function applyColorTheme(value, root = globalThis.document?.documentEleme
     if (!root?.style?.setProperty) throw new ColorThemeError('A document root is required to apply a color theme.');
     const theme = normalizeColorTheme(value), variables = colorThemeToCssVariables(theme);
     for (const [name, color] of Object.entries(variables)) root.style.setProperty(name, color);
+    root.style.setProperty('color-scheme', theme.scheme);
     root.dataset.colorScheme = theme.scheme;
     root.dataset.colorTheme = theme.id;
     return theme;
+}
+
+export async function loadAndApplyColorTheme(url, {
+    fetch: fetchTheme = globalThis.fetch,
+    root = globalThis.document?.documentElement,
+} = {}) {
+    if (typeof fetchTheme !== 'function') throw new ColorThemeError('A fetch function is required to load a color theme.');
+    const response = await fetchTheme(url, {cache: 'no-store'});
+    if (!response?.ok) throw new ColorThemeError(`Could not load color theme (${response?.status ?? 'no response'}).`);
+    let value;
+    try {
+        value = await response.json();
+    } catch {
+        throw new ColorThemeError('Color theme is not valid JSON.');
+    }
+    return applyColorTheme(value, root);
 }

@@ -12,7 +12,7 @@ import java.util.zip.ZipInputStream
  * Layout under the app's private files directory:
  *   engine/sillytavern/   unmodified SillyTavern + node_modules, replaced when the bundled zip changes
  *   engine/home/          config.yaml and data/ (characters, chats, settings): kept across updates
- *   engine/runtime.log    Node's stdout/stderr
+ *   engine/runtime.log    Node's stdout/stderr (plus one capped rotated file)
  *   engine/state          one line written by the :runtime process, read by the UI
  */
 object Engine {

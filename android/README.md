@@ -16,6 +16,7 @@ Runs **unmodified SillyTavern 1.19.0** on Node.js 22, **in-process** (libnode vi
   `127.0.0.1:8123` and opens SillyTavern full screen. File inputs open the system picker; external links
   open in the browser. Stop the engine from the notification.
 - Node can start only once per process, so stopping the engine kills the `:runtime` process.
+- Node stdout/stderr stays app-private and rotates between `runtime.log` and `runtime.log.1`, capped at 1 MiB each.
 - The prebuilt Node runtime is downloaded at build time and checked against the SHA-256 in
   `node-runtime.properties` (build fails on mismatch). See `../THIRD_PARTY_NOTICES.md`.
 

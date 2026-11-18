@@ -1,0 +1,30 @@
+{
+    "kind": "ui-color-theme",
+    "version": 1,
+    "id": "hearth",
+    "name": "Hearth",
+    "scheme": "dark",
+    "colors": {
+        "canvas": "#141519",
+        "surface": "#1c1e23",
+        "raised": "#25282e",
+        "text": "#e6e4df",
+        "mutedText": "#9a9ca3",
+        "faintText": "#868993",
+        "dialogueText": "#efe2c4",
+        "narrationText": "#b3b5bc",
+        "accent": "#d9b46a",
+        "onAccent": "#1a1609",
+        "link": "#d9b46a",
+        "focus": "#d9b46a",
+        "success": "#7fbf8e",
+        "warning": "#d9a54a",
+        "danger": "#d9736a",
+        "userMessage": "#292828",
+        "assistantMessage": "#00000000",
+        "border": "#ffffff14",
+        "shadow": "#00000080",
+        "scrim": "#000000a6",
+        "characterFallback": "#d9b46a"
+    }
+}

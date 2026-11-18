@@ -45,3 +45,4 @@ import './interface-helpers.test.js';
 import './card-repair.test.js';
 import './connection-pass.test.js';
 import './chat-phase2.test.js';
+import './color-theme.test.js';

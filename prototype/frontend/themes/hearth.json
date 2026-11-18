@@ -1,5 +1,5 @@
 {
-    "kind": "ui-color-theme",
+    "kind": "ui-theme",
     "version": 1,
     "id": "hearth",
     "name": "Hearth",
@@ -26,5 +26,27 @@
         "shadow": "#00000080",
         "scrim": "#000000a6",
         "characterFallback": "#d9b46a"
+    },
+    "shape": {
+        "smallRadius": 6,
+        "mediumRadius": 10,
+        "largeRadius": 16,
+        "avatarRadius": 12,
+        "messageRadius": 10,
+        "borderWidth": 1
+    },
+    "effects": {
+        "chromeOpacity": 0.7,
+        "blur": 8,
+        "shadowStrength": 1,
+        "backgroundGlow": 1,
+        "characterGlow": 1
+    },
+    "presentation": {
+        "density": "comfortable",
+        "messages": "reading"
+    },
+    "motion": {
+        "scale": 1
     }
 }

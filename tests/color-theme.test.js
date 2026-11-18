@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, parseColor, validateColorTheme} from '../prototype/frontend/color-theme.js';
+import {applyColorTheme, colorThemeToCssVariables, contrastRatio, loadAndApplyColorTheme, normalizeColor, normalizeColorTheme, normalizeTheme, parseColor, THEME_KIND, upgradeColorTheme, validateColorTheme, validateTheme} from '../prototype/frontend/color-theme.js';
 import {importSillyTavernTheme} from '../prototype/frontend/st-theme-import.js';
 import {COLOR_THEME_STORAGE_KEY, createColorThemeStore} from '../prototype/frontend/color-theme-store.js';
 
@@ -17,12 +17,22 @@ const memoryStorage = (initial = {}) => {
 };
 const themeRoot = () => ({style: {values: {}, setProperty(name, value) { this.values[name] = value; }}, dataset: {}});
 
-test('Hearth is a complete versioned compatibility theme', () => {
-    const result = validateColorTheme(hearth);
+test('Hearth is a complete unified theme', () => {
+    const result = validateTheme(hearth);
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.theme.colors.canvas, '#141519');
     assert.equal(result.theme.colors.accent, '#d9b46a');
     assert.equal(result.theme.colors.characterFallback, '#d9b46a');
+    assert.equal(result.theme.shape.mediumRadius, 10);
+    assert.deepEqual(result.theme.presentation, {density: 'comfortable', messages: 'reading'});
+});
+
+test('legacy color themes upgrade with safe Hearth visuals', () => {
+    const legacy = structuredClone(hearth); legacy.kind = 'ui-color-theme'; delete legacy.shape; delete legacy.effects; delete legacy.presentation; delete legacy.motion;
+    const upgraded = upgradeColorTheme(legacy);
+    assert.equal(upgraded.kind, THEME_KIND);
+    assert.equal(normalizeTheme(legacy).shape.largeRadius, 16);
+    assert.equal(normalizeTheme(legacy).effects.blur, 8);
 });
 
 test('CSS color parsing accepts ST rgba and normalizes our hex format', () => {
@@ -39,6 +49,8 @@ test('validation rejects missing, transparent essential and future-version color
     assert.match(validateColorTheme(transparent).errors.join(' '), /canvas must be a valid opaque color/);
     const future = structuredClone(hearth); future.version = 2;
     assert.match(validateColorTheme(future).errors.join(' '), /version must be 1/);
+    const unsafe = structuredClone(hearth); unsafe.effects.blur = 99; unsafe.shape.mediumRadius = -1; unsafe.presentation.messages = 'css';
+    assert.match(validateTheme(unsafe).errors.join(' '), /shape\.mediumRadius.*effects\.blur.*presentation\.messages/);
 });
 
 test('theme resolution emits stable public and calculated CSS variables', () => {
@@ -49,11 +61,14 @@ test('theme resolution emits stable public and calculated CSS variables', () => 
     assert.ok(variables['--color-danger-surface']);
     assert.equal(variables['--color-backdrop-soft'], '#0000004d');
     assert.equal(variables['--color-character-ink'], '#0b0c0e');
+    assert.equal(variables['--shape-radius-medium'], '10px');
+    assert.equal(variables['--effect-surface-blur'], '8px');
+    assert.equal(variables['--motion-fast'], '150ms');
     const props = {}, root = {style: {setProperty: (name, value) => { props[name] = value; }}, dataset: {}};
     applyColorTheme(hearth, root);
     assert.equal(props['--color-accent'], '#d9b46a');
     assert.equal(props['color-scheme'], 'dark');
-    assert.deepEqual(root.dataset, {colorScheme: 'dark', colorTheme: 'hearth'});
+    assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading'});
 });
 
 test('the interface loader fetches and applies a validated theme file', async () => {
@@ -67,7 +82,7 @@ test('the interface loader fetches and applies a validated theme file', async ()
     assert.equal(theme.id, 'hearth');
     assert.equal(props['--color-canvas'], '#141519');
     assert.equal(props['color-scheme'], 'dark');
-    assert.deepEqual(root.dataset, {colorScheme: 'dark', colorTheme: 'hearth'});
+    assert.deepEqual(root.dataset, {colorScheme: 'dark', theme: 'hearth', colorTheme: 'hearth', density: 'comfortable', messageStyle: 'reading'});
 });
 
 test('a failed theme load leaves the safe CSS fallback alone', async () => {
@@ -75,7 +90,7 @@ test('a failed theme load leaves the safe CSS fallback alone', async () => {
     const root = {style: {setProperty: (...args) => writes.push(args)}, dataset: {}};
     await assert.rejects(
         loadAndApplyColorTheme('/missing.json', {fetch: async () => ({ok: false, status: 404}), root}),
-        /Could not load color theme \(404\)/,
+        /Could not load theme \(404\)/,
     );
     assert.deepEqual(writes, []);
 });

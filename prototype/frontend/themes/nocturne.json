@@ -1,0 +1,9 @@
+{
+  "kind":"ui-theme","version":2,"id":"nocturne","name":"Nocturne Portrait","scheme":"dark",
+  "colors":{"canvas":"#090d16","surface":"#111827","raised":"#1e293b","text":"#eef2ff","mutedText":"#a5b4cf","faintText":"#7d8ba8","dialogueText":"#f8e7ff","narrationText":"#b8c7e6","accent":"#d79cff","onAccent":"#1b0827","link":"#e0b4ff","focus":"#6ee7ff","success":"#72d6a0","warning":"#f4bd67","danger":"#ff7f91","userMessage":"#30223e","assistantMessage":"#111827cc","border":"#b8c7e633","shadow":"#000000b3","scrim":"#05070bcc","characterFallback":"#d79cff"},
+  "shape":{"smallRadius":10,"mediumRadius":16,"largeRadius":26,"avatarRadius":32,"messageRadius":20,"borderWidth":1},
+  "effects":{"chromeOpacity":0.78,"blur":14,"shadowStrength":1.25,"backgroundGlow":1.4,"characterGlow":1.5},
+  "presentation":{"density":"comfortable","messages":"bubbles"},"motion":{"scale":0.9},
+  "typography":{"uiFamily":"rubik","readingFamily":"literata","uiScale":1,"readingScale":1.03,"uiWeight":400,"readingWeight":400,"readingLineHeight":1.68},
+  "icons":{"pack":"lucide","strokeWidth":1.65,"fill":"none"},"characterAccent":{"mode":"portrait"}
+}

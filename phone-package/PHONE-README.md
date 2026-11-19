@@ -1,19 +1,19 @@
-# Pocket Tavern combined prototype v0.7.8
+# Pocket Tavern combined prototype v0.9.0
 
 ## Update your existing phone installation
 
-Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.7.8.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
+Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.9.0.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
 
 ```sh
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.7.8**.
+This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.9.0**.
 
 For manual updating from the complete extracted kit:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.7.8
+cd ~/storage/downloads/pocket-tavern-combined-v0.9.0
 node update-test.cjs ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs --proxy
@@ -26,7 +26,7 @@ Use plain `node start.cjs` if you do not use the bundled proxy. An isolated mock
 The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.7.8
+cd ~/storage/downloads/pocket-tavern-combined-v0.9.0
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -86,7 +86,7 @@ Phone testing is deferred at the user’s request. Keep the outstanding checks i
 Use a different fresh folder so mock testing cannot touch real-provider data:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.7.8
+cd ~/storage/downloads/pocket-tavern-combined-v0.9.0
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock

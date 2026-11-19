@@ -1,15 +1,15 @@
-import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.8.0';
-import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.8.0';
-import {assertPersisted} from './persistence.js?build=0.8.0';
-import {readCharacterHistory} from './character-history.js?build=0.8.0';
-import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.8.0';
+import {startNewChat,initializedChatSnapshot,assertChatUnchanged} from './new-chat.js?build=0.9.0';
+import {safeObject,canCloseEmptyCharacterView} from './asset-data.js?build=0.9.0';
+import {assertPersisted} from './persistence.js?build=0.9.0';
+import {readCharacterHistory} from './character-history.js?build=0.9.0';
+import { selectPreset, changePresetGeneration, resetPresetToGlobal } from './preset-state.js?build=0.9.0';
 import { saveSettings,system_message_types,closeCurrentChat } from '/script.js';
 import { settingsToUpdate, getPresetApplicationPromise, getChatCompletionModel, promptManager } from '/scripts/openai.js';
 import { user_avatar } from '/scripts/personas.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
-import { selectSavedChat } from './chat-selection.js?build=0.8.0';
-import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard, deletePlan } from './workspace-data.js?build=0.8.0';
-import { listedModel } from './configuration-state.js?build=0.8.0';
+import { selectSavedChat } from './chat-selection.js?build=0.9.0';
+import { clone, revision, assertRevision, alterHistory, effectiveScope, switchScope, withModelSelection, settingsGuard, deletePlan } from './workspace-data.js?build=0.9.0';
+import { listedModel } from './configuration-state.js?build=0.9.0';
 
 export function createWorkspace({getContext,isBusy,configuration}) {
     let mutating=false;
@@ -19,7 +19,12 @@ export function createWorkspace({getContext,isBusy,configuration}) {
     const same=(a,b)=>a?.characterKey===b?.characterKey&&a?.chatId===b?.chatId;
     const fields=Object.entries(settingsToUpdate).filter(([key,[,,,connection]])=>!connection&&key!=='extensions');
     const generation=()=>Object.fromEntries(fields.filter(([, [,key]])=>ctx().chatCompletionSettings[key]!==undefined).map(([name,[,key]])=>[name,clone(ctx().chatCompletionSettings[key])]));
-    const baseline=()=>ctx().extensionSettings.pocket_tavern??={version:1,global:{preset:ctx().chatCompletionSettings.preset_settings_openai,model:ctx().onlineStatus==='no_connection'?'':getChatCompletionModel(),generation:generation()}};
+    const defaultNamespace=()=>({version:1,global:{preset:ctx().chatCompletionSettings.preset_settings_openai,model:ctx().onlineStatus==='no_connection'?'':getChatCompletionModel(),generation:generation()}});
+    // Browsing and bridge discovery are intentionally read-only. Only an explicit
+    // legacy write/initialization path installs the namespace in ST settings.
+    const baseline=()=>ctx().extensionSettings.pocket_tavern??defaultNamespace();
+    const writableBaseline=()=>ctx().extensionSettings.pocket_tavern??=(defaultNamespace());
+    const ownership=()=>ctx().extensionSettings.pocket_tavern?.migration?.ownership??'legacy';
     async function post(url,body){const response=await fetch(url,{method:'POST',headers:ctx().getRequestHeaders(),body:JSON.stringify(body),cache:'no-store'});if(!response.ok)fail('SAVE_FAILED',`ST request failed (${response.status}).`);const text=await response.text();return response.headers.get('content-type')?.includes('application/json')?JSON.parse(text):text;}
     function valid(target){if(!target?.characterKey||typeof target.chatId!=='string'||!target.chatId||target.chatId.includes('/')||target.chatId.includes('\\'))fail('INVALID_ARGUMENT','Choose an existing conversation.');if(!ctx().characters.some(c=>c.avatar===target.characterKey))fail('CHAT_NOT_FOUND','Character no longer exists.');}
     async function read(target){valid(target);const rows=await post('/api/chats/get',{avatar_url:target.characterKey,file_name:target.chatId});if(!Array.isArray(rows)||!rows.length)fail('CHAT_NOT_FOUND','Conversation no longer exists.');const metadata=clone(rows[0].chat_metadata??{});return {...target,header:clone(rows[0]),messages:rows.slice(1),metadata,presentation:{personaName:ctx().powerUserSettings.personas?.[metadata.persona??Object.entries(ctx().powerUserSettings.persona_descriptions??{}).find(([,d])=>d.connections?.some(c=>c.type==='character'&&c.id===target.characterKey))?.[0]??ctx().powerUserSettings.default_persona??user_avatar]??ctx().name1,preset:metadata.pocket_tavern?.settings?.copy?.preset??baseline().global.preset}};}
@@ -27,12 +32,12 @@ export function createWorkspace({getContext,isBusy,configuration}) {
     async function recent(){const rows=await post('/api/chats/recent',{max:1000,metadata:false,pinned:[]});return rows.filter(r=>r.avatar&&!r.group).map(r=>({characterKey:r.avatar,chatId:String(r.file_name??r.file_id).replace(/\.jsonl$/,''),preview:String(r.mes??''),updated:r.last_mes,messages:r.chat_items}));}
     const history=characterKey=>readCharacterHistory(characterKey,{characters:ctx().characters,post});
     async function scopes(target){const snapshot=target?await read(target):null,character=ctx().characters.find(c=>c.avatar===target?.characterKey);const global=clone(baseline().global),char=withModelSelection(character?.data?.extensions?.pocket_tavern?.settings),chat=withModelSelection(snapshot?.metadata.pocket_tavern?.settings);return {global,character:char,chat,effective:effectiveScope(global,char,chat),revision:revision({global,char,chat})};}
-    async function activate(target){valid(target);if(isBusy())fail('BUSY','Only one generation or saved change can run at a time.');if(!same(active(),target)){if(ctx().characterId!==undefined)await ctx().saveChat();const index=ctx().characters.findIndex(c=>c.avatar===target.characterKey);if(ctx().characterId!==index)await ctx().selectCharacterById(index);await selectSavedChat(getContext,target.chatId);}await getPresetApplicationPromise();await apply((await scopes(target)).effective.copy);return read(target);}
+    async function activate(target){valid(target);if(isBusy())fail('BUSY','Only one generation or saved change can run at a time.');if(!same(active(),target)){if(ctx().characterId!==undefined)await ctx().saveChat();const index=ctx().characters.findIndex(c=>c.avatar===target.characterKey);if(ctx().characterId!==index)await ctx().selectCharacterById(index);await selectSavedChat(getContext,target.chatId);}await getPresetApplicationPromise();if(ownership()==='legacy')await apply((await scopes(target)).effective.copy);return read(target);}
     // Saving only needs the engine. The model is chosen right before a reply or a summary,
     // because only those talk to the model API (DeepSeek's list exists only while connected).
-    async function repairModelCase(){const global=baseline().global,listed=listedModel(configuration.read().models,global.model);if(listed&&listed!==global.model){global.model=listed;await saveGlobal();}}
-    async function prepareGeneration(){await repairModelCase();const current=active();const copy=current.characterKey&&current.chatId?(await scopes(current)).effective.copy:baseline().global;if(!copy.model)return;const model=listedModel(configuration.read().models,copy.model)??copy.model;if(getChatCompletionModel()!==model)await configuration.change({kind:'model',value:model});}
-    async function saveGlobal(){await saveSettings();const data=await post('/api/settings/get',{});const saved=JSON.parse(data.settings).extension_settings?.pocket_tavern;assertRevision(saved,revision(baseline()));}
+    async function repairModelCase(){const global=baseline().global,listed=listedModel(configuration.read().models,global.model);if(listed&&listed!==global.model){writableBaseline().global.model=listed;await saveGlobal();}}
+    async function prepareGeneration(){if(ownership()==='preparing')fail('CONFIGURATION_MIGRATION_PENDING','Finish or cancel configuration migration before generating.');if(ownership()==='native')return;await repairModelCase();const current=active();const copy=current.characterKey&&current.chatId?(await scopes(current)).effective.copy:baseline().global;if(!copy.model)return;const model=listedModel(configuration.read().models,copy.model)??copy.model;if(getChatCompletionModel()!==model)await configuration.change({kind:'model',value:model});}
+    async function saveGlobal(){const expected=writableBaseline();await saveSettings();const data=await post('/api/settings/get',{});const saved=JSON.parse(data.settings).extension_settings?.pocket_tavern;assertRevision(saved,revision(expected));}
     async function apply(copy,{model=false}={}){const settings=ctx().chatCompletionSettings;settings.bind_preset_to_connection=false;for(const [name,[selector,key,checkbox]]of fields){if(!Object.hasOwn(copy.generation??{},name))continue;const value=clone(copy.generation[name]);settings[key]=value;const input=selector?document.querySelector(selector):null;if(input){if(checkbox)input.checked=!!value;else if(typeof value!=='object')input.value=value;}}
         // PromptManager reads arrays from settings; re-render its controls without preset events.
         settings.preset_settings_openai=copy.preset;
@@ -40,9 +45,9 @@ export function createWorkspace({getContext,isBusy,configuration}) {
         if(model&&copy.model&&getChatCompletionModel()!==copy.model)await configuration.change({kind:'model',value:copy.model});
         await saveSettings();
     }
-    async function store(target,scope,value){if(scope==='global'){baseline().global=value;await saveGlobal();}else if(scope==='chat'){const snapshot=await read(target);snapshot.metadata.pocket_tavern??={};snapshot.metadata.pocket_tavern.settings=value;await write(snapshot);if(same(active(),target)){ctx().chatMetadata.pocket_tavern??={};ctx().chatMetadata.pocket_tavern.settings=clone(value);}}else if(scope==='character'){const c=ctx().characters.find(c=>c.avatar===target.characterKey);const namespace={...c.data?.extensions?.pocket_tavern,settings:value};await post('/api/characters/merge-attributes',{avatar:c.avatar,data:{extensions:{pocket_tavern:namespace}}});const saved=await post('/api/characters/get',{avatar_url:c.avatar});assertRevision(saved.data?.extensions?.pocket_tavern?.settings,revision(value));c.data.extensions??={};c.data.extensions.pocket_tavern=namespace;}else fail('INVALID_ARGUMENT','Unknown settings scope.');}
+    async function store(target,scope,value){if(scope==='global'){writableBaseline().global=value;await saveGlobal();}else if(scope==='chat'){const snapshot=await read(target);snapshot.metadata.pocket_tavern??={};snapshot.metadata.pocket_tavern.settings=value;await write(snapshot);if(same(active(),target)){ctx().chatMetadata.pocket_tavern??={};ctx().chatMetadata.pocket_tavern.settings=clone(value);}}else if(scope==='character'){const c=ctx().characters.find(c=>c.avatar===target.characterKey);const namespace={...c.data?.extensions?.pocket_tavern,settings:value};await post('/api/characters/merge-attributes',{avatar:c.avatar,data:{extensions:{pocket_tavern:namespace}}});const saved=await post('/api/characters/get',{avatar_url:c.avatar});assertRevision(saved.data?.extensions?.pocket_tavern?.settings,revision(value));c.data.extensions??={};c.data.extensions.pocket_tavern=namespace;}else fail('INVALID_ARGUMENT','Unknown settings scope.');}
     function presetData(name){const list=getPresetManager('openai').getPresetList();if(!Object.hasOwn(list.preset_names,name))fail('INVALID_ARGUMENT','Preset no longer exists.');const preset=list.presets[list.preset_names[name]];return {generation:{...clone(baseline().global.generation),...Object.fromEntries(fields.filter(([key])=>Object.hasOwn(preset,key)).map(([key])=>[key,clone(preset[key])]))},fields:fields.map(([name,[selector,key,checkbox]])=>({name,checkbox,type:typeof ctx().chatCompletionSettings[key]}))};}
-    async function configure(arg){const before=await scopes(arg.target);assertRevision({global:before.global,char:before.character,chat:before.chat},settingsGuard(arg.expected));const scope=arg.scope;
+    async function configure(arg){if(ownership()!=='legacy')fail('LEGACY_CONFIGURATION_RETIRED','Pocket scope settings are preserved for export but native SillyTavern now owns configuration.');const before=await scopes(arg.target);assertRevision({global:before.global,char:before.character,chat:before.chat},settingsGuard(arg.expected));const scope=arg.scope;
         if(scope!=='global'&&!arg.target)fail('INVALID_ARGUMENT','Open a chat first.');
         let record=scope==='global'?clone(before.global):withModelSelection(before[scope])??{enabled:false,copy:clone(scope==='character'?before.global:before.character?.enabled?before.character.copy:before.global),modelSelection:{enabled:false,value:null}};
         if(!['global','character','chat'].includes(scope))fail('INVALID_ARGUMENT','Unknown settings scope.');
@@ -78,7 +83,7 @@ export function createWorkspace({getContext,isBusy,configuration}) {
                 assertChatUnchanged(expected,preserved);
                 return expected;
             },
-            readCard:async key=>safeObject((await post('/api/characters/get',{avatar_url:key})).data),
+            readCard:async key=>{const response=await post('/api/characters/get',{avatar_url:key});return safeObject(response?.data??response);},
             createNative:async(target,receipt)=>{
                 if(arg.target.chatId){await selectSavedChat(getContext,target.chatId);}
                 else {
@@ -139,5 +144,5 @@ export function createWorkspace({getContext,isBusy,configuration}) {
         return {changed:true,snapshot:saved};
     }
     async function undo({before,after}){if(after){const current=await read(before);assertRevision({messages:current.messages,metadata:current.metadata},after);}else {try{await read(before);fail('CONFLICT','A chat with this name already exists.');}catch(e){if(e.code!=='CHAT_NOT_FOUND')throw e;}}await write(before);if(same(active(),before))await ctx().reloadCurrentChat();await activate(before);const loaded=await read(before);await write({...loaded,header:clone(before.header??loaded.header)});return read(before);}
-    return {read,recent,history,scopes,presetData,prepareGeneration,async initialize(){const namespace=baseline();if(namespace.version>3)fail('UNSUPPORTED_SETTINGS','These Pocket settings need a newer build.');namespace.version=3;ctx().chatCompletionSettings.bind_preset_to_connection=false;await saveGlobal();},async run(arg){if(mutating||isBusy())fail('BUSY','Changes are pending until the engine finishes.');mutating=true;try{if(arg.action==='activate')return await activate(arg.target);if(arg.action==='configure')return await configure(arg);if(arg.action==='undo')return await undo(arg.value);if(arg.action==='newChat')return await newChat(arg);if(arg.action==='linkPersonaToChat')return await linkPersonaToChat(arg);return await mutate(arg);}finally{mutating=false;}},busy:()=>mutating};
+    return {read,recent,history,scopes,presetData,prepareGeneration,ownership,async initialize(){const namespace=writableBaseline();if(namespace.version>3)fail('UNSUPPORTED_SETTINGS','These Pocket settings need a newer build.');namespace.version=3;ctx().chatCompletionSettings.bind_preset_to_connection=false;await saveGlobal();},async run(arg){if(mutating||isBusy())fail('BUSY','Changes are pending until the engine finishes.');mutating=true;try{if(arg.action==='activate')return await activate(arg.target);if(arg.action==='configure')return await configure(arg);if(arg.action==='undo')return await undo(arg.value);if(arg.action==='newChat')return await newChat(arg);if(arg.action==='linkPersonaToChat')return await linkPersonaToChat(arg);return await mutate(arg);}finally{mutating=false;}},busy:()=>mutating};
 }

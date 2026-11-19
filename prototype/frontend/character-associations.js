@@ -1,4 +1,4 @@
-import {icon} from './icons.js?build=0.8.0';
+import {icon} from './icons.js?build=0.9.0';
 
 export function createCharacterAssociations({rpc,action,readState,onSaved,editPersona,chatPersona=()=>null}) {
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};

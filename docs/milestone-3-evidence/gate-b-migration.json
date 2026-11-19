@@ -1,0 +1,44 @@
+{
+  "ownership": "native",
+  "checkpoint": "verified",
+  "inventoryRevision": "v1-dec39a6d794e557170983c3b57b701fd",
+  "archiveRevision": "v1-f48aef1f89785bc3667903a5808170ef",
+  "legacyRecordCount": 2,
+  "sourceIds": [
+    "global",
+    "global:preset-bank:0"
+  ],
+  "initialSourceId": "global",
+  "legacyGlobalRetained": true,
+  "selectedPreset": "Pocket legacy — Global — Default",
+  "mapping": {
+    "sourceId": "global",
+    "sourceRevision": "v1-43944e8ee1678e32def6327c5ffcc83e",
+    "name": "Pocket legacy — Global — Default",
+    "api": "openai",
+    "family": "chat-completion",
+    "nativeRevision": "v1-070fbe2a2b3276f6709751209907053a",
+    "unsupported": [
+      "model",
+      "opaque"
+    ],
+    "preservedModel": "st-mobile-mock",
+    "preservedModelSelection": {
+      "explicit": false,
+      "enabled": true,
+      "value": "st-mobile-mock",
+      "copyValue": "st-mobile-mock"
+    },
+    "recoveredFromPresetBank": false
+  },
+  "selectedData": {
+    "temperature": 1,
+    "openai_max_tokens": 777,
+    "max_tokens": 888,
+    "unknown_sampler": {
+      "retained": true
+    }
+  },
+  "errors": [],
+  "timestamp": "2026-11-19T12:14:05.303Z"
+}

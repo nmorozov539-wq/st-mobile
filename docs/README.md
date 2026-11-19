@@ -4,6 +4,8 @@ Updated: 18 November 2026.
 
 ## Current guidance
 
+- [Milestone 3 implementation report](MILESTONE_3_IMPLEMENTATION_REPORT.md): browser/Termux Layout v4 release candidate, gates A–F, backend support matrix, reproducible evidence and outstanding real-phone/WebView qualification.
+- [Milestone 3 implementation plan](MILESTONE_3_IMPLEMENTATION_PLAN.md): approved Layout v4 delivery slices, detailed layout behavior, configuration preservation gates and validation; extension integration excluded.
 - [Layout v4](LAYOUT.md): living layout discussion, settled decisions and open questions. Discussion only; implementation has not begun.
 - [Extension integration](EXTENSION_INTEGRATION.md): parked source investigation for a dedicated conversation.
 - [Product, Android and release roadmap](ANDROID_PRODUCT_ROADMAP.md): milestone order, selected host architecture and delivery direction. Layout v4 detail lives in LAYOUT.md.

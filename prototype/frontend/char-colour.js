@@ -1,4 +1,4 @@
-import {resolveCharacterAccent} from './color-theme.js?build=0.8.0';
+import {resolveCharacterAccent} from './color-theme.js?build=0.9.0';
 
 // Character colour: a compact browser port of Colorizinator's accent maths
 // (OKLab/OKLCH and a hue-window "most saturated" pick). Reads the whole avatar,

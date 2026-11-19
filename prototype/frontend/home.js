@@ -1,7 +1,7 @@
 // Home: a starting point. Continue the last chat, jump to a recent one, or pick a character.
 // Status comes from known state only; nothing here sends a paid request.
-import {icon} from './icons.js?build=0.8.0';
-import {plainPreview} from './preview.js?build=0.8.0';
+import {icon} from './icons.js?build=0.9.0';
+import {plainPreview} from './preview.js?build=0.9.0';
 
 export function homeStatus({connected, initializing, generating, onlineStatus, apiChecked}) {
  const engine = initializing ? {label: 'Connecting…', tone: 'wait'} : !connected ? {label: 'Not connected', tone: 'bad'} : generating ? {label: 'Working', tone: 'ok'} : {label: 'Connected', tone: 'ok'};
@@ -57,7 +57,7 @@ function section(title, link, onLink) {
  return head;
 }
 
-export function renderHome(content, {status, loaded, stalled, connected, characters, recents, portrait, chatDate, colours, actions}) {
+export function renderHome(content, {status, loaded, stalled, connected, configuration, characters, recents, portrait, chatDate, colours, actions}) {
  const wrap = node('div', null, 'home-page');
  content.append(wrap);
  if (!loaded) {
@@ -68,6 +68,14 @@ export function renderHome(content, {status, loaded, stalled, connected, charact
   wrap.append(waiting);
   return;
  }
+ const byKey = new Map(characters.map(c => [c.key, c]));
+ const nameOf = row => byKey.get(row.characterKey)?.name ?? row.characterKey.replace(/\.[a-z]+$/i, '');
+ const summary=node('section',null,'home-configuration');
+ const connection=btn('', 'home-config-row', actions.connection, 'plug');connection.append(node('span',null,'home-config-text'));
+ connection.querySelector('.home-config-text').append(node('small','Connection'),node('strong',configuration?.selected?.model?`${configuration.selected.source} · ${configuration.selected.model}`:status.api.label));
+ const preset=btn('', 'home-config-row', actions.presets, 'sliders');preset.append(node('span',null,'home-config-text'));
+ preset.querySelector('.home-config-text').append(node('small','Preset'),node('strong',configuration?.selected?.preset||'No native preset selected'));
+ summary.append(connection,preset);wrap.append(summary);
  if (!characters.length) {
   const empty = node('div', null, 'home-empty');
   const badge = node('div', null, 'home-badge'); badge.append(icon('mug'));
@@ -80,8 +88,6 @@ export function renderHome(content, {status, loaded, stalled, connected, charact
   wrap.append(empty);
   return;
  }
- const byKey = new Map(characters.map(c => [c.key, c]));
- const nameOf = row => byKey.get(row.characterKey)?.name ?? row.characterKey.replace(/\.[a-z]+$/i, '');
  if (recents.length) {
   const row = recents[0], c = byKey.get(row.characterKey);
   const card = node('section', null, 'home-continue');
@@ -126,20 +132,5 @@ export function renderHome(content, {status, loaded, stalled, connected, charact
   }
   block.append(list); wrap.append(block);
  }
- const block = node('section', null, 'home-block');
- block.append(section('Characters', 'All', actions.allCharacters));
- const cast = node('div', null, 'home-cast');
- for (const c of castOrder(characters, recents)) {
-  const item = btn('', 'home-cast-item', () => actions.openCharacter(c));
-  item.setAttribute('aria-label', c.name); item.title = c.name;
-  item.append(portrait(c), node('span', c.name, 'home-cast-name'));
-  tint(item, c, colours);
-  cast.append(item);
- }
- const add = btn('', 'home-cast-item home-cast-add', actions.addCharacter);
- add.setAttribute('aria-label', 'Add a character'); add.title = 'Add a character';
- const plus = node('span', null, 'avatar'); plus.append(icon('plus'));
- add.append(plus, node('span', 'Add', 'home-cast-name'));
- cast.append(add);
- block.append(cast); wrap.append(block);
+ const start=btn('Start new chat','btn secondary home-start-chat',actions.startChat,'plus');start.disabled=!connected;wrap.append(start);
 }

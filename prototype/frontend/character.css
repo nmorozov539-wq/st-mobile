@@ -61,3 +61,6 @@
 .character-greeting .character-greeting-nav button{width:36px;height:36px;padding:0;display:grid;place-items:center;border:var(--shape-border-width) solid var(--color-border-strong);background:transparent;border-radius:var(--shape-radius-medium)}
 .character-advanced.workshop-section>h4{margin-top:14px;font-size:11px}
 details.character-advanced.workshop-section,details.character-notes.workshop-section{border:0;border-top:var(--shape-border-width) solid var(--color-border);border-radius:0;background:transparent;padding:12px 0}
+.character-hero .character-tags{display:flex;flex-wrap:wrap;gap:6px;max-height:3.8em;overflow:hidden}
+.character-hero .character-tags.expanded{max-height:none}
+.character-tags-more{align-self:flex-start;min-height:44px;border:0;background:transparent;color:var(--color-accent)}

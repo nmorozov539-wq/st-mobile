@@ -1,0 +1,69 @@
+{
+  "kind": "ui-theme",
+  "version": 2,
+  "id": "personal-1795091660431",
+  "name": "Light Paper custom",
+  "scheme": "light",
+  "colors": {
+    "canvas": "#f4f0e7",
+    "surface": "#fffdf8",
+    "raised": "#ebe5d9",
+    "text": "#26231f",
+    "mutedText": "#686158",
+    "faintText": "#81796e",
+    "dialogueText": "#4f463b",
+    "narrationText": "#6d6256",
+    "accent": "#6b1745",
+    "onAccent": "#fffaf2",
+    "link": "#6b1745",
+    "focus": "#6b1745",
+    "success": "#3f7a54",
+    "warning": "#9a681e",
+    "danger": "#a33f3f",
+    "userMessage": "#e8ddcf",
+    "assistantMessage": "#fffdf8",
+    "border": "#3a30251f",
+    "shadow": "#2c241a26",
+    "scrim": "#1f1a14a6",
+    "characterFallback": "#8b4a32"
+  },
+  "shape": {
+    "smallRadius": 2,
+    "mediumRadius": 4,
+    "largeRadius": 8,
+    "avatarRadius": 4,
+    "messageRadius": 4,
+    "borderWidth": 1
+  },
+  "effects": {
+    "chromeOpacity": 0.94,
+    "blur": 0,
+    "shadowStrength": 0.35,
+    "backgroundGlow": 0,
+    "characterGlow": 0.25
+  },
+  "presentation": {
+    "density": "compact",
+    "messages": "cards"
+  },
+  "motion": {
+    "scale": 0
+  },
+  "typography": {
+    "uiFamily": "rubik",
+    "readingFamily": "literata",
+    "uiScale": 1,
+    "readingScale": 1.04,
+    "readingLineHeight": 1.68,
+    "uiWeight": 400,
+    "readingWeight": 400
+  },
+  "icons": {
+    "pack": "lucide",
+    "strokeWidth": 1.5,
+    "fill": "none"
+  },
+  "characterAccent": {
+    "mode": "fixed"
+  }
+}

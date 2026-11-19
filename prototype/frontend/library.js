@@ -1,17 +1,19 @@
-import {icon} from './icons.js?build=0.8.0';
-import {characterStatus} from './libraries.js?build=0.8.0';
-import {createCharacterChats} from './character-chats.js?build=0.8.0';
-import {createCharacterActions} from './character-actions.js?build=0.8.0';
-import {createCharacterEditor} from './character-editor.js?build=0.8.0';
-import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.8.0';
+import {icon} from './icons.js?build=0.9.0';
+import {characterStatus} from './libraries.js?build=0.9.0';
+import {createCharacterChats} from './character-chats.js?build=0.9.0';
+import {createCharacterActions} from './character-actions.js?build=0.9.0';
+import {createCharacterEditor} from './character-editor.js?build=0.9.0';
+import { presetOrder, setPromptEnabled } from './preset-order.js?build=0.9.0';
 export function createLibrary({rpc,action,refresh,locked,format,converter,sanitize,refreshAvailability=async()=>{},onDeleted=()=>{},onEditor=()=>{},readChat=()=>null,onChat=async()=>{},onStartChat=async()=>{},onStartFresh=async()=>{},personaName=id=>id,colourOf=async()=>null,globalPreset=()=>''}) {
     const $=id=>document.getElementById(id);
     const chats=createCharacterChats({rpc,action,readChat,onChat,readState:()=>({key,editorSession,open:$('asset-editor').open,unavailable:lastLocked&&!allowDrafts})});
     const character=createCharacterEditor({format,converter,sanitize,colourOf,globalPreset,associationOptions:{rpc,action,readState:associationState,onSaved:associationSaved,editPersona:editRelatedPersona,chatPersona:()=>{const chat=readChat(),id=chat?.characterKey===key?chat.metadata?.persona:null;return id?{key:id,name:personaName(id)}:null;}}});
-    const backEditor=event=>{if(kind!=='characters')return;if(cardActions.back()){event.preventDefault();return;}if(character.back()){event.preventDefault();renderEditor();}};
+    const dirty=()=>!!portrait||JSON.stringify(draft)!==revision;
+    const discardCharacterDraft=()=>{if(!character.editing())return true;if(dirty()&&!confirm('Discard unsaved character edits?'))return false;if(!revision){$('asset-editor').close();return true;}draft=JSON.parse(revision);portrait=null;$('asset-portrait').value='';character.cancel();renderEditor();return true;};
+    const backEditor=event=>{if(kind!=='characters')return;if(cardActions.back()){event.preventDefault();return;}if(character.back()){event.preventDefault();renderEditor();return;}if(character.editing()){event.preventDefault();discardCharacterDraft();}};
     $('asset-editor').addEventListener('pocket-back',backEditor);$('asset-editor').addEventListener('cancel',backEditor);
     window.addEventListener('keydown',event=>{if(event.key!=='Escape'||kind!=='characters'||[...document.querySelectorAll('dialog')].filter(dialog=>dialog.open).at(-1)!==$('asset-editor'))return;event.preventDefault();event.stopPropagation();if(event.repeat)return;const back=new Event('pocket-back',{cancelable:true});if($('asset-editor').dispatchEvent(back))$('asset-editor').close();},true);
-    const cancel=document.createElement('button');cancel.id='cancel-character';cancel.textContent='Cancel';cancel.onclick=()=>$('asset-editor').close();const savebar=document.createElement('div');savebar.id='character-savebar';$('save-asset').before(savebar);const start=document.createElement('button');start.id='start-character-chat';start.textContent='Start chat';start.onclick=()=>run(()=>{if(start.disabled)return;const origin={key,session:editorSession,revision};return onStartFresh({key,name:revision?JSON.parse(revision).name:draft.name,cardRevision:revision},()=>kind==='characters'&&key===origin.key&&editorSession===origin.session&&revision===origin.revision&&!portrait&&JSON.stringify(draft)===origin.revision&&$('asset-editor').open);});savebar.append(start,cancel,$('save-asset'));
+    const cancel=document.createElement('button');cancel.id='cancel-character';cancel.textContent='Cancel';cancel.onclick=()=>discardCharacterDraft();const savebar=document.createElement('div');savebar.id='character-savebar';$('save-asset').before(savebar);const start=document.createElement('button');start.id='start-character-chat';start.textContent='Start chat';start.onclick=()=>run(()=>{if(start.disabled)return;const origin={key,session:editorSession,revision};return onStartFresh({key,name:revision?JSON.parse(revision).name:draft.name,cardRevision:revision},()=>kind==='characters'&&key===origin.key&&editorSession===origin.session&&revision===origin.revision&&!portrait&&JSON.stringify(draft)===origin.revision&&$('asset-editor').open);});savebar.append(start,cancel,$('save-asset'));
     let editorSession=0,editorFromLibrary=true;
     let savedAssociationRevision=null,savedAssociationCard={},primaryDraftDirty=false;
     let associations=null,associationError='',associationGuard=null,returnCharacter=null;
@@ -106,7 +108,7 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
     function openEditor({fromLibrary=true}={}){editorFromLibrary=fromLibrary;editorSession++;cardActions.back();if(kind==='characters')character.begin(key,{fromLibrary});orderId=100001;uncertain=false;invalid=false;portrait=null;$('asset-portrait').value='';$('asset-error').textContent='';renderEditor();onEditor(kind,key);$('asset-editor').showModal();$('asset-editor').scrollTop=0;if(kind==='characters')chats.load(key,editorSession);}
     async function run(fn){if(locked())return;await action(async()=>{try{await fn();}catch(e){$('library-error').textContent=e.message;$('asset-error').textContent=e.message;throw e;}});}
     $('library-button').onclick=()=>run(async()=>{await load();$('library-error').textContent='';$('library-panel').showModal();});
-    $('close-library').onclick=()=>$('library-panel').close();$('close-asset').onclick=()=>{if(kind==='characters'&&cardActions.back())return;if(kind==='characters'&&character.back()){renderEditor();return;}$('asset-editor').close();};
+    $('close-library').onclick=()=>$('library-panel').close();$('close-asset').onclick=()=>{if(kind==='characters'&&cardActions.back())return;if(kind==='characters'&&character.back()){renderEditor();return;}if(kind==='characters'&&character.editing()){discardCharacterDraft();return;}$('asset-editor').close();};
     $('library-kind').onchange=()=>run(async()=>{kind=$('library-kind').value;await load();});
     async function createAsset(){
         key=null;revision=null;associations=null;associationError='';associationGuard=null;
@@ -126,7 +128,7 @@ export function createLibrary({rpc,action,refresh,locked,format,converter,saniti
         const result=await rpc('assets',{action:'write',kind,key,revision,draft,file:portrait},60000);
         if(kind!==origin.kind||key!==origin.key||editorSession!==origin.session){await refreshAvailability();await refresh();return;}
         uncertain=false;
-        key=result.key;const returning=!!returnCharacter;if(returning)await resumeCharacter();else $('asset-editor').close();if(!returning)await load();await refresh();$('library-error').textContent='Saved in ST and verified.';
+        key=result.key;const returning=!!returnCharacter;if(returning)await resumeCharacter();else if(kind==='characters'){const saved=await rpc('assets',{kind:'characters',action:'read',key});revision=saved.revision;draft=saved.draft;associations=saved.associations??associations;associationGuard=saved.associationRevision??associationGuard;associationError=saved.associationError??'';portrait=null;$('asset-portrait').value='';character.saved();renderEditor();}else $('asset-editor').close();if(!returning)await load();await refresh();$('library-error').textContent='Saved in ST and verified.';
     });
     $('import-asset').onclick=()=>$('asset-import').click();
     $('asset-import').onchange=()=>{const file=$('asset-import').files[0];$('asset-import').value='';if(file)run(async()=>{const result=await rpc('assets',{action:'import',kind,file},60000);await load();await refresh();$('library-error').textContent=result.note??'Imported into ST.';});};

@@ -1,0 +1,43 @@
+{
+  "mode": "controlled full-native fallback in the same iframe",
+  "surfaceContained": true,
+  "escapeAttempt": {
+    "candidate": "leftNavDrawerIcon",
+    "before": [
+      "rm_api_block"
+    ],
+    "after": [
+      "rm_api_block"
+    ]
+  },
+  "originalHandlers": true,
+  "persistence": true,
+  "closeDuringDebounce": true,
+  "closeDurationMs": 234,
+  "settingRestored": true,
+  "nestedBack": true,
+  "focusReturn": true,
+  "mutationLock": true,
+  "rootRestored": true,
+  "reconnectReadOnly": true,
+  "before": {
+    "pocket": null,
+    "mainApi": "openai",
+    "customUrl": "http://127.0.0.1:8124/v1",
+    "preset": "Default"
+  },
+  "after": {
+    "pocket": null,
+    "mainApi": "openai",
+    "customUrl": "http://127.0.0.1:8124/v1",
+    "preset": "Default"
+  },
+  "reconnected": {
+    "pocket": null,
+    "mainApi": "openai",
+    "customUrl": "http://127.0.0.1:8124/v1",
+    "preset": "Default"
+  },
+  "errors": [],
+  "timestamp": "2026-11-19T07:08:39.849Z"
+}

@@ -18,7 +18,7 @@ html[data-background=plain] #landing.home-screen{background:var(--color-canvas)}
 #home-status[data-tone=warn]~#home-status-text{color:var(--color-warning)}
 #landing.home-screen #app-settings{display:grid;place-items:center;padding:0;width:44px;height:44px;border-radius:var(--shape-radius-large);background:transparent;border:0;color:var(--color-muted-text);font-size:22px}
 #landing.home-screen #page-content{padding:8px 16px 28px}
-.home-page{display:flex;flex-direction:column;gap:28px;max-width:640px;margin:0 auto}
+.home-page{display:flex;flex-direction:column;gap:24px;max-width:640px;margin:0 auto}
 
 /* Continue: the last chat, lit by its character's colour */
 .home-continue{--glow:radial-gradient(ellipse 120% 90% at 0% 0%,color-mix(in srgb,var(--char) var(--effect-glow-panel),transparent),transparent 70%);position:relative;display:flex;flex-direction:column;gap:14px;padding:18px 18px 16px;border-radius:var(--shape-radius-large);background:var(--glow),var(--color-surface);border:var(--shape-border-width) solid color-mix(in srgb,var(--char) var(--effect-character-glow-subtle),var(--color-border));cursor:pointer;margin-top:4px}

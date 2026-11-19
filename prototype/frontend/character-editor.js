@@ -1,16 +1,15 @@
-import {icon} from './icons.js?build=0.8.0';
-import {validColour} from './char-colour.js?build=0.8.0';
-import {createCharacterAssociations} from './character-associations.js?build=0.8.0';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.8.0';
+import {icon} from './icons.js?build=0.9.0';
+import {validColour} from './char-colour.js?build=0.9.0';
+import {createCharacterAssociations} from './character-associations.js?build=0.9.0';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.9.0';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions,colourOf=async()=>null,globalPreset=()=>''}) {
     const links=createCharacterAssociations(associationOptions);
-    let mode='read',selected=0,organizing=false,cardKey=null;
+    let mode='read',selected=0,organizing=false,cardKey=null,tagsExpanded=false;
     const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
     const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=fn;return b;};
     function begin(key,{fromLibrary=false}={}){
-        cardKey=key;selected=0;organizing=false;mode='read';
-        try{mode=storage.getItem(`pocket-character-mode:${key}`)==='edit'?'edit':'read';}catch{}
+        cardKey=key;selected=0;organizing=false;tagsExpanded=false;mode='read';
         if(!key)mode='edit';
     }
     function render({body,draft,key,associations,associationError,changed,field,rerender,onActions,chats}) {
@@ -22,8 +21,7 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         document.getElementById('asset-portrait-label').hidden=mode!=='edit';
         document.getElementById('asset-json').closest('details').hidden=mode!=='edit';
         const back=document.getElementById('close-asset');back.replaceChildren(icon('back'));back.setAttribute('aria-label',mode==='edit'?'Cancel character edits':'Back from character');panel.querySelector('.dialog-heading').prepend(back);
-        const tabs=node('div');tabs.className='character-modes';tabs.setAttribute('aria-label','Character view');
-        for(const view of ['read','edit']){const b=button(view==='read'?'Read':'Edit',()=>{mode=view;organizing=false;try{if(cardKey)storage.setItem(`pocket-character-mode:${cardKey}`,mode);}catch{}rerender();});b.setAttribute('aria-pressed',String(mode===view));tabs.append(b);}panel.querySelector('.character-modes')?.remove();if(mode==='edit'&&key)panel.querySelector('.dialog-heading').append(tabs);panel.querySelector('.character-actions-trigger')?.remove();if(key){const overflow=button('…',onActions);overflow.className='character-actions-trigger';overflow.setAttribute('aria-label','Character actions');overflow.setAttribute('aria-controls','character-actions');overflow.setAttribute('aria-expanded',String(!document.getElementById('character-actions').hidden));panel.querySelector('.dialog-heading').append(overflow);}
+        panel.querySelector('.character-modes')?.remove();panel.querySelector('.character-actions-trigger')?.remove();if(key){const overflow=button('…',onActions);overflow.className='character-actions-trigger';overflow.setAttribute('aria-label','Character actions');overflow.setAttribute('aria-controls','character-actions');overflow.setAttribute('aria-expanded',String(!document.getElementById('character-actions').hidden));panel.querySelector('.dialog-heading').append(overflow);}
         if(mode==='read'){readView({body,draft,key,associations,associationError,rerender,chats});return;}
         chats?.render(body,key);
         const identity=node('section');identity.className='character-identity';
@@ -80,11 +78,11 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         if(key){const image=node('img');image.src=`/characters/${encodeURIComponent(key)}`;image.alt='';image.onerror=()=>{image.remove();frame.textContent=(draft.name||'?').slice(0,1);};frame.append(image);}else frame.textContent=(draft.name||'?').slice(0,1);
         hero.append(frame,node('h3',draft.name||'Unnamed character'));
         const metadata=[draft.creator&&`by ${draft.creator}`,draft.character_version&&`v${draft.character_version}`].filter(Boolean).join(' · ');if(metadata)hero.append(node('small',metadata));
-        if(draft.tags?.length){const tags=node('div');tags.className='character-tags';for(const value of draft.tags)tags.append(node('span',String(value)));hero.append(tags);}
+        if(draft.tags?.length){const tags=node('div');tags.className='character-tags';tags.classList.toggle('expanded',tagsExpanded);for(const value of draft.tags)tags.append(node('span',String(value)));hero.append(tags);if(draft.tags.length>4){const more=button(tagsExpanded?'Show less':'Show all',()=>{tagsExpanded=!tagsExpanded;rerender();});more.className='character-tags-more';hero.append(more);}}
         const actions=node('div');actions.className='character-hero-actions';
         const original=document.getElementById('start-character-chat');
         const start=button('Start chat',()=>original?.click());start.className='btn primary';start.id='character-hero-start';start.prepend(icon('chat'));start.disabled=!!original?.disabled;
-        const edit=button('Edit',()=>{mode='edit';organizing=false;try{if(cardKey)storage.setItem(`pocket-character-mode:${cardKey}`,mode);}catch{}rerender();});edit.className='btn secondary';edit.id='character-hero-edit';edit.prepend(icon('edit'));
+        const edit=button('Edit',()=>{mode='edit';organizing=false;rerender();});edit.className='btn secondary';edit.id='character-hero-edit';edit.prepend(icon('edit'));
         actions.append(start,edit);hero.append(actions);body.append(hero);
         const savedColour=draft.extensions?.pocket_tavern?.color,own=validColour(savedColour);
         const paint=value=>{if(value?.color&&hero.isConnected){const panel=document.getElementById('asset-editor');panel.style.setProperty('--char',value.color);panel.style.setProperty('--color-character-ink',value.ink);}};
@@ -110,5 +108,5 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         for(const [name,label]of [['personality','Personality'],['scenario','Scenario'],['mes_example','Example dialogue'],['system_prompt','System prompt override'],['post_history_instructions','Post-history instructions']]){advanced.append(node('h4',label));reading(advanced,draft[name]);}
         body.append(advanced);
     }
-    return {begin,render,updateLinks:links.update,capture:()=>({mode,selected,organizing,cardKey}),restore:value=>{({mode,selected,organizing,cardKey}=value);},back(){if(organizing){organizing=false;return true;}return false;}};
+    return {begin,render,updateLinks:links.update,capture:()=>({mode,selected,organizing,cardKey,tagsExpanded}),restore:value=>{({mode,selected,organizing,cardKey,tagsExpanded=false}=value);},editing:()=>mode==='edit',saved(){mode='read';organizing=false;},cancel(){mode='read';organizing=false;},back(){if(organizing){organizing=false;return true;}return false;}};
 }

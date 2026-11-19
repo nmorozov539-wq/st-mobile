@@ -7,6 +7,8 @@ import {COLOR_THEME_STORAGE_KEY, createColorThemeStore, createThemeStore, THEME_
 
 const hearth = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/hearth.json', import.meta.url), 'utf8'));
 const paper = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/paper.json', import.meta.url), 'utf8'));
+const nocturne = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/nocturne.json', import.meta.url), 'utf8'));
+const monolith = JSON.parse(fs.readFileSync(new URL('../prototype/frontend/themes/monolith.json', import.meta.url), 'utf8'));
 const frontend = new URL('../prototype/frontend/', import.meta.url);
 const memoryStorage = (initial = {}) => {
     const values = new Map(Object.entries(initial));
@@ -56,6 +58,12 @@ test('Light Paper proves light, compact, square and low-effect themes', () => {
     assert.equal(variables['--motion-fast'], '0ms');
     assert.ok(contrastRatio(theme.colors.text, theme.colors.canvas) >= 4.5);
     assert.ok(contrastRatio(theme.colors.onAccent, theme.colors.accent) >= 4.5);
+});
+
+test('portrait-lit and geometry stress themes are complete and structurally distinct',()=>{
+    for(const theme of [nocturne,monolith])assert.equal(validateTheme(theme).valid,true,validateTheme(theme).errors.join('\n'));
+    assert.equal(nocturne.characterAccent.mode,'portrait');assert.ok(nocturne.effects.characterGlow>1);assert.equal(nocturne.shape.avatarRadius,32);
+    assert.equal(monolith.shape.mediumRadius,0);assert.equal(monolith.effects.blur,0);assert.equal(monolith.effects.shadowStrength,0);assert.equal(monolith.typography.readingFamily,'rubik');
 });
 
 test('CSS color parsing accepts ST rgba and normalizes our hex format', () => {
@@ -202,6 +210,14 @@ test('theme store previews without saving and cancel restores the selection', ()
     assert.equal(root.style.values['--color-canvas'], '#141519');
 });
 
+test('committing a built-in preview selects the existing theme without creating a copy', () => {
+    const storage = memoryStorage(), store = createThemeStore({storage, root: themeRoot(), builtInThemes: [hearth, paper]});
+    store.previewId('paper'); store.commitPreview();
+    assert.equal(store.selectedId(), 'paper');
+    assert.equal(store.list().length, 2);
+    assert.equal(JSON.parse(storage.value(THEME_STORAGE_KEY)).themes.length, 0);
+});
+
 test('theme store saves, restores, exports and safely resets custom themes', () => {
     const storage = memoryStorage(), root = themeRoot();
     const first = createColorThemeStore({storage, root, baseTheme: hearth});
@@ -232,6 +248,9 @@ test('theme store ignores corrupt saved themes and refuses to delete Hearth', ()
     const storage = memoryStorage({[COLOR_THEME_STORAGE_KEY]: JSON.stringify({version: 1, selected: 'future', themes: [{nope: true}, future]})});
     const store = createColorThemeStore({storage, root: themeRoot(), baseTheme: hearth});
     assert.equal(store.current().id, 'hearth');
+    assert.equal(store.needsRecovery(), true);
+    store.select('hearth');
+    assert.equal(store.needsRecovery(), false);
     assert.throws(() => store.remove('hearth'), /cannot be removed/);
     assert.throws(() => store.select('missing'), /Unknown color theme/);
 });

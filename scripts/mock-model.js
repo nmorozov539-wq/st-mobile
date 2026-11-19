@@ -11,7 +11,8 @@ const server = http.createServer(async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.end(JSON.stringify({ object: 'list', data: ['st-mobile-mock','st-mobile-mock-alt',...(process.argv.includes('--many-models')?Array.from({length:48},(_,i)=>`st-mobile-mock-${i+1}`):[])].map(id=>({id,object:'model',owned_by:'local-test'})) }));
     }
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') { res.writeHead(404); return res.end(); }
+    const chat=req.url==='/v1/chat/completions',completion=req.url==='/v1/completions';
+    if (req.method !== 'POST' || (!chat&&!completion)) { res.writeHead(404); return res.end(); }
     let body = '';
     try {
         for await (const chunk of req) {
@@ -19,14 +20,14 @@ const server = http.createServer(async (req, res) => {
             if (body.length > 2_000_000) { res.writeHead(413); return res.end(); }
         }
         const input = JSON.parse(body);
-        const text = String(input.messages?.findLast(message => message.role === 'user')?.content ?? '');
+        const text = String(chat?input.messages?.findLast(message => message.role === 'user')?.content ?? '':input.prompt??'');
         if (!text.trim()) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify({ error: { message: 'The mock received no user message. Check the engine session and tokenizer errors.', type: 'empty_prompt' } }));
         }
         requests++;
-        const prompt = JSON.stringify(input.messages);
-        lastRequest = {model:input.model,temperature:input.temperature,stream:!!input.stream,maxTokens:input.max_tokens,n:input.n,testMessage:input.messages?.length===1&&text==='Reply with OK.',summaryFixture:prompt.includes('auto_injected_historical_context'),personaFixture:prompt.includes('POCKET_PERSONA_SENTINEL'),loreFixture:prompt.includes('POCKET_LORE_SENTINEL')};
+        const prompt = chat?JSON.stringify(input.messages):String(input.prompt??'');
+        lastRequest = {family:chat?'chat-completion':'text-completion',model:input.model,temperature:input.temperature,stream:!!input.stream,maxTokens:input.max_tokens??input.max_new_tokens,n:input.n,testMessage:chat&&input.messages?.length===1&&text==='Reply with OK.',summaryFixture:prompt.includes('auto_injected_historical_context'),personaFixture:prompt.includes('POCKET_PERSONA_SENTINEL'),loreFixture:prompt.includes('POCKET_LORE_SENTINEL')};
         recentRequests.push({...lastRequest});if(recentRequests.length>8)recentRequests.shift();
         if (/\[fail\]/i.test(text)) {
             res.writeHead(503, { 'Content-Type': 'application/json' });
@@ -41,18 +42,18 @@ const server = http.createServer(async (req, res) => {
         if (!input.stream) {
             if(slow){const controller=new AbortController();res.on('close',()=>controller.abort());await delay(10000,undefined,{signal:controller.signal});}
             res.setHeader('Content-Type', 'application/json');
-            return res.end(JSON.stringify({ id: `mock-${requests}`, object: 'chat.completion', choices: [{ index: 0, message: { role: 'assistant', content: answer, reasoning_content: reasoning }, finish_reason: 'stop' }] }));
+            return res.end(JSON.stringify(chat?{ id: `mock-${requests}`, object: 'chat.completion', choices: [{ index: 0, message: { role: 'assistant', content: answer, reasoning_content: reasoning }, finish_reason: 'stop' }] }:{id:`mock-${requests}`,object:'text_completion',model:input.model,choices:[{index:0,text:answer,finish_reason:'stop'}]}));
         }
         res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' });
         res.flushHeaders();
         const controller = new AbortController();
         res.on('close', () => controller.abort());
-        const write = (delta, finish_reason = null) => res.write(`data: ${JSON.stringify({ id: `mock-${requests}`, object: 'chat.completion.chunk', choices: [{ index: 0, delta, finish_reason }] })}\n\n`);
+        const write = (delta, finish_reason = null) => res.write(`data: ${JSON.stringify(chat?{ id: `mock-${requests}`, object: 'chat.completion.chunk', choices: [{ index: 0, delta, finish_reason }] }:{id:`mock-${requests}`,object:'text_completion',choices:[{index:0,text:delta.content??'',finish_reason}]})}\n\n`);
         write({ role: 'assistant', content: '' });
         for (const piece of reasoning.match(/.{1,8}/gs) ?? []) {
             if (controller.signal.aborted) return;
             await delay(250, undefined, { signal: controller.signal });
-            write({ reasoning_content: piece });
+            if(chat)write({ reasoning_content: piece });
         }
         for (const piece of answer.match(/.{1,8}/gs)) {
             if (controller.signal.aborted) return;

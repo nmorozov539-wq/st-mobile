@@ -70,8 +70,9 @@ test('transport timeouts preserve uncertainty and generation events extend the d
     assert.equal((await pending).state,'completed'); connection.disconnect();
 });
 
-import {checkBridgeBuild,FRONTEND_BUILD} from '../prototype/frontend/build.js';
+import {checkBridgeBuild,FRONTEND_BUILD,BRIDGE_PROTOCOL} from '../prototype/frontend/build.js';
 test('mixed frontend and engine releases fail before any chat request',()=>{
- assert.doesNotThrow(()=>checkBridgeBuild({bridgeBuild:FRONTEND_BUILD}));
+ assert.doesNotThrow(()=>checkBridgeBuild({bridgeBuild:FRONTEND_BUILD,protocolVersion:BRIDGE_PROTOCOL}));
  for(const handshake of [{},{bridgeBuild:'0.5.0'}])assert.throws(()=>checkBridgeBuild(handshake),{code:'BUILD_MISMATCH'});
+ assert.throws(()=>checkBridgeBuild({bridgeBuild:FRONTEND_BUILD,protocolVersion:1}),{code:'PROTOCOL_MISMATCH'});
 });

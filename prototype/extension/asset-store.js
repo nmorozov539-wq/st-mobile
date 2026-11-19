@@ -1,6 +1,6 @@
-import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.8.0';
-import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.8.0';
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.8.0';
+import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.9.0';
+import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.9.0';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.9.0';
 export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
@@ -11,7 +11,7 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
     }
     const saved = () => post('/api/settings/get', {});
     async function read(kind,key) {
-        if(kind==='characters') return safeObject((await post('/api/characters/get',{avatar_url:key})).data);
+        if(kind==='characters'){const response=await post('/api/characters/get',{avatar_url:key});return safeObject(response?.data??response);}
         if(kind==='personas') return personaRecord(getContext().powerUserSettings,key);
         if(kind==='presets') {
             const list=manager().getPresetList();

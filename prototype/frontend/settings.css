@@ -64,6 +64,8 @@ html:not([data-background=plain]) .sp-preview{background:var(--glow),var(--color
 .sp-row-go .icon{width:18px;height:18px}
 .sp-row-static .sp-link{flex:none;min-height:40px}
 
+.sp-page:has(.settings-wide-shell){max-width:1120px}.settings-wide-shell{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:24px;align-items:start}.settings-categories{position:sticky;top:82px;display:grid;gap:4px;padding:14px;border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-large);background:var(--color-surface)}.settings-categories .sp-group-label{margin:12px 8px 2px}.settings-categories .sp-group-label:first-child{margin-top:0}.settings-category{display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 12px;border:0;background:transparent;text-align:left}.settings-category .icon{width:19px;height:19px;color:var(--color-muted-text)}.settings-category[aria-current=page]{background:var(--color-selected);color:var(--color-accent)}.settings-topic{min-width:0;padding:4px 0 80px}.settings-topic-title{margin:0 0 18px!important;font:500 24px/1.25 var(--ui)!important;color:var(--color-text)!important;letter-spacing:0!important;text-transform:none!important}.settings-topic>.sp-group:first-of-type{margin-top:0}
+
 /* Sub pages use the same section labels as the home */
 .sp-connection,.sp-appearance{padding-top:8px}
 .sp-heading{font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--color-muted-text);margin:24px 0 4px}

@@ -1,0 +1,9 @@
+{
+  "kind":"ui-theme","version":2,"id":"monolith","name":"Monolith","scheme":"dark",
+  "colors":{"canvas":"#10110f","surface":"#1b1d19","raised":"#292c25","text":"#f0f2e8","mutedText":"#b4b9a7","faintText":"#858b7b","dialogueText":"#e7f1bd","narrationText":"#bdc4b0","accent":"#c7f36b","onAccent":"#11170a","link":"#c7f36b","focus":"#ffffff","success":"#73d889","warning":"#edc357","danger":"#ef6f62","userMessage":"#303627","assistantMessage":"#1b1d19","border":"#f0f2e83d","shadow":"#00000000","scrim":"#000000cc","characterFallback":"#c7f36b"},
+  "shape":{"smallRadius":0,"mediumRadius":0,"largeRadius":0,"avatarRadius":0,"messageRadius":0,"borderWidth":2},
+  "effects":{"chromeOpacity":1,"blur":0,"shadowStrength":0,"backgroundGlow":0,"characterGlow":0},
+  "presentation":{"density":"compact","messages":"cards"},"motion":{"scale":0},
+  "typography":{"uiFamily":"rubik","readingFamily":"rubik","uiScale":0.98,"readingScale":0.98,"uiWeight":500,"readingWeight":400,"readingLineHeight":1.52},
+  "icons":{"pack":"lucide","strokeWidth":2,"fill":"none"},"characterAccent":{"mode":"fixed"}
+}

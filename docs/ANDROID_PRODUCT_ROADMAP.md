@@ -205,7 +205,7 @@ Foundation acceptance:
 
 ## Milestone 3: Layout v4 product and visual pass
 
-**Status: structural direction approved; detailed technical planning and implementation have not begun.**
+**Status: browser/Termux release candidate completed 19 November 2026; see the [implementation report](MILESTONE_3_IMPLEMENTATION_REPORT.md). Real-phone browser and packaged WebView qualification remain outstanding. This pass excludes extension integration.**
 
 Layout v4 is the next major product milestone, not a cosmetic cleanup after the theme work. Build structure, interaction and visual range together so the new layout does not quietly hard-code Hearth, while the theme contract is exercised against real screens instead of abstract token samples.
 

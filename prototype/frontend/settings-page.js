@@ -1,8 +1,9 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.8.0';
-import {icon} from './icons.js?build=0.8.0';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.8.0';
-import {FRONTEND_BUILD} from './build.js?build=0.8.0';
+import {el, btn} from './wi-ui.js?build=0.9.0';
+import {icon} from './icons.js?build=0.9.0';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.9.0';
+import {FRONTEND_BUILD} from './build.js?build=0.9.0';
+import {createConfigurationMigrationPage} from './configuration-migration-page.js?build=0.9.0';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
@@ -10,9 +11,10 @@ const DIRECT_KEY = 'pocket-tavern.direct-endpoint.v1';
 const MANUAL = '\u0000manual';
 export const sameEndpoint = (a, b) => String(a ?? '').trim().replace(/\/+$/, '') === String(b ?? '').trim().replace(/\/+$/, '');
 
-export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, probeProxy, visible = () => true}) {
+export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSettings=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, getLayout=()=>({messageFormat:'reading',wiPlacement:'destination'}),setLayout=()=>{},getThemeStore=()=>null,beginThemePreview=()=>{},probeProxy, visible = () => true, wide = () => false}) {
  let tab = 'home', config = null, container = null;
  let form = null, message = '', messageKind = '', working = false, proxyUp = null, showKey = false, failure = '';
+ const migrationPage=createConfigurationMigrationPage({rpc,notify,onComplete:adoptSnapshot});
 
  const saveDirect = value => { try { if (value && !sameEndpoint(value, PROXY_ENDPOINT)) localStorage.setItem(DIRECT_KEY, value); } catch {} };
  const directEndpoint = () => { try { return localStorage.getItem(DIRECT_KEY) || DEFAULT_DIRECT; } catch { return DEFAULT_DIRECT; } };
@@ -21,7 +23,7 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},rpc, actio
  async function load() {
   failure = '';
   try {
-   config = await rpc('settings');
+   config = await rpc('settings'); await migrationPage.inspect();
    const selected = config.selected;
    form = {provider: selected.source === 'deepseek' ? 'deepseek' : 'custom', endpoint: selected.endpoint ?? '', key: '', model: selected.model ?? '', manual: false};
   } catch (error) { config = null; failure = error.message; }
@@ -202,6 +204,16 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},rpc, actio
  }
  function appearanceTab(page) {
   const value = getAppearance();
+  const themes=getThemeStore();
+  if(themes){
+   page.append(el('h2','Theme','sp-heading'));
+   const cards=el('div','','theme-cards');for(const theme of themes.list()){const card=btn('',null,`theme-card ${themes.current().id===theme.id?'current':''}`);card.type='button';card.setAttribute('aria-label',`Preview ${theme.name}`);card.onclick=()=>{beginThemePreview(theme.id);render();};const swatches=el('span','','theme-swatches');for(const color of [theme.colors.canvas,theme.colors.surface,theme.colors.accent,theme.colors.text]){const swatch=el('i');swatch.style.background=color;swatches.append(swatch);}card.append(swatches,el('strong',theme.name),el('small',`${theme.scheme} · ${theme.presentation.density}`));cards.append(card);}page.append(cards);
+   const themeActions=el('div','','theme-actions');
+   const accent=el('input');accent.type='color';accent.value=themes.current().colors.accent.slice(0,7);accent.setAttribute('aria-label','Custom theme accent');
+   themeActions.append(accent,btn('Customize',()=>{const current=themes.current(),copy=structuredClone(current);copy.id=`personal-${Date.now()}`;copy.name=`${current.name} custom`;copy.colors.accent=accent.value;copy.colors.link=accent.value;copy.colors.focus=accent.value;beginThemePreview(copy,'theme');render();},'btn secondary'));
+   const importFile=el('input');importFile.type='file';importFile.accept='.json,.settings,application/json';importFile.hidden=true;importFile.onchange=async()=>{try{const parsed=JSON.parse(await importFile.files[0].text()),result=parsed?.kind==='ui-theme'?beginThemePreview(parsed,'theme'):beginThemePreview(parsed,'st');if(result.warnings?.length)notify(result.warnings.join(' '));render();}catch(error){notify(`Theme import failed: ${error.message}`);}finally{importFile.value='';}};
+   const importButton=btn('Import',()=>importFile.click(),'btn secondary'),exportButton=btn('Export',()=>{const blob=new Blob([themes.export()],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${themes.current().id}.theme.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);},'btn secondary'),restore=btn('Restore default theme',()=>{themes.select('hearth');notify('Hearth restored. Personal themes were kept.');render();},'btn quiet');themeActions.append(importFile,importButton,exportButton,restore);page.append(themeActions,el('p','Theme changes colors, material, geometry and typography. Reading/Messenger remains a separate layout preference. Preview stays active while you inspect other destinations; use the persistent Apply/Cancel bar.','sp-note'),el('hr','','sp-rule'));
+  }else page.append(el('p','Loading themes…','sp-note'));
   const commit = next => { setAppearance(normalizeAppearance({...value, ...next, details: {...value.details, ...(next.details ?? {})}})); render(); };
   const head = el('div', '', 'sp-slider-head'); head.append(el('span', 'Chat text size'), el('span', `${value.textSize} px`));
   const slider = el('input'); slider.type = 'range'; slider.min = TEXT_SIZE.min; slider.max = TEXT_SIZE.max; slider.step = 1; slider.value = value.textSize; slider.setAttribute('aria-label', 'Chat text size');
@@ -231,6 +243,18 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},rpc, actio
   function updatePreview() { const bits = detailBits(); line.replaceChildren(...(bits.length ? bits.flatMap((bit, i) => i ? [' · ', ...bit] : bit) : ['No message details'])); }
   updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }
+ function nativeTab(page,surface) {
+  page.append(el('p',surface==='connection'?'Connection is owned by SillyTavern. Pocket opens the original native controls in the existing engine session.':'Presets and generation are owned by the active SillyTavern API. Pocket does not copy or reinterpret these fields.','sp-note'));
+  const open=btn(`Open native ${surface==='connection'?'Connection':'Presets & generation'}`,()=>onNativeSettings(surface),'btn primary sp-primary');open.disabled=!connected()||locked();page.append(open);
+  const mount=el('div','','native-settings-mount');mount.id='native-settings-mount';mount.setAttribute('role','region');mount.setAttribute('aria-label','SillyTavern native settings');page.append(mount);
+ }
+ function layoutTab(page){
+  const value=getLayout(),format=el('div','','segmented sp-seg');format.setAttribute('role','group');format.setAttribute('aria-label','Message format');
+  for(const [id,label] of [['reading','Reading'],['messenger','Messenger']])format.append(btn(label,()=>{setLayout({...value,messageFormat:id});render();},'',{'aria-pressed':String(value.messageFormat===id)}));
+  page.append(el('p','Message format','sp-label'),format,el('p','Reading keeps a shared text column. Messenger uses left/right bubbles without changing saved messages or gestures.','sp-note'));
+  const wi=el('div','','sp-switch-row');wi.append(el('span','Fold World Info into Library'),btn('',()=>{setLayout({...value,wiPlacement:value.wiPlacement==='library'?'destination':'library'});render();},'toggle sp-switch',{role:'switch','aria-checked':String(value.wiPlacement==='library'),'aria-label':'Fold World Info into Library'}));page.append(wi,el('p','Unfolding restores World Info to its saved destination position.','sp-note'));
+ }
+ function aboutTab(page){page.append(el('h2','Pocket Tavern','sp-heading'),el('p',`Frontend ${FRONTEND_BUILD}`,'sp-note'),el('p',`Engine bridge ${config?.bridgeBuild??'unavailable'}`,'sp-note'),el('p','Layout v4 browser/Termux development build. APK packaging and general extension hosting are separate milestones.','sp-note'));}
  // The Settings home: grouped rows with section labels. Each row opens its own page.
  function homeTab(page) {
   const group = (label, rows) => { const box = el('section', '', 'sp-group'); box.append(el('h2', label, 'sp-group-label')); const list = el('div', '', 'sp-group-rows'); for (const row of rows) list.append(row); box.append(list); page.append(box); };
@@ -239,21 +263,36 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},rpc, actio
   const engine = connected() ? 'Connected · Local' : 'Not connected';
   const reconnectRow = el('div', '', 'sp-row sp-row-static'); const lead = el('span', '', 'sp-row-icon'); lead.append(icon('server')); const text = el('span', '', 'sp-row-text'); text.append(el('strong', 'SillyTavern engine'), el('small', engine, `sp-row-value ${connected() ? 'ok' : 'err'}`)); const re = btn('', () => reconnect(), 'btn quiet sp-link'); re.append(icon('refresh'), ' Reconnect'); reconnectRow.append(lead, text, re);
   const provider = !selected ? (failure ? 'Could not read the connection' : 'Loading…') : `${selected.source === 'deepseek' ? 'DeepSeek' : selected.source === 'custom' ? (sameEndpoint(selected.endpoint, PROXY_ENDPOINT) ? 'Proxy' : 'OpenAI-compatible') : selected.source} · ${selected.model || 'no model'}`;
-  group('Connection', [reconnectRow, row({glyph: 'plug', title: 'Chat completion', value: provider, tone: config?.onlineStatus === 'no_connection' ? 'err' : '', open: () => { tab = 'connection'; render(); }, id: 'settings-connection'})]);
-  group('Chats', [row({glyph: 'sliders', title: 'Presets', value: selected?.preset ? `${selected.preset} · used everywhere unless a character or chat has its own` : 'Manage, edit and import presets', open: () => onPresets(), id: 'settings-presets'}), row({glyph: 'eye', title: 'Appearance & reading', value: `${look.textSize} px · ${look.spacing} spacing · thinking ${look.thinking}`, open: () => { tab = 'appearance'; render(); }, id: 'settings-appearance'})]);
-  group('About', [row({glyph: 'mug', title: 'Pocket Tavern', value: `${FRONTEND_BUILD} · engine bridge ${config?.bridgeBuild ?? '…'}`})]);
+  const migration=migrationPage.state();
+  group('Engine', [reconnectRow,row({glyph:'plug',title:'Connection',value:provider,tone:config?.onlineStatus==='no_connection'?'err':'',open:()=>{tab='connection';render();},id:'settings-connection'}),row({glyph:'sliders',title:'Presets & generation',value:selected?.preset||'No preset selected',open:()=>{tab='presets';render();},id:'settings-presets'}),row({glyph:'shield',title:'Configuration ownership',value:migration?.ownership==='native'?'Native SillyTavern':migration?.ownership==='preparing'?'Preservation in progress':'Legacy Pocket scopes',open:()=>{tab='migration';render();},id:'settings-migration'})]);
+  group('Interface', [row({glyph:'eye',title:'Appearance',value:`${look.textSize} px · ${look.spacing} spacing`,open:()=>{tab='appearance';render();},id:'settings-appearance'}),row({glyph:'library',title:'Layout & reading',value:`${getLayout().messageFormat} · WI ${getLayout().wiPlacement}`,open:()=>{tab='layout';render();},id:'settings-layout'})]);
+  group('About',[row({glyph:'mug',title:'About',value:`Pocket Tavern ${FRONTEND_BUILD}`,open:()=>{tab='about';render();},id:'settings-about'})]);
+ }
+ const topicNames={home:'Overview',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About'};
+ function renderTopic(page){
+  if (tab === 'home') homeTab(page);
+  else if (tab === 'appearance') appearanceTab(page);
+  else if(tab==='connection'||tab==='presets')nativeTab(page,tab==='connection'?'connection':'presets');
+  else if(tab==='migration')migrationPage.render(page,action);
+  else if(tab==='layout')layoutTab(page);
+  else if(tab==='about')aboutTab(page);
+  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'btn secondary sp-secondary'), el('p', 'Appearance & reading works without the engine.', 'sp-note')); }
+  else if (!config) page.append(el('p', 'Loading connection settings…', 'sp-note'));
+  else connectionTab(page);
+ }
+ function wideCategories(){
+  const nav=el('nav','','settings-categories');nav.setAttribute('aria-label','Settings categories');
+  for(const [label,items] of [['Engine',[['connection','plug'],['presets','sliders'],['migration','shield']]],['Interface',[['appearance','eye'],['layout','library']]],['About',[['about','mug']]]]){nav.append(el('h2',label,'sp-group-label'));for(const [id,glyph] of items){const b=btn('',()=>{tab=id;render();},'settings-category',{'aria-current':tab===id?'page':'false','data-topic':id});b.append(icon(glyph),el('span',topicNames[id]));nav.append(b);}}
+  return nav;
  }
  function render(content) {
   if (content) container = content;
   if (!container?.isConnected || !visible()) return;
-  const page = el('div', '', `sp-page sp-${tab}`);
-  const heading = document.getElementById('page-title'); if (heading) heading.textContent = ({home: 'Settings', connection: 'Connection', appearance: 'Appearance & reading'})[tab] ?? 'Settings';
-  if (tab === 'home') homeTab(page);
-  else if (tab === 'appearance') appearanceTab(page);
-  else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'btn secondary sp-secondary'), el('p', 'Appearance & reading works without the engine.', 'sp-note')); }
-  else if (!config) page.append(el('p', 'Loading connection settings…', 'sp-note'));
-  else connectionTab(page);
+  const page = el('div', '', `sp-page sp-${tab}`),heading = document.getElementById('page-title');
+  if(wide()){
+   if(heading)heading.textContent='Settings';const shell=el('div','','settings-wide-shell'),topic=el('section','','settings-topic');topic.append(el('h2',topicNames[tab]??'Settings','settings-topic-title'));renderTopic(topic);shell.append(wideCategories(),topic);page.append(shell);
+  }else{if(heading)heading.textContent=tab==='home'?'Settings':topicNames[tab]??'Settings';renderTopic(page);}
   container.replaceChildren(page);
  }
- return {render, open: load, reload: () => action(load), setTab(next) { tab = next; }, title: () => ({home: 'Settings', connection: 'Connection', appearance: 'Appearance & reading'}[tab] ?? 'Settings'), back() { if (tab === 'home') return false; tab = 'home'; render(); return true; }};
+ return {render, open: load, reload: () => action(load), setTab(next) { tab = ['home','connection','presets','migration','appearance','layout','about'].includes(next)?next:'home'; }, title: () => ({home:'Settings',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About'}[tab] ?? 'Settings'), back() { if (tab === 'home') return false; tab = 'home'; render(); return true; }};
 }

@@ -1,0 +1,31 @@
+{
+  "build": "0.9.0",
+  "checks": [
+    "Reading clean, streaming and bounded human-readable error states",
+    "Messenger clean, streaming and bounded human-readable error states",
+    "Wide Chats reuses the shared controller: >40 messages remain reachable; actions, alternatives, streaming and Stop work; selection is read-only; draft and scroll survive selection and resize",
+    "Wide Library selection is bound to the chosen native card and renders saved content",
+    "Long-content character reading and whole-card edit layouts remain bounded",
+    "World Info collection and entry editor fit the wide workspace",
+    "Wide Settings keeps categories beside the selected topic",
+    "Actual 200% root UI text scaling collapses split panes",
+    "Resize below 900 CSS px collapses split panes"
+  ],
+  "errors": [],
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "width": 800,
+      "height": 768
+    }
+  ],
+  "uiTextScaling": "root font-size 32px at 1024px (200%)",
+  "timestamp": "2026-11-19T17:46:09.206Z"
+}

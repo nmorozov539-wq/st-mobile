@@ -1,0 +1,47 @@
+{
+  "build": "0.9.0",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "formatAtStart": "reading",
+  "captures": [
+    {
+      "file": "m3-theme-hearth-home.png",
+      "theme": "hearth",
+      "screen": "Home"
+    },
+    {
+      "file": "m3-theme-nocturne-library.png",
+      "theme": "nocturne",
+      "screen": "Library",
+      "mode": "preview"
+    },
+    {
+      "file": "m3-theme-paper-home.png",
+      "theme": "paper",
+      "screen": "Home",
+      "mode": "committed/reloaded"
+    },
+    {
+      "file": "m3-theme-monolith-appearance.png",
+      "theme": "monolith",
+      "screen": "Appearance",
+      "mode": "preview"
+    }
+  ],
+  "checks": [
+    "Nocturne preview crossed destinations and Cancel wrote nothing",
+    "Built-in Paper Apply reused its ID and survived reload",
+    "Monolith geometry/material preview cancelled transactionally",
+    "Customized personal theme exported",
+    "Restore default changed selection but retained personal theme",
+    "Exported personal theme imported as a collision-safe copy",
+    "Invalid import left committed selection unchanged",
+    "ST theme import warned, previewed safe colors, and ignored CSS",
+    "Theme selection did not change Messenger layout preference",
+    "Corrupt/invalid theme storage recovered through minimally fixed Safe theme control"
+  ],
+  "errors": [],
+  "timestamp": "2026-11-19T12:34:24.846Z"
+}

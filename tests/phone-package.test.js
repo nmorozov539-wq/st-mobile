@@ -30,6 +30,7 @@ test('phone preparation isolates data and config, preserves source, and refuses 
         for(const dir of ['frontend','extension']) {fs.mkdirSync(path.join(bundle,dir),{recursive:true});fs.writeFileSync(path.join(bundle,dir,'index.js'),'// fixture');}
         fs.writeFileSync(path.join(bundle,'mock-model.mjs'),'// fixture');
         fs.writeFileSync(path.join(bundle,'start.cjs'),'// fixture launcher');
+        for(const name of ['log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','update-core.cjs','compatibility.cjs','package-staging.cjs'])fs.copyFileSync(path.resolve('phone-package',name),path.join(bundle,name));
         fs.writeFileSync(path.join(bundle,'proxy.cjs'),'// updated proxy fixture');
         fs.writeFileSync(path.join(bundle,'frontend/index.html'),'fixture page');
         const alias=path.join(root,'source-alias');fs.symlinkSync(source,alias,'dir');
@@ -116,13 +117,9 @@ test('data import preserves standard files, leaves source untouched and refuses 
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
-test('repair reports a stalled update instead of exiting quietly as success',()=>{
-    const {spawnSync}=require('node:child_process');
-    const script=path.resolve('phone-package/repair-pocket.cjs');
-    const stalled=spawnSync(process.execPath,['-e',`require(${JSON.stringify(script)}).guardUnsettled(new Promise(()=>{}))`],{encoding:'utf8'});
-    assert.equal(stalled.status,1);assert.match(stalled.stderr,/Repair stopped: the update stalled/);
-    const failed=spawnSync(process.execPath,['-e',`require(${JSON.stringify(script)}).guardUnsettled(Promise.reject(Error('bad zip')))`],{encoding:'utf8'});
-    assert.equal(failed.status,1);assert.match(failed.stderr,/Repair stopped: bad zip/);
-    const done=spawnSync(process.execPath,['-e',`require(${JSON.stringify(script)}).guardUnsettled(Promise.resolve())`],{encoding:'utf8'});
-    assert.equal(done.status,0);assert.equal(done.stderr,'');
+test('repair reports a stalled update instead of exiting quietly as success',async()=>{
+    const {guardUnsettled}=require('../phone-package/repair-pocket.cjs');let beforeExit,messages=[];
+    guardUnsettled(new Promise(()=>{}),{listen:handler=>beforeExit=handler,fail:message=>messages.push(message)});beforeExit();assert.match(messages[0],/Repair stopped: the update stalled/);
+    messages=[];await guardUnsettled(Promise.reject(Error('bad zip')),{listen:()=>{},fail:message=>messages.push(message)});assert.match(messages[0],/Repair stopped: bad zip/);
+    messages=[];await guardUnsettled(Promise.resolve(),{listen:()=>{},fail:message=>messages.push(message)});assert.deepEqual(messages,[]);
 });

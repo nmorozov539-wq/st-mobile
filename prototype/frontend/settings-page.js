@@ -11,7 +11,7 @@ const DIRECT_KEY = 'pocket-tavern.direct-endpoint.v1';
 const MANUAL = '\u0000manual';
 export const sameEndpoint = (a, b) => String(a ?? '').trim().replace(/\/+$/, '') === String(b ?? '').trim().replace(/\/+$/, '');
 
-export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSettings=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, getLayout=()=>({messageFormat:'reading',wiPlacement:'destination'}),setLayout=()=>{},getThemeStore=()=>null,beginThemePreview=()=>{},probeProxy, visible = () => true, wide = () => false}) {
+export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSettings=()=>{},rpc, action, locked, notify, reconnect, connected, adoptSnapshot, getAppearance, setAppearance, getLayout=()=>({messageFormat:'reading',wiPlacement:'destination'}),setLayout=()=>{},getThemeStore=()=>null,beginThemePreview=()=>{},diagnostics=()=>[],clearDiagnostics=()=>{},openEngineLog=()=>{},probeProxy, visible = () => true, wide = () => false}) {
  let tab = 'home', config = null, container = null;
  let form = null, message = '', messageKind = '', working = false, proxyUp = null, showKey = false, failure = '';
  const migrationPage=createConfigurationMigrationPage({rpc,notify,onComplete:adoptSnapshot});
@@ -255,6 +255,12 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   const wi=el('div','','sp-switch-row');wi.append(el('span','Fold World Info into Library'),btn('',()=>{setLayout({...value,wiPlacement:value.wiPlacement==='library'?'destination':'library'});render();},'toggle sp-switch',{role:'switch','aria-checked':String(value.wiPlacement==='library'),'aria-label':'Fold World Info into Library'}));page.append(wi,el('p','Unfolding restores World Info to its saved destination position.','sp-note'));
  }
  function aboutTab(page){page.append(el('h2','Pocket Tavern','sp-heading'),el('p',`Frontend ${FRONTEND_BUILD}`,'sp-note'),el('p',`Engine bridge ${config?.bridgeBuild??'unavailable'}`,'sp-note'),el('p','Layout v4 browser/Termux development build. APK packaging and general extension hosting are separate milestones.','sp-note'));}
+ function diagnosticsTab(page){
+  page.append(el('p','Recent Pocket and SillyTavern notices stay on this device. Engine terminal output is kept separately by the launcher.','sp-note'));
+  const actions=el('div','','sp-actions'),logs=btn('Open engine log',openEngineLog,'btn primary'),clear=btn('Clear recent events',()=>{clearDiagnostics();render();},'btn quiet');actions.append(logs,clear);page.append(actions);
+  const items=diagnostics().slice(0,100);if(!items.length){page.append(el('p','No recent diagnostic events.','sp-note'));return;}
+  const list=el('div','','diagnostic-events');for(const item of items){const details=el('details','','diagnostic-event'),heading=el('summary'),meta=el('span',`${item.source} · ${item.category} · ${new Date(item.timestamp).toLocaleString()}`,'diagnostic-meta');heading.append(el('strong',item.summary),meta);details.append(heading);if(item.detail)details.append(el('pre',item.detail,'diagnostic-detail'));details.append(el('small',`Outcome: ${item.outcome}${item.operationId?` · operation ${item.operationId}`:''}`,'sp-note'));list.append(details);}page.append(list);
+ }
  // The Settings home: grouped rows with section labels. Each row opens its own page.
  function homeTab(page) {
   const group = (label, rows) => { const box = el('section', '', 'sp-group'); box.append(el('h2', label, 'sp-group-label')); const list = el('div', '', 'sp-group-rows'); for (const row of rows) list.append(row); box.append(list); page.append(box); };
@@ -266,9 +272,9 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   const migration=migrationPage.state();
   group('Engine', [reconnectRow,row({glyph:'plug',title:'Connection',value:provider,tone:config?.onlineStatus==='no_connection'?'err':'',open:()=>{tab='connection';render();},id:'settings-connection'}),row({glyph:'sliders',title:'Presets & generation',value:selected?.preset||'No preset selected',open:()=>{tab='presets';render();},id:'settings-presets'}),row({glyph:'shield',title:'Configuration ownership',value:migration?.ownership==='native'?'Native SillyTavern':migration?.ownership==='preparing'?'Preservation in progress':'Legacy Pocket scopes',open:()=>{tab='migration';render();},id:'settings-migration'})]);
   group('Interface', [row({glyph:'eye',title:'Appearance',value:`${look.textSize} px · ${look.spacing} spacing`,open:()=>{tab='appearance';render();},id:'settings-appearance'}),row({glyph:'library',title:'Layout & reading',value:`${getLayout().messageFormat} · WI ${getLayout().wiPlacement}`,open:()=>{tab='layout';render();},id:'settings-layout'})]);
-  group('About',[row({glyph:'mug',title:'About',value:`Pocket Tavern ${FRONTEND_BUILD}`,open:()=>{tab='about';render();},id:'settings-about'})]);
+  group('About',[row({glyph:'mug',title:'About',value:`Pocket Tavern ${FRONTEND_BUILD}`,open:()=>{tab='about';render();},id:'settings-about'}),row({glyph:'server',title:'Diagnostics',value:`${diagnostics().length} recent event${diagnostics().length===1?'':'s'}`,open:()=>{tab='diagnostics';render();},id:'settings-diagnostics'})]);
  }
- const topicNames={home:'Overview',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About'};
+ const topicNames={home:'Overview',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About',diagnostics:'Diagnostics'};
  function renderTopic(page){
   if (tab === 'home') homeTab(page);
   else if (tab === 'appearance') appearanceTab(page);
@@ -276,13 +282,14 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   else if(tab==='migration')migrationPage.render(page,action);
   else if(tab==='layout')layoutTab(page);
   else if(tab==='about')aboutTab(page);
+  else if(tab==='diagnostics')diagnosticsTab(page);
   else if (failure) { page.append(el('p', failure, 'sp-note err'), btn('Try again', () => load(), 'btn secondary sp-secondary'), el('p', 'Appearance & reading works without the engine.', 'sp-note')); }
   else if (!config) page.append(el('p', 'Loading connection settings…', 'sp-note'));
   else connectionTab(page);
  }
  function wideCategories(){
   const nav=el('nav','','settings-categories');nav.setAttribute('aria-label','Settings categories');
-  for(const [label,items] of [['Engine',[['connection','plug'],['presets','sliders'],['migration','shield']]],['Interface',[['appearance','eye'],['layout','library']]],['About',[['about','mug']]]]){nav.append(el('h2',label,'sp-group-label'));for(const [id,glyph] of items){const b=btn('',()=>{tab=id;render();},'settings-category',{'aria-current':tab===id?'page':'false','data-topic':id});b.append(icon(glyph),el('span',topicNames[id]));nav.append(b);}}
+  for(const [label,items] of [['Engine',[['connection','plug'],['presets','sliders'],['migration','shield']]],['Interface',[['appearance','eye'],['layout','library']]],['About',[['about','mug'],['diagnostics','server']]]]){nav.append(el('h2',label,'sp-group-label'));for(const [id,glyph] of items){const b=btn('',()=>{tab=id;render();},'settings-category',{'aria-current':tab===id?'page':'false','data-topic':id});b.append(icon(glyph),el('span',topicNames[id]));nav.append(b);}}
   return nav;
  }
  function render(content) {
@@ -294,5 +301,5 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   }else{if(heading)heading.textContent=tab==='home'?'Settings':topicNames[tab]??'Settings';renderTopic(page);}
   container.replaceChildren(page);
  }
- return {render, open: load, reload: () => action(load), setTab(next) { tab = ['home','connection','presets','migration','appearance','layout','about'].includes(next)?next:'home'; }, title: () => ({home:'Settings',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About'}[tab] ?? 'Settings'), back() { if (tab === 'home') return false; tab = 'home'; render(); return true; }};
+ return {render, open: load, reload: () => action(load), setTab(next) { tab = ['home','connection','presets','migration','appearance','layout','about','diagnostics'].includes(next)?next:'home'; }, title: () => ({home:'Settings',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About',diagnostics:'Diagnostics'}[tab] ?? 'Settings'), back() { if (tab === 'home') return false; tab = 'home'; render(); return true; }};
 }

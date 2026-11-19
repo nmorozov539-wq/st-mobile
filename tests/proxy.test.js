@@ -23,7 +23,7 @@ test('optional proxy setup copies dependencies only, preserves data and refuses 
   assert.equal(fs.readFileSync(path.join(target,'data/keep'),'utf8'),'KEEP');
   assert.equal(fs.lstatSync(path.join(destination,'node_modules')).isSymbolicLink(),false);
   assert.deepEqual(readLaunch(target,false,true).ports,[8123,8001]);
-  assert.deepEqual(readLaunch(target,false,true).commands[0],['.pocket-proxy/index.cjs']);
+  assert.deepEqual(readLaunch(target,false,true).commands[0],{source:'proxy',args:['.pocket-proxy/index.cjs']});
   assert.equal(readLaunch(target).commands.length,1);
   assert.throws(()=>setupProxy(source,target),/already installed/);
   fs.writeFileSync(path.join(target,'.pocket-tavern.json'),JSON.stringify({version:1,mode:'combined',mock:true}));

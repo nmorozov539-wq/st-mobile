@@ -88,11 +88,11 @@ async function repair({archive,source,target=path.join(os.homedir(),'pocket-tave
 }
 // A promise that never settles lets Node exit quietly with code 0 (this happened when the
 // ZIP extractor stalled). Report that as a failure instead of looking like success.
-function guardUnsettled(task){
+function guardUnsettled(task,{listen=handler=>process.once('beforeExit',handler),fail=message=>{console.error(message);process.exitCode=1;}}={}){
  let settled=false;
- const stalled=()=>{if(settled)return;settled=true;console.error('Repair stopped: the update stalled before it finished, so the previous version is still installed. Download the ZIP again and rerun; if it repeats, send this message.');process.exitCode=1;};
- process.once('beforeExit',stalled);
- return Promise.resolve(task).then(()=>{settled=true;},error=>{settled=true;console.error('Repair stopped:',error.message);process.exitCode=1;});
+ const stalled=()=>{if(settled)return;settled=true;fail('Repair stopped: the update stalled before it finished, so the previous version is still installed. Download the ZIP again and rerun; if it repeats, send this message.');};
+ listen(stalled);
+ return Promise.resolve(task).then(()=>{settled=true;},error=>{settled=true;fail(`Repair stopped: ${error.message}`);});
 }
 module.exports={extractKit,locateArchive,locateProxy,repair,guardUnsettled};
 if(require.main===module)guardUnsettled(repair({archive:process.argv[2],source:process.argv[3],target:process.argv[4]}));

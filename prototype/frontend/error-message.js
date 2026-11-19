@@ -1,5 +1,5 @@
 export function readableError(value, fallback = 'The request failed.') {
-    let current = value?.message ?? value;
+    let current = value?.summary ?? value?.message ?? value;
     for (let depth = 0; depth < 3; depth++) {
         if (typeof current !== 'string') break;
         const text = current.trim();

@@ -2,15 +2,30 @@
 
 ## Update your existing phone installation
 
-Stop its launcher with Ctrl+C. Put the complete **pocket-tavern-combined-v0.9.0.zip** and matching **repair-pocket.cjs** in Android Downloads. In Termux:
+Git is the normal update path. Stop the installed launcher with Ctrl+C, then clone or update a trusted source checkout and run the updater from that checkout:
+
+```sh
+git clone <trusted-repository-url> ~/st-mobile
+cd ~/st-mobile
+node phone-package/update-from-git.cjs --target ~/pocket-tavern --ref dev
+```
+
+For later updates, fetch the source checkout and repeat the updater command. The updater resolves the requested ref to one exact commit, stages and verifies the complete package, keeps user data/settings/config outside the replacement, and retains up to two code backups. It never asks for or stores credentials; normal Git SSH or HTTPS authentication applies. The saved source URL has embedded credentials removed.
+
+Do not update while the launcher is running. A launcher and updater share one lifecycle lock, so a race is refused safely. If power or Termux is interrupted, run the same command again: the durable transaction journal reconciles the last filesystem step before continuing. A no-op reports the already-installed commit. To restore the most recent verified backup:
+
+```sh
+cd ~/st-mobile
+node phone-package/update-from-git.cjs --target ~/pocket-tavern --rollback
+```
+
+The complete ZIP and repair script remain an offline/manual fallback. Put matching copies of **pocket-tavern-combined-v0.9.0.zip** and **repair-pocket.cjs** in Android Downloads, stop the launcher, then run:
 
 ```sh
 node ~/storage/downloads/repair-pocket.cjs
 ```
 
-This installs matching frontend/bridge code, keeps existing data/settings/config, backs up previous code and starts the combined installation with its installed optional proxy. Reload **http://127.0.0.1:8123/st-mobile/**. App connection settings should show frontend and bridge **0.9.0**.
-
-For manual updating from the complete extracted kit:
+For a manual update from an extracted complete kit:
 
 ```sh
 cd ~/storage/downloads/pocket-tavern-combined-v0.9.0
@@ -20,6 +35,21 @@ node start.cjs --proxy
 ```
 
 Use plain `node start.cjs` if you do not use the bundled proxy. An isolated mock installation uses `node start.cjs --mock`.
+
+## Local diagnostics and engine logs
+
+The launcher now stays alive if the engine exits, records both stdout and stderr, and prints a private diagnostics link containing a random fragment token. Open that link on the same phone. The viewer listens only on `127.0.0.1`, exchanges the fragment for an HttpOnly same-site session, applies strict Host/Origin checks, and exposes no cross-origin API.
+
+Logs are local, bounded, rotated, and redacted for common authorization headers, credential query parameters and JSON secret fields. They can still contain conversation text, filenames, provider messages or other private context. Review the exact preview before downloading a support bundle; export uses that immutable preview and never silently adds newer log lines.
+
+The viewer shows live status, filtering, pause/follow, older lines and selected-line copy. If the engine crashes, it remains available and clearly shows **Engine stopped**; there is no automatic restart. To inspect existing logs without starting the engine:
+
+```sh
+cd ~/pocket-tavern
+node start.cjs --diagnostics-only
+```
+
+Use `--diagnostics-port <port>` only when the default local diagnostics port is occupied. Ctrl+C stops the launcher, engine/proxy children and diagnostics viewer together.
 
 ## Fresh normal installation
 

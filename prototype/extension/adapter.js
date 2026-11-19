@@ -1,5 +1,6 @@
+import {normalizeErrorRecord} from './error-record.js?build=0.9.0';
 // ST behavior lives in the runtime bindings; this module owns operation tracking.
-export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, worldInfo, extensions, prepareGeneration = async () => {} }) {
+export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, worldInfo, extensions, prepareGeneration = async () => {}, sessionId=null, normalizeError=normalizeErrorRecord }) {
     let ready = false;
     let selecting = false;
     let disposed = false;
@@ -211,6 +212,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
             operations.set(requestId, operation);
             operation.promise = (async () => {
                 let submissionError;
+                let submitted = false;
                 let unsubscribe = () => {};
                 try {
                     // Saves never select the model; a reply does, before anything is submitted.
@@ -221,6 +223,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                         emit({ type: 'text.replace', ...operation.status });
                     });
                     // submit must use ST's composer path, not append a second user message.
+                    submitted = true;
                     try { await (mode === 'swipe' ? generation.generateSwipe() : generation.submit(text)); } catch (error) { submissionError = error; }
                     const cancelled = operation.status.state === 'stopping';
                     operation.status.state = 'verifying';
@@ -250,7 +253,10 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
                     operation.status.state = cancelled ? 'cancelled' : 'completed';
                 } catch (error) {
                     operation.status.state = 'failed';
-                    operation.status.error = { code: error.code ?? 'GENERATION_FAILED', message: error.message ?? String(error) };
+                    const code=error.code??'GENERATION_FAILED';
+                    const outcome=operation.status.persistence==='verified'?'partial saved':/PERSISTENCE|SAVE_|UNVERIFIED/.test(code)?'uncertain':submitted?'failed':'not submitted';
+                    operation.status.error = normalizeError(error,{operationId:requestId,target:{characterKey,chatId},sessionId,outcome});
+                    emit({type:'error.record',record:operation.status.error});
                 } finally {
                     unsubscribe();
                     active = null;

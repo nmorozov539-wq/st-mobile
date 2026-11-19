@@ -73,3 +73,4 @@ html:not([data-background=plain]) .sp-preview{background:var(--glow),var(--color
 .sp-engine small{color:var(--color-success)}
 .sp-field input,.sp-field select{border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-medium);font-size:var(--t-m)}
 .sp-field input:focus,.sp-field select:focus{outline:0;border-color:var(--color-accent)}
+.diagnostic-events{display:grid;gap:8px}.diagnostic-event{border:var(--shape-border-width) solid var(--color-border);border-radius:var(--shape-radius-medium);padding:10px;background:var(--color-raised)}.diagnostic-event summary{cursor:pointer;display:grid;gap:4px}.diagnostic-meta{font-size:.78em;color:var(--color-muted-text)}.diagnostic-detail{white-space:pre-wrap;overflow-wrap:anywhere;max-height:15rem;overflow:auto}.error-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}#send-error details{margin-top:6px}#send-error pre{white-space:pre-wrap;margin:.4rem 0 0;max-height:9rem;overflow:auto}

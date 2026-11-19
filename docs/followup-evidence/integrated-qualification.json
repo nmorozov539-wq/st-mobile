@@ -1,0 +1,22 @@
+{
+  "baselineCommit": "b56ca02",
+  "candidateCommit": "5d214fa32cd0133a4856a92e289eb8cd7af4718f",
+  "commands": [
+    "python3 scripts/build-phone-package.py",
+    "node phone-package/update-from-git.cjs --target <fixture> --source <local-bare-remote> --ref dev",
+    "node <fixture>/start.cjs --mock",
+    "node phone-package/update-from-git.cjs --target <fixture> --rollback"
+  ],
+  "gitUpdate": true,
+  "providerSuccess": true,
+  "structuredProviderError": true,
+  "diagnosticEvents": true,
+  "engineKilledOnly": true,
+  "viewerAfterCrash": true,
+  "exportMatchedPreview": true,
+  "rollbackMatchedBaseline": true,
+  "userDataHashPreserved": "74800e645d0e5962650639e1440932bbdf04c4172fe4fe43555eaac300212372",
+  "packageVersion": "0.9.0",
+  "realPhoneQualified": false,
+  "pageErrors": []
+}

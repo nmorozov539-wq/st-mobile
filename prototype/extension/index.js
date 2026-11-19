@@ -13,6 +13,7 @@ import { createBridgeDispatcher, handshakeContract } from './bridge-contract.js?
 import { createNativeSettingsHost } from './native-settings-host.js?build=0.9.0';
 import { createNativeHostLock, nativeHostOwnsEngine } from './native-host-lock.js?build=0.9.0';
 import { createConfigurationMigration } from './configuration-migration.js?build=0.9.0';
+import { installNativeNoticeBridge } from './native-notices.js?build=0.9.0';
 import { getPresetManager } from '/scripts/preset-manager.js';
 import { getPresetApplicationPromise } from '/scripts/openai.js';
 
@@ -30,7 +31,7 @@ const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||adapter.activ
 const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
     supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
     generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext), extensions: window.pocketExtensions,
-    prepareGeneration: () => workspace.prepareGeneration() });
+    prepareGeneration: () => workspace.prepareGeneration(),sessionId });
 const configurationProjection=()=>({...configuration.read(),ownership:workspace.ownership(),sessionId,readiness:{engine:true,configured:getContext().onlineStatus!=='no_connection'}});
 const readSavedSettings=async()=>{const response=await fetch('/api/settings/get',{method:'POST',headers:getContext().getRequestHeaders(),cache:'no-store'});if(!response.ok)throw Object.assign(Error('Could not verify saved migration state.'),{code:'MIGRATION_UNVERIFIED'});const data=await response.json();return JSON.parse(data.settings);};
 const settleNativeSettings=async()=>{await saveSettings();const saved=await readSavedSettings(),manager=getPresetManager();if(saved.main_api!==getContext().mainApi)throw Error('The active API did not match saved settings.');return {verified:true,mainApi:saved.main_api,preset:manager?.getSelectedPresetName?.()??null};};
@@ -74,10 +75,12 @@ if (window.parent !== window && (window.name === 'pocket-engine' || new URLSearc
         port.start();
         window.parent.postMessage({ type: 'st-mobile-connected' }, location.origin);
     });
+    let teardownNativeNotices=()=>{};
     ctx.eventSource.on(ctx.eventTypes.APP_READY, async () => {
         try { const repaired = await repairDoubledCards(getContext); if (repaired.length) console.info('Pocket repaired doubled card fields:', repaired); }
         catch (error) { console.warn('Pocket card repair failed', error); }
         adapter.markReady(); adapter.subscribe(event => port?.postMessage({ event }));
+        teardownNativeNotices();teardownNativeNotices=installNativeNoticeBridge({emit:event=>port?.postMessage({event}),context:()=>{const activity=adapter.activity({ignoreExternal:true}),target=adapter.snapshot();return{sessionId,operationId:activity.operation?.requestId??null,target:activity.operation?{characterKey:target.characterKey,chatId:target.chatId}:null,outcome:activity.operation?'failed':'failed'};}});
         window.parent.postMessage({ type: 'st-mobile-ready' }, location.origin);
     });
 } else {

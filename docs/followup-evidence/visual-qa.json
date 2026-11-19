@@ -1,0 +1,40 @@
+{
+  "artifact": "Standalone diagnostics viewer",
+  "reviewedAt": "2026-11-19",
+  "verdict": "approved",
+  "screenshots": [
+    "diagnostics-viewer-390-dark.png",
+    "diagnostics-viewer-engine-stopped.png",
+    "diagnostics-viewer-320-light.png",
+    "diagnostics-viewer-tablet-light.png"
+  ],
+  "scores": {
+    "hierarchy": 94,
+    "legibility": 95,
+    "responsiveLayout": 94,
+    "interactionClarity": 93,
+    "craft": 93,
+    "overall": 94
+  },
+  "hardGates": {
+    "criticalTextClipping": false,
+    "unreadableContrast": false,
+    "brokenMobileLayout": false,
+    "ambiguousEngineState": false,
+    "unsafeHtmlRendering": false,
+    "unboundedRenderedRows": false
+  },
+  "revisionHistory": [
+    {
+      "finding": "The shared control sizing made the log-row checkbox oversized and crowded the 320 px layout.",
+      "resolution": "Scoped large touch targets to buttons, search and selects; restored an 18 px checkbox with a full clickable label; added a deliberate mobile control grid."
+    }
+  ],
+  "liveAssertions": {
+    "engineCrashStatus": "Engine stopped",
+    "viewerResponsive": true,
+    "maximumRenderedRows": 1000,
+    "htmlLogRenderedAsText": true
+  },
+  "remainingBoundary": "Desktop Chromium emulation does not qualify Android WebView, keyboard, insets, background lifetime or real-device gestures."
+}

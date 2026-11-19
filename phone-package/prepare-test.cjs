@@ -50,7 +50,7 @@ function prepare(source, target, bundle = __dirname, options = {}) {
             for(const name of ['public/scripts/tokenizers.js','src/server-main.js','src/fetch-patch.js','public/script.js']){
                 const saved=path.join(target,'.pocket-base',name); fs.mkdirSync(path.dirname(saved),{recursive:true});fs.copyFileSync(path.join(source,name),saved);
             }
-            fs.copyFileSync(path.join(bundle,'start.cjs'),path.join(target,'start.cjs'));
+            for(const name of ['start.cjs','log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','update-core.cjs','compatibility.cjs','package-staging.cjs'])fs.copyFileSync(path.join(bundle,name),path.join(target,name));
         }
         fs.writeFileSync(path.join(target,options.combined ? '.pocket-tavern.json' : '.pocket-tavern-test.json'),JSON.stringify({version:1,source,created:new Date().toISOString(),dataRoot:'data',mode:options.combined?'combined':'test',mock:!!options.mock,dependencies:options.copyDependencies?'copied':'shared'}));
     } catch (error) { throw Error(`${error.message}\nAn incomplete NEW test folder may remain at ${target}; your regular ST was not modified.`); }

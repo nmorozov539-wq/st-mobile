@@ -1,0 +1,47 @@
+{
+  "server": {
+    "pid": 349786,
+    "bodyParserJsonLimit": "500mb",
+    "multerFieldSizeLimitBytes": 524288000,
+    "uploadStorage": "disk",
+    "jsonImporterBehavior": "readFileSync utf8 then JSON.parse"
+  },
+  "file": {
+    "name": "pocket-valid-native.json",
+    "size": 1048764,
+    "valid": true
+  },
+  "readback": {
+    "ok": true,
+    "name": "Native Import 1795201239285",
+    "description": "Real native importer proof",
+    "first_mes": "The native card was saved.",
+    "padding": 1048576
+  },
+  "network": {
+    "importRequests": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:8123/api/characters/import",
+        "at": 1795201243775
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:8123/api/characters/import",
+        "at": 1795201244730
+      }
+    ]
+  },
+  "memory": {
+    "unit": "KiB",
+    "baselineRssKiB": 316492,
+    "peakRssKiB": 484828,
+    "afterRssKiB": 491004,
+    "samples": 16
+  },
+  "errors": [],
+  "serverError": "ST could not import that character file. Inspect saved characters before another import.",
+  "boundaryError": "over-30.png is 30.0 MiB. Character cards may be at most 30 MiB.",
+  "visibleGlobalToast": false,
+  "timestamp": "2026-11-20T19:00:45.087Z"
+}

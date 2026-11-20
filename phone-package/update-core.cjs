@@ -291,7 +291,7 @@ function backupMetadata(target,backupDir,journal) {
         dataSchema:journal.oldManifest?.dataSchema ?? DATA_SCHEMA,
         createdAt:new Date().toISOString(),
         sourceCommit:journal.oldManifest?.sourceCommit ?? journal.oldMarker?.update?.installedCommit ?? null,
-        packageVersion:journal.oldManifest?.packageVersion ?? journal.oldMarker?.update?.packageVersion ?? '0.9.0',
+        packageVersion:journal.oldManifest?.packageVersion ?? journal.oldMarker?.update?.packageVersion ?? '0.9.1',
         managedRoots:journal.managedRoots,
         installedManifest:journal.oldManifest,
         marker:journal.oldMarker,

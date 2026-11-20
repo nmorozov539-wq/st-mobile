@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Tag-filter Cancel discarded its draft without changing the visible library",
+    "Apply used AND semantics: only the character carrying both selected tags remained",
+    "A later cancelled filter draft preserved the previously applied AND filter until explicit Clear",
+    "Created an ST-backed folder, moved a character, filtered it and completed verified saved readback",
+    "Oversized import was rejected locally with exact size, no library mutation and no global toast after navigation"
+  ],
+  "errors": [],
+  "timestamp": "2026-11-20T19:09:52.785Z"
+}

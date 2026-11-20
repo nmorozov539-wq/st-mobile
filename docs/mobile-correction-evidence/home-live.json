@@ -1,0 +1,65 @@
+{
+  "cases": [
+    {
+      "theme": "hearth",
+      "width": 320,
+      "geometry": {
+        "clientHeight": 765,
+        "scrollHeight": 765,
+        "clientWidth": 320,
+        "scrollWidth": 320,
+        "configuration": 2,
+        "continueActions": 1,
+        "recentRows": 3,
+        "startActions": 1
+      },
+      "errors": []
+    },
+    {
+      "theme": "hearth",
+      "width": 390,
+      "geometry": {
+        "clientHeight": 765,
+        "scrollHeight": 765,
+        "clientWidth": 390,
+        "scrollWidth": 390,
+        "configuration": 2,
+        "continueActions": 1,
+        "recentRows": 3,
+        "startActions": 1
+      },
+      "errors": []
+    },
+    {
+      "theme": "nocturne",
+      "width": 320,
+      "geometry": {
+        "clientHeight": 765,
+        "scrollHeight": 765,
+        "clientWidth": 320,
+        "scrollWidth": 320,
+        "configuration": 2,
+        "continueActions": 1,
+        "recentRows": 3,
+        "startActions": 1
+      },
+      "errors": []
+    },
+    {
+      "theme": "nocturne",
+      "width": 390,
+      "geometry": {
+        "clientHeight": 765,
+        "scrollHeight": 765,
+        "clientWidth": 390,
+        "scrollWidth": 390,
+        "configuration": 2,
+        "continueActions": 1,
+        "recentRows": 3,
+        "startActions": 1
+      },
+      "errors": []
+    }
+  ],
+  "timestamp": "2026-11-20T16:11:46.519Z"
+}

@@ -2,8 +2,9 @@
 :root{--page-gutter:16px}
 .pocket-shell{width:100%;max-width:1180px;min-height:100svh;height:100dvh}
 .page-heading button,#bottom-nav button,.library-tabs button,.home-config-row,.home-start-chat{min-height:44px;min-width:44px}
-.home-configuration{display:grid;gap:8px}
-.home-config-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:left;background:var(--color-surface);border-color:var(--color-border)}
+.home-configuration{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.home-config-row{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;text-align:left;background:var(--color-surface);border-color:var(--color-border);min-width:0}
+.home-config-text{min-width:0}.home-config-text strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home-config-row>.icon{color:var(--color-accent)}
 .home-config-text{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
 .home-config-text small{color:var(--color-muted-text)}
@@ -28,14 +29,14 @@
 .theme-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.theme-card{display:grid;gap:6px;min-height:96px;padding:10px;text-align:left;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text)}.theme-card.current{outline:2px solid var(--color-focus);outline-offset:1px}.theme-card small{color:var(--color-muted-text)}.theme-swatches{display:grid;grid-template-columns:repeat(4,1fr);height:24px;overflow:hidden;border:1px solid var(--color-border);border-radius:var(--shape-radius-small)}.theme-swatches i{display:block}.theme-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.theme-actions input[type=color]{width:48px;min-height:44px;padding:4px}
 
 html[data-message-format=reading] #messages{max-width:76ch;width:100%;margin-inline:auto}
-html[data-message-format=reading] .message{max-width:100%}
-html[data-message-format=reading] .message.user{max-width:100%;margin-left:0}
-html[data-message-format=reading] .user .bubble{border-left:2px solid var(--color-border-strong);border-radius:0}
+html[data-message-format=reading] #chat-screen .message{width:auto;max-width:100%}
+html[data-message-format=reading] #chat-screen .message.user{max-width:100%;margin-left:0}
+html[data-message-format=reading] #chat-screen .user .bubble{border-left:2px solid var(--color-border-strong);border-radius:0}
 html[data-message-format=messenger] #messages{max-width:880px;width:100%;margin-inline:auto}
-html[data-message-format=messenger] .message{display:flex;flex-direction:column;align-items:flex-start;max-width:88%}
-html[data-message-format=messenger] .message.user{align-items:flex-end;margin-left:auto;max-width:88%}
-html[data-message-format=messenger] .bubble{display:inline-block;max-width:100%;padding:11px 14px;border:var(--shape-border-width) solid var(--color-border);border-radius:4px var(--shape-radius-large) var(--shape-radius-large);background:var(--color-assistant-message)}
-html[data-message-format=messenger] .user .bubble{border-radius:var(--shape-radius-large) 4px var(--shape-radius-large) var(--shape-radius-large);background:var(--color-user-message)}
+html[data-message-format=messenger] #chat-screen .message{display:flex;flex-direction:column;align-items:flex-start;width:fit-content;max-width:min(82%,68ch);margin-right:auto}
+html[data-message-format=messenger] #chat-screen .message.user{align-items:flex-end;width:fit-content;margin-left:auto;margin-right:0;max-width:min(82%,68ch)}
+html[data-message-format=messenger] #chat-screen .bubble{display:block;max-width:100%;padding:11px 14px;border:var(--shape-border-width) solid var(--color-border);border-radius:4px var(--shape-radius-large) var(--shape-radius-large);background:var(--color-assistant-message)}
+html[data-message-format=messenger] #chat-screen .user .bubble{font-family:var(--ui);border-radius:var(--shape-radius-large) 4px var(--shape-radius-large) var(--shape-radius-large);background:var(--color-user-message)}
 
 @media (min-width:600px){
  :root{--page-gutter:24px}.page-heading,#page-content{padding-inline:var(--page-gutter)}

@@ -29,6 +29,7 @@ test('characters page: search, tag, sort and favourites first', () => {
     assert.deepEqual(arrangeCharacters(cards, {sort: 'added'}).map(c => c.key), ['b', 'a', 'c']);
     assert.deepEqual(arrangeCharacters(cards, {sort: 'recent', recents: [{characterKey: 'c'}, {characterKey: 'a'}]}).map(c => c.key), ['b', 'c', 'a']);
     assert.deepEqual(arrangeCharacters(cards, {tag: 'Drama', sort: 'name'}).map(c => c.key), ['b', 'a']);
+    assert.deepEqual(arrangeCharacters(cards, {tags: ['Drama','Noir'], sort: 'name'}).map(c => c.key), ['b']);
     assert.deepEqual(arrangeCharacters(cards, {query: 'noir'}).map(c => c.key), ['b']);
     assert.deepEqual(arrangeCharacters(cards, {query: 'ci'}).map(c => c.key), ['c']);
     assert.deepEqual(characterTags(cards), ['Drama', 'Noir']);

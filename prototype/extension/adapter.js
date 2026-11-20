@@ -1,4 +1,4 @@
-import {normalizeErrorRecord} from './error-record.js?build=0.9.0';
+import {normalizeErrorRecord} from './error-record.js?build=0.9.1';
 // ST behavior lives in the runtime bindings; this module owns operation tracking.
 export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVersion, generation, configuration, assets, worldInfo, extensions, prepareGeneration = async () => {}, sessionId=null, normalizeError=normalizeErrorRecord }) {
     let ready = false;

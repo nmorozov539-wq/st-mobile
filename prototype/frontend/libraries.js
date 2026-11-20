@@ -1,5 +1,5 @@
-import {icon} from './icons.js?build=0.9.0';
-import {plainPreview} from './preview.js?build=0.9.0';
+import {icon} from './icons.js?build=0.9.1';
+import {plainPreview} from './preview.js?build=0.9.1';
 
 export function characterStatus(card){
     const missing=[['name','name'],['description','description'],['first_mes','main greeting']].filter(([key])=>!String(card?.[key]??'').trim()).map(([,label])=>label);
@@ -17,10 +17,11 @@ export function chatDate(value,now=Date.now()){
 }
 // Characters page: search, tag filter and sort, applied before the grid is laid out.
 export const CHARACTER_SORTS={recent:'Recent',name:'Name',added:'Newest'};
-export function arrangeCharacters(cards,{query='',tag='',sort='recent',recents=[]}={}){
+export function arrangeCharacters(cards,{query='',tags=[],tag='',sort='recent',recents=[]}={}){
+    if(tag&&!tags.length)tags=[tag];
     const q=String(query).trim().toLocaleLowerCase(),rank=new Map();
     recents.forEach((r,i)=>{if(!rank.has(r.characterKey))rank.set(r.characterKey,i);});
-    let rows=cards.filter(c=>(!q||String(c.name??'').toLocaleLowerCase().includes(q)||(c.tags??[]).some(t=>t.toLocaleLowerCase().includes(q)))&&(!tag||(c.tags??[]).includes(tag)));
+    let rows=cards.filter(c=>(!q||String(c.name??'').toLocaleLowerCase().includes(q)||(c.tags??[]).some(t=>t.toLocaleLowerCase().includes(q)))&&tags.every(tagName=>(c.tags??[]).includes(tagName)));
     const byName=(a,b)=>String(a.name??'').localeCompare(String(b.name??''),undefined,{sensitivity:'base'});
     if(sort==='name')rows=[...rows].sort(byName);
     else if(sort==='added')rows=[...rows].sort((a,b)=>(b.added??0)-(a.added??0)||byName(a,b));
@@ -45,17 +46,26 @@ export function createLibraryViews({node,button,portrait,personaPortrait,windowL
         waiting.get(c).then(()=>{if(element.isConnected)update();});
     }
     function characters(content,rows,options={}){
-        const {view='cards',sort='recent',tag='',query='',recents=[],onView,onSort,onTag,onSelect,selectedKey}=options;
+        const {view='cards',sort='recent',tags:activeTags=[],folder='all',folders=[],assignments={},query='',recents=[],onView,onSort,onTags,onFolder,onManage,onSelect,selectedKey}=options;
         if(!rows.length){const empty=node('div','','list-empty');empty.append(node('strong','No characters yet'),node('span','Import a card from your phone, or create one from scratch.'));const actions=node('div','','list-empty-actions'),up=button('Import a card',importCharacters),make=button('Create one',createCharacter);up.className='btn primary';make.className='btn secondary';up.prepend(icon('upload'));make.prepend(icon('plus'));actions.append(up,make);empty.append(actions);content.append(empty);return;}
         const bar=node('div','','list-controls');
         const sortSelect=node('select','','field list-sort');sortSelect.setAttribute('aria-label','Sort characters');for(const [value,label] of Object.entries(CHARACTER_SORTS)){const o=node('option',label);o.value=value;o.selected=value===sort;sortSelect.append(o);}sortSelect.onchange=()=>onSort?.(sortSelect.value);
         const views=node('div','','segmented list-view');views.setAttribute('role','group');views.setAttribute('aria-label','Layout');
         for(const [value,glyph,label] of [['cards','grid','Cards'],['circles','circles','Circles']]){const b=button('',()=>onView?.(value));b.append(icon(glyph));b.setAttribute('aria-label',label);b.title=label;b.setAttribute('aria-pressed',String(view===value));views.append(b);}
-        bar.append(sortSelect,views);content.append(bar);
-        const tags=characterTags(rows);
-        if(tags.length){const strip=node('div','','tag-strip');for(const t of ['',...tags.slice(0,30)]){const chip=button(t||'All',()=>onTag?.(t===tag?'':t));chip.className='tag-chip';chip.setAttribute('aria-pressed',String(t===tag));strip.append(chip);}content.append(strip);}
-        const shown=arrangeCharacters(rows,{query,tag,sort,recents});
-        if(!shown.length){content.append(node('p',query?`No characters match “${query}”.`:'No characters with this tag.','library-empty'));return;}
+        const folderSelect=node('select','','field folder-filter');folderSelect.setAttribute('aria-label','Character folder');for(const [value,label] of [['all','All characters'],['unfiled','Unfiled'],...folders.map(item=>[item.id,item.name])]){const option=node('option',label);option.value=value;option.selected=value===folder;folderSelect.append(option);}folderSelect.onchange=()=>onFolder?.(folderSelect.value);
+        const filter=button(activeTags.length?`Filters · ${activeTags.length}`:'Filter',()=>dialog.showModal());filter.className='btn secondary list-filter';filter.prepend(icon('tag'));
+        const manage=button('',()=>manageDialog.showModal());manage.className='btn secondary folder-manage';manage.append(icon('folder'));manage.setAttribute('aria-label','Manage character folders');manage.title='Manage character folders';
+        bar.append(sortSelect,folderSelect,filter,manage,views);content.append(bar);
+        const allTags=characterTags(rows);
+        const dialog=node('dialog','','collection-filter-sheet'),form=node('form','','collection-filter-form');form.method='dialog';form.append(node('h2','Filter characters'),node('p','Match all selected tags.','library-caption'));const search=node('input','','field');search.type='search';search.placeholder='Search tags';search.setAttribute('aria-label','Search tags');const choices=node('div','','filter-choices');let draft=[...activeTags];const draw=()=>{const q=search.value.trim().toLocaleLowerCase();choices.replaceChildren(...allTags.filter(name=>!q||name.toLocaleLowerCase().includes(q)).map(name=>{const label=node('label','','filter-choice'),input=node('input');input.type='checkbox';input.checked=draft.includes(name);input.onchange=()=>{draft=input.checked?[...new Set([...draft,name])]:draft.filter(value=>value!==name);};label.append(input,node('span',name));return label;}));};search.oninput=draw;draw();const actions=node('div','','sheet-actions'),cancel=button('Cancel',()=>dialog.close()),clear=button('Clear',()=>{draft=[];draw();}),apply=button('Apply',()=>{onTags?.(draft);dialog.close();});cancel.type=clear.type=apply.type='button';apply.className='btn primary';actions.append(cancel,clear,apply);form.append(search,choices,actions);dialog.append(form);content.append(dialog);
+        if(activeTags.length){const summary=node('div','','filter-summary');summary.append(node('span',`${activeTags.length} active filter${activeTags.length===1?'':'s'}`));const clear=button('Clear',()=>onTags?.([]));clear.className='btn quiet';summary.append(clear);content.append(summary);}
+        const folderRows=rows.filter(card=>folder==='all'||(folder==='unfiled'?!assignments[card.key]:assignments[card.key]===folder));
+        const shown=arrangeCharacters(folderRows,{query,tags:activeTags,sort,recents});
+        if(!shown.length){const empty=node('div','','list-empty');empty.append(node('strong',rows.length?'No matching characters':'No characters yet'),node('span',query||activeTags.length||folder!=='all'?'Try clearing search or filters.':'Import a card from your phone, or create one from scratch.'));if(query||activeTags.length||folder!=='all'){const reset=button('Clear filters',()=>{onTags?.([]);onFolder?.('all');});reset.className='btn secondary';empty.append(reset);}content.append(empty);}
+        const manageDialog=node('dialog','','collection-filter-sheet'),manageForm=node('form','','collection-filter-form');manageForm.method='dialog';manageForm.append(node('h2','Character folders'),node('p','Folders organize cards only; deleting one never deletes a character.','library-caption'));
+        const newName=node('input','','field');newName.placeholder='New folder name';newName.setAttribute('aria-label','New folder name');const createFolder=button('Create',()=>{if(newName.value.trim())onManage?.('create',{name:newName.value});});createFolder.type='button';const createRow=node('div','','folder-action-row');createRow.append(newName,createFolder);manageForm.append(createRow);
+        if(folders.length){const chosen=node('select','','field');chosen.setAttribute('aria-label','Folder to rename or delete');for(const item of folders){const option=node('option',item.name);option.value=item.id;chosen.append(option);}const rename=button('Rename',()=>{const name=globalThis.prompt?.('New folder name',folders.find(item=>item.id===chosen.value)?.name??'');if(name?.trim())onManage?.('rename',{id:chosen.value,name});}),remove=button('Delete',()=>{if(globalThis.confirm?.('Delete this folder? Characters will become Unfiled.'))onManage?.('delete',{id:chosen.value});});rename.type=remove.type='button';const folderRow=node('div','','folder-action-row');folderRow.append(chosen,rename,remove);manageForm.append(folderRow);}
+        const characterChoice=node('select','','field');characterChoice.setAttribute('aria-label','Character to move');for(const card of rows){const option=node('option',card.name);option.value=card.key;characterChoice.append(option);}const destination=node('select','','field');destination.setAttribute('aria-label','Move to folder');for(const [value,label] of [['','Unfiled'],...folders.map(item=>[item.id,item.name])]){const option=node('option',label);option.value=value;destination.append(option);}const move=button('Move character',()=>onManage?.('move',{characterKey:characterChoice.value,folderId:destination.value||null}));move.type='button';const moveRow=node('div','','folder-move');moveRow.append(characterChoice,destination,move);manageForm.append(moveRow);const done=button('Done',()=>manageDialog.close());done.type='button';manageForm.append(done);manageDialog.append(manageForm);content.append(manageDialog);
         const circles=view==='circles',per=circles?3:(globalThis.matchMedia?.('(min-width: 900px)').matches?3:2);
         windowList(content,chunk(shown,per),group=>{const row=node('div','',circles?'character-grid-row circles':'character-grid-row cards');for(const c of group){const card=button('',()=>onSelect?onSelect(c):editCharacter(c));card.className=circles?'character-card':'character-card tall';card.dataset.key=c.key;card.setAttribute('aria-pressed',String(c.key===selectedKey));card.classList.toggle('selected',c.key===selectedKey);card.append(portrait(c));if(c.fav){const star=node('span','','fav-star');star.append(icon('star'));star.setAttribute('aria-hidden','true');card.querySelector('.avatar').append(star);}card.append(node('span',c.name,'character-card-name'));if(!circles&&c.tags?.length){const t=node('span','','character-card-tags');for(const name of c.tags.slice(0,2))t.append(node('span',name,'chip'));card.append(t);}completeness(c,card);row.append(card);}return row;},circles?150:296);
     }

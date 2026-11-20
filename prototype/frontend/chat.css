@@ -9,15 +9,7 @@ body:has(#chat-screen:not([hidden])){background:var(--color-canvas)}
 #chat-screen #avatar>.avatar{width:100%;height:100%;border-radius:var(--shape-radius-avatar);background:transparent;color:var(--color-accent)}
 #chat-screen #name{font-size:var(--t-m);font-weight:600;min-height:26px;padding:0;text-align:left;display:block}
 #chat-screen .chat-title{padding-left:4px;min-width:0;flex:1}
-/* "as persona · model [preset]" — each part opens its own panel. */
-.chat-sub{display:flex;align-items:center;gap:4px;min-width:0;color:var(--color-muted-text);font-size:var(--t-xs);white-space:nowrap}
-#chat-screen .chat-sub button{min-height:28px;min-width:0;padding:2px 0;border:0;background:transparent;color:var(--color-muted-text);font-size:var(--t-xs);font-weight:400;display:inline-flex;align-items:center;gap:3px;overflow:hidden}
-#chat-screen .chat-sub button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#chat-screen #active-persona{flex:0 1 auto;max-width:34%}
-#chat-screen #model-chip{flex:0 1 auto}
-#chat-screen #active-preset{flex:0 1 auto;max-width:38%;margin-left:4px;padding:2px 6px;border:var(--shape-border-width) solid var(--color-border-strong);border-radius:var(--shape-radius-small);color:var(--color-text)}
-#chat-screen #active-preset svg{width:13px;height:13px}
-.chat-sub-dot{color:var(--color-faint-text)}
+.chat-context{min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-muted-text);font-size:var(--t-xs);line-height:18px}
 #messages{padding:12px 18px 0;overscroll-behavior:contain;scroll-behavior:auto}
 #chat-screen .message{position:relative;margin-bottom:22px;max-width:100%;touch-action:pan-y}
 /* Your turns: a faint tinted card in the interface font, a little narrower. */
@@ -64,6 +56,8 @@ body:has(#chat-screen:not([hidden])){background:var(--color-canvas)}
 #composer #draft{touch-action:pan-y;font-size:16px;line-height:1.5;border:0;border-radius:0;background:transparent;color:var(--color-text);padding:10px 8px 10px 10px;min-height:44px;max-height:min(150px,30dvh);resize:none;flex:1;caret-color:var(--char)}
 #composer #draft:focus{outline:0}.compose-input:focus-within{border-color:color-mix(in srgb,var(--char) 70%,var(--color-border-strong))}
 .compose-bottom{display:flex;align-items:center;flex-shrink:0}
+#composer #model-chip{max-width:112px;height:44px;min-width:44px;padding:0 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:0;border-radius:var(--shape-radius-medium);background:transparent;color:var(--color-muted-text);font-size:var(--t-xs)}
+#composer #model-chip>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #composer #send,#composer #stop{width:44px;height:44px;border:0;border-radius:var(--shape-radius-medium);background:var(--char);color:var(--color-character-ink);transition:background var(--motion-slow);display:grid;place-items:center;padding:0;flex-shrink:0}
 #composer #stop{background:var(--color-raised);color:var(--color-text);box-shadow:inset 0 0 0 1px var(--color-border-strong)}
 #status{color:var(--color-muted-text);font-size:12px;line-height:1.5;min-height:0;padding:0 3px 6px;overflow-wrap:anywhere}

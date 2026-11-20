@@ -1,4 +1,4 @@
-import {el,btn} from './wi-ui.js?build=0.9.0';
+import {el,btn} from './wi-ui.js?build=0.9.1';
 
 const operationId=()=>crypto.randomUUID();
 const sourceLabel=record=>record?.source?.label??record?.id??'Legacy settings';

@@ -1,0 +1,40 @@
+{
+  "archive": "pocket-tavern-combined-v0.9.1.zip",
+  "archiveSha256": "f2af60a730d11590a036a7033ce92aa71b45bd4c8bd5a4d4dc1154936b6b6661",
+  "installFlow": "extract ZIP -> packaged prepare.cjs --mock -> installed start.cjs --mock",
+  "installedManifestVersion": "0.9.1",
+  "frontendBuild": "0.9.1",
+  "handshake": {
+    "bridgeBuild": "0.9.1",
+    "protocolVersion": 2,
+    "capabilities": {
+      "nativeSettingsHost": {
+        "connection": true,
+        "presets": true
+      },
+      "configurationProjection": true,
+      "legacyConfigurationMigration": true
+    }
+  },
+  "mockConversationSavedAfterReload": true,
+  "preferencesAfterReload": {
+    "theme": "paper",
+    "messageFormat": "messenger"
+  },
+  "folderAfterReload": {
+    "name": "Packaged folder 1795202093986",
+    "assignedCharacterCount": 1
+  },
+  "migrationRoutes": {
+    "fresh": true,
+    "pending": true,
+    "native": true
+  },
+  "nativeMigration": {
+    "ownership": "native",
+    "checkpoint": "verified",
+    "legacyGlobalRetained": true
+  },
+  "errors": [],
+  "timestamp": "2026-11-20T19:15:02.711Z"
+}

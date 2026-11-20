@@ -4,6 +4,7 @@ Updated: 18 November 2026.
 
 ## Current guidance
 
+- [Mobile correction plan](MOBILE_CORRECTION_IMPLEMENTATION_PLAN.md): third coding pass based on first real-phone feedback, covering functional layout repairs, native tool presentation, browsing and notification consistency.
 - [Git updates, errors and diagnostics](UPDATES_ERRORS_DIAGNOSTICS_PLAN.md): authorized follow-up coding handoff after the Milestone 3 candidate; Git installation, structured failures and launcher-owned terminal logs.
 - [Milestone 3 implementation report](MILESTONE_3_IMPLEMENTATION_REPORT.md): browser/Termux Layout v4 release candidate, gates A–F, backend support matrix, reproducible evidence and outstanding real-phone/WebView qualification.
 - [Milestone 3 implementation plan](MILESTONE_3_IMPLEMENTATION_PLAN.md): approved Layout v4 delivery slices, detailed layout behavior, configuration preservation gates and validation; extension integration excluded.

@@ -1,0 +1,393 @@
+{
+  "assetIdentity": {
+    "frontendBuild": "0.9.1",
+    "script": "http://127.0.0.1:8123/st-mobile/app.js?build=0.9.1",
+    "styles": [
+      "http://127.0.0.1:8123/st-mobile/tokens.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/base.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/style.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/chat.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/preset.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/character.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/libraries.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/lists.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/memory.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/worldinfo.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/settings.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/home.css?build=0.9.1",
+      "http://127.0.0.1:8123/st-mobile/layout-v4.css?build=0.9.1"
+    ]
+  },
+  "geometry": {
+    "foldedNav320": {
+      "width": 320,
+      "template": "76px 76px 76px 76px",
+      "buttons": [
+        {
+          "page": "chats",
+          "x": 5,
+          "y": 774,
+          "width": 76,
+          "height": 62,
+          "top": 774,
+          "right": 81,
+          "bottom": 836,
+          "left": 5
+        },
+        {
+          "page": "home",
+          "x": 83,
+          "y": 774,
+          "width": 76,
+          "height": 62,
+          "top": 774,
+          "right": 159,
+          "bottom": 836,
+          "left": 83
+        },
+        {
+          "page": "extensions",
+          "x": 161,
+          "y": 774,
+          "width": 76,
+          "height": 62,
+          "top": 774,
+          "right": 237,
+          "bottom": 836,
+          "left": 161
+        },
+        {
+          "page": "library",
+          "x": 239,
+          "y": 774,
+          "width": 76,
+          "height": 62,
+          "top": 774,
+          "right": 315,
+          "bottom": 836,
+          "left": 239
+        }
+      ]
+    },
+    "foldedNav390": {
+      "width": 390,
+      "template": "93.5px 93.5px 93.5px 93.5px",
+      "buttons": [
+        {
+          "page": "chats",
+          "x": 5,
+          "y": 774,
+          "width": 93.5,
+          "height": 62,
+          "top": 774,
+          "right": 98.5,
+          "bottom": 836,
+          "left": 5
+        },
+        {
+          "page": "home",
+          "x": 100.5,
+          "y": 774,
+          "width": 93.5,
+          "height": 62,
+          "top": 774,
+          "right": 194,
+          "bottom": 836,
+          "left": 100.5
+        },
+        {
+          "page": "extensions",
+          "x": 196,
+          "y": 774,
+          "width": 93.5,
+          "height": 62,
+          "top": 774,
+          "right": 289.5,
+          "bottom": 836,
+          "left": 196
+        },
+        {
+          "page": "library",
+          "x": 291.5,
+          "y": 774,
+          "width": 93.5,
+          "height": 62,
+          "top": 774,
+          "right": 385,
+          "bottom": 836,
+          "left": 291.5
+        }
+      ]
+    },
+    "reading": {
+      "format": "reading",
+      "viewport": 390,
+      "messages": [
+        {
+          "user": true,
+          "row": {
+            "x": 18,
+            "width": 354
+          },
+          "bubble": {
+            "x": 18,
+            "width": 354,
+            "padding": "10px 12px",
+            "border": "1px",
+            "radius": "0px",
+            "background": "rgb(41, 40, 40)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 354
+          },
+          "bubble": {
+            "x": 18,
+            "width": 354,
+            "padding": "0px",
+            "border": "0px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        },
+        {
+          "user": true,
+          "row": {
+            "x": 18,
+            "width": 354
+          },
+          "bubble": {
+            "x": 18,
+            "width": 354,
+            "padding": "10px 12px",
+            "border": "1px",
+            "radius": "0px",
+            "background": "rgb(41, 40, 40)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 354
+          },
+          "bubble": {
+            "x": 18,
+            "width": 354,
+            "padding": "0px",
+            "border": "0px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      ]
+    },
+    "messenger": {
+      "format": "messenger",
+      "viewport": 390,
+      "messages": [
+        {
+          "user": true,
+          "row": {
+            "x": 193,
+            "width": 179
+          },
+          "bubble": {
+            "x": 193,
+            "width": 179,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "16px 4px 16px 16px",
+            "background": "rgb(41, 40, 40)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 18,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "4px 16px 16px",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        },
+        {
+          "user": true,
+          "row": {
+            "x": 81.734375,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 81.734375,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "16px 4px 16px 16px",
+            "background": "rgb(41, 40, 40)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 18,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "4px 16px 16px",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      ]
+    },
+    "messengerNocturne": {
+      "format": "messenger",
+      "viewport": 390,
+      "messages": [
+        {
+          "user": true,
+          "row": {
+            "x": 186,
+            "width": 186
+          },
+          "bubble": {
+            "x": 186,
+            "width": 186,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "26px 4px 26px 26px",
+            "background": "rgb(48, 34, 62)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 18,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "4px 26px 26px",
+            "background": "rgba(17, 24, 39, 0.8)"
+          }
+        },
+        {
+          "user": true,
+          "row": {
+            "x": 81.734375,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 81.734375,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "26px 4px 26px 26px",
+            "background": "rgb(48, 34, 62)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 18,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "4px 26px 26px",
+            "background": "rgba(17, 24, 39, 0.8)"
+          }
+        }
+      ]
+    },
+    "messengerReloaded": {
+      "format": "messenger",
+      "viewport": 390,
+      "messages": [
+        {
+          "user": true,
+          "row": {
+            "x": 186,
+            "width": 186
+          },
+          "bubble": {
+            "x": 186,
+            "width": 186,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "26px 4px 26px 26px",
+            "background": "rgb(48, 34, 62)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 18,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "4px 26px 26px",
+            "background": "rgba(17, 24, 39, 0.8)"
+          }
+        },
+        {
+          "user": true,
+          "row": {
+            "x": 81.734375,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 81.734375,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "26px 4px 26px 26px",
+            "background": "rgb(48, 34, 62)"
+          }
+        },
+        {
+          "user": false,
+          "row": {
+            "x": 18,
+            "width": 290.265625
+          },
+          "bubble": {
+            "x": 18,
+            "width": 290.265625,
+            "padding": "11px 14px",
+            "border": "1px",
+            "radius": "4px 26px 26px",
+            "background": "rgba(17, 24, 39, 0.8)"
+          }
+        }
+      ]
+    }
+  },
+  "checks": [
+    "Folded World Info renders native books and entry Back returns to the captured Library/WI origin",
+    "Messenger changes computed bubble size/alignment and survives priority-theme change and reload"
+  ],
+  "errors": [],
+  "timestamp": "2026-11-20T16:00:37.755Z"
+}

@@ -23,7 +23,14 @@
 #page-search-clear .icon{width:16px;height:16px}
 
 /* Controls above a list */
-.list-controls{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
+.list-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 10px}
+.list-controls .list-sort,.list-controls .folder-filter{flex:1 1 130px;min-width:0}
+.list-controls .list-view{margin-left:auto}
+.folder-manage{width:44px;padding-inline:10px}
+.folder-action-row{display:flex;gap:8px;align-items:center}
+.folder-action-row>.field{min-width:0;flex:1}
+.folder-move{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.folder-move>button{grid-column:1/-1}
 .list-sort{width:auto;min-height:36px;height:36px;padding:0 30px 0 12px;font-size:var(--t-s);background-color:var(--color-surface)}
 .list-view{margin-left:auto;padding:2px}
 .list-view>button{display:grid;place-items:center;width:40px;height:32px;padding:0}
@@ -54,9 +61,19 @@
 .fav-star .icon{width:14px;height:14px;fill:currentColor}
 .circles .fav-star{top:-2px;right:-2px}
 
-/* Chats: Recent or grouped by character */
-.chat-grouping{margin:2px 0 8px;max-width:280px}
-.chat-grouping>button{min-height:34px;font-size:13px}
+/* Compact collection controls; choices live in a bottom sheet instead of permanent rows. */
+.chat-view-controls{display:flex;margin:2px 0 8px}
+.chat-view-controls>.btn,.list-filter{display:inline-flex;align-items:center;gap:7px;min-height:40px}
+.chat-view-controls>.btn .icon,.list-filter .icon{width:17px;height:17px}
+.collection-filter-sheet{box-sizing:border-box;width:min(100% - 20px,520px);max-height:min(72vh,620px);margin:auto auto 0;padding:18px;border:var(--shape-border-width) solid var(--color-border-strong);border-radius:var(--shape-radius-large) var(--shape-radius-large) 0 0;background:var(--color-surface);color:var(--color-text)}
+.collection-filter-sheet::backdrop{background:var(--color-scrim)}
+.collection-filter-form{display:flex;flex-direction:column;gap:12px;max-height:calc(72vh - 36px)}
+.collection-filter-form h2{margin:0;font:600 20px/1.25 var(--ui)}
+.filter-choices{display:flex;flex-direction:column;overflow:auto;min-height:0}
+.filter-choice{display:flex;align-items:center;gap:10px;min-height:44px;padding:5px 2px;color:var(--color-text)}
+.filter-choice input{width:22px;height:22px;accent-color:var(--color-accent)}
+.sheet-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:var(--shape-border-width) solid var(--color-border)}
+.filter-summary{display:flex;align-items:center;justify-content:space-between;min-height:40px;color:var(--color-muted-text);font-size:13px}
 .chat-group{border-bottom:var(--shape-border-width) solid var(--color-border)}
 .chat-group-head{display:flex;align-items:center;gap:12px;min-height:60px;padding:6px 2px;cursor:pointer}
 .chat-group-head::before{order:9;margin:0 0 0 auto}
@@ -91,7 +108,6 @@
 #home-meta #home-status{width:44px;height:44px;margin:0 -8px 0 -10px}
 .tag-chip{min-height:36px}
 .list-view>button{width:44px;height:36px}
-.chat-grouping>button{min-height:40px}
 .home-section-link{min-width:44px;height:40px}
 #chat-screen .chat-sub button,#chat-screen #name{position:relative}
 #chat-screen .chat-sub button::after,#chat-screen #name::after{content:'';position:absolute;inset:-8px -3px}

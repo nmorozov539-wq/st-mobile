@@ -1,7 +1,8 @@
-import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.9.0';
-import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.9.0';
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.9.0';
+import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.9.1';
+import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.9.1';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.9.1';
 export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
+    const CHARACTER_IMPORT_MAX_BYTES=30*1024*1024;
     const manager = () => getPresetManager('openai');
     async function post(url, body) {
         const multipart = body instanceof FormData;
@@ -33,7 +34,7 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
         if(result?.path!==key) throw Error('Could not verify the uploaded persona portrait.');
     }
     async function importCharacter(file) {
-        if(!(file instanceof Blob) || file.size>30*1024*1024)throw Error('Choose a character file under 30 MB.');
+        if(!(file instanceof Blob) || file.size>CHARACTER_IMPORT_MAX_BYTES)throw Error('Choose a character file no larger than 30 MiB.');
         const type=file.name?.split('.').at(-1).toLowerCase();
         if(!['png','json','yaml','yml','charx','byaf'].includes(type))throw Error('Supported character formats: PNG, JSON, YAML, CHARX, BYAF.');
         const form=new FormData();form.append('avatar',file,file.name);form.append('file_type',type);
@@ -44,11 +45,12 @@ export function createAssetStore({getContext,getAssociationState,characterFileNa
     }
     async function write({kind,key,revision,draft,file,apply=true}) {
         draft=safeObject(draft);
-        if(key)assertUnchanged(await read(kind,key),revision);
+        const previous=key?await read(kind,key):null;
+        if(key)assertUnchanged(previous,revision);
         if(kind==='characters') {
             assetName(draft.name);
             if(!key)key=await importCharacter(new File([JSON.stringify({spec:'chara_card_v2',spec_version:'2.0',data:draft})],'character.json',{type:'application/json'}));
-            else await post('/api/characters/merge-attributes',characterUpdate(key,draft));
+            else await post('/api/characters/merge-attributes',characterUpdate(key,draft,previous));
             if(file){const form=new FormData();form.append('avatar',file,file.name);form.append('avatar_url',key);await post('/api/characters/edit-avatar',form);}
             const actual=await read(kind,key);
             for(const field of Object.keys(draft))if(!containsData(actual[field],draft[field]))throw Error(`Saved character field could not be verified: ${field}. Refresh before saving again.`);

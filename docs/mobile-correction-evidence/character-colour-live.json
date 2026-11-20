@@ -1,0 +1,12 @@
+{
+  "key": "Moss.png",
+  "original": null,
+  "checks": [
+    "Cancel discarded a Custom draft without writing ST",
+    "Custom saved only through explicit character Save and read back from ST",
+    "Reset to Automatic removed only the Pocket color override after explicit Save",
+    "Cancel after leaving Automatic preserved the saved Automatic mode"
+  ],
+  "errors": [],
+  "timestamp": "2026-11-20T19:09:11.171Z"
+}

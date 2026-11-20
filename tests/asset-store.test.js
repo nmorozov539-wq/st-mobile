@@ -37,3 +37,10 @@ test('preset copies preserve manual prompts and foreign fields, and never overwr
 test('malformed preset input is rejected before native saving',async()=>{
  const f=fixture();await assert.rejects(f.store.run({action:'import',kind:'presets',file:new File(['{"prompts":"broken"}'],'Broken.json')}),/prompts/);assert.equal(f.presets.length,1);
 });
+test('character import keeps the 30 MiB native safety gate and rejects over-boundary files before fetch',async()=>{
+ const card={spec:'chara_card_v2',spec_version:'2.0',data:{name:'Large',description:'D',first_mes:'Hello',padding:'x'.repeat(29*1024*1024)}};let calls=0,multipart=false;
+ const context={characters:[{avatar:'large.png',name:'Large'}],powerUserSettings:{},getRequestHeaders:()=>({'Content-Type':'application/json'}),getCharacters:async()=>{}};
+ const store=createAssetStore({getContext:()=>context,getUserAvatar:()=>'',setUserName(){},getUserAvatars:async()=>[],saveSettings:async()=>{},getPresetApplicationPromise:async()=>{},getPresetManager:()=>({getPresetList:()=>({presets:[],preset_names:{}})}),fetch:async(url,options)=>{calls++;if(url==='/api/characters/import'){multipart=options.body instanceof FormData;return Response.json({file_name:'large'});}if(url==='/api/characters/get')return Response.json({data:card.data});throw Error(`Unexpected ${url}`);}});
+ const valid=new File([JSON.stringify(card)],'large.json',{type:'application/json'});assert.ok(valid.size<30*1024*1024);await store.run({action:'import',kind:'characters',file:valid});assert.equal(multipart,true);
+ const before=calls,tooLarge=new File([new Uint8Array(30*1024*1024+1)],'too-large.png',{type:'image/png'});await assert.rejects(store.run({action:'import',kind:'characters',file:tooLarge}),/30 MiB/);assert.equal(calls,before);
+});

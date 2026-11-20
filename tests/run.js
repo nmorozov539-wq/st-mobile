@@ -46,6 +46,7 @@ import './syntax.test.js';
 import './worldinfo.test.js';
 import './appearance.test.js';
 import './layout-v4.test.js';
+import './collection-organizer.test.js';
 import './bridge-v2.test.js';
 import './configuration-migration.test.js';
 import './home.test.js';

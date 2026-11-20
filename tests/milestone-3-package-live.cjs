@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const os = require('node:os');
 const path = require('node:path');
 const {spawn, spawnSync} = require('node:child_process');
@@ -7,9 +8,9 @@ const playwrightPath = process.env.PLAYWRIGHT_MODULE || '/home/Riv/.cache/codex-
 const {chromium} = require(playwrightPath);
 
 const project = path.resolve(__dirname, '..');
-const archive = path.resolve(process.argv[2] || path.join(project, 'dist/pocket-tavern-combined-v0.9.0.zip'));
+const archive = path.resolve(process.argv[2] || path.join(project, 'dist/pocket-tavern-combined-v0.9.1.zip'));
 const source = path.resolve(process.argv[3] || '/home/Riv/SillyTavern');
-const evidence = path.join(project, 'docs/milestone-3-evidence');
+const evidence = path.join(project, 'docs/mobile-correction-evidence');
 
 const waitForServer = async () => {
     const deadline = Date.now() + 150000;
@@ -39,9 +40,9 @@ const waitForServer = async () => {
         const installedBuildPath = path.join(install, 'public/st-mobile/build.js');
         const installedManifest = JSON.parse(fs.readFileSync(installedManifestPath));
         const installedBuild = fs.readFileSync(installedBuildPath, 'utf8');
-        assert.equal(installedManifest.version, '0.9.0');
-        assert.match(installedBuild, /FRONTEND_BUILD = '0\.9\.0'/);
-        assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# Pocket Tavern combined prototype v0\.9\.0/m);
+        assert.equal(installedManifest.version, '0.9.1');
+        assert.match(installedBuild, /FRONTEND_BUILD = '0\.9\.1'/);
+        assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# Pocket Tavern combined prototype v0\.9\.1/m);
 
         launcher = spawn(process.execPath, [path.join(install, 'start.cjs'), '--mock'], {cwd: install, stdio: ['ignore', 'pipe', 'pipe']});
         for (const stream of [launcher.stdout, launcher.stderr]) stream.on('data', chunk => { logs.push(String(chunk)); if (logs.length > 300) logs.shift(); });
@@ -58,6 +59,45 @@ const waitForServer = async () => {
         watchPage(page);
         await page.goto('http://127.0.0.1:8123/st-mobile/');
         await ready();
+
+        await page.locator('#app-settings').click();
+        await page.locator('#settings-migration').click();
+        await page.getByRole('button', {name: 'Prepare native ownership', exact: true}).waitFor();
+        const migrationRoutes = {fresh: true, pending: false, native: false};
+        const frame = page.locator('#engine').contentFrame();
+        await frame.locator('html').evaluate(async () => {
+            const ctx = SillyTavern.getContext();
+            ctx.extensionSettings.pocket_tavern = {...(ctx.extensionSettings.pocket_tavern ?? {}), version: 3, global: {preset: 'Default', model: 'st-mobile-mock', generation: {temperature: .73, openai_max_tokens: 515}, opaque: {retained: 'packaged-roundtrip'}}};
+            const {saveSettings} = await import('/script.js');
+            await saveSettings();
+        });
+        await page.reload(); await ready();
+        await page.locator('#app-settings').click();
+        await page.locator('#settings-migration').click();
+        await page.getByRole('button', {name: 'Preserve legacy settings', exact: true}).click();
+        await page.getByRole('button', {name: 'Download verified archive', exact: true}).waitFor({timeout: 120000});
+        migrationRoutes.pending = await page.getByText('Preservation in progress', {exact: true}).isVisible();
+        await page.locator('.migration-choice').first().click();
+        await page.getByText('Native SillyTavern ownership', {exact: true}).waitFor({timeout: 120000});
+        migrationRoutes.native = true;
+        const nativeMigration = await frame.locator('html').evaluate(async () => {
+            const ctx = SillyTavern.getContext(), response = await fetch('/api/settings/get', {method: 'POST', headers: ctx.getRequestHeaders(), cache: 'no-store'}), body = await response.json(), settings = JSON.parse(body.settings), migration = settings.extension_settings?.pocket_tavern?.migration;
+            return {ownership: migration?.ownership, checkpoint: migration?.checkpoint, legacyGlobalRetained: !!settings.extension_settings?.pocket_tavern?.global};
+        });
+        assert.deepEqual(nativeMigration, {ownership: 'native', checkpoint: 'verified', legacyGlobalRetained: true});
+        await page.locator('#page-back').click();
+        await page.locator('#page-back').click();
+        await page.locator('#bottom-nav [data-page="library"]').click();
+        const folderName = `Packaged folder ${Date.now()}`;
+        await page.locator('.folder-manage').click();
+        await page.getByLabel('New folder name').fill(folderName);
+        await page.getByRole('button', {name: 'Create', exact: true}).click();
+        await page.waitForFunction(name => [...document.querySelectorAll('.folder-filter option')].some(option => option.textContent === name), folderName);
+        await page.locator('.folder-manage').click();
+        await page.getByLabel('Character to move').selectOption({index: 0});
+        await page.getByLabel('Move to folder').selectOption({label: folderName});
+        await page.getByRole('button', {name: 'Move character', exact: true}).click();
+        await page.waitForTimeout(300);
 
         await page.locator('#bottom-nav [data-page="chats"]').click();
         await page.locator('#page-new-chat').click();
@@ -86,11 +126,15 @@ const waitForServer = async () => {
         await ready();
         assert.equal(await page.locator('html').getAttribute('data-theme'), 'paper');
         assert.equal(await page.locator('html').getAttribute('data-message-format'), 'messenger');
+        await page.locator('#bottom-nav [data-page="library"]').click();
+        await page.waitForFunction(name => [...document.querySelectorAll('.folder-filter option')].some(option => option.textContent === name), folderName);
+        await page.getByLabel('Character folder', {exact: true}).selectOption({label: folderName});
+        assert.equal(await page.locator('.character-card').count(), 1);
         await page.locator('#bottom-nav [data-page="chats"]').click();
         assert.match(await page.locator('.chat-row .preview').first().textContent(), /phone bridge works/i);
         await page.locator('.chat-open').first().click();
         await page.waitForFunction(() => !document.querySelector('#chat-screen').hidden);
-        await page.screenshot({path: path.join(evidence, 'm3-packaged-roundtrip-chat.png'), fullPage: true});
+        await page.screenshot({path: path.join(evidence, 'zip-installed-roundtrip-chat.png'), fullPage: true});
 
         const handshake = await page.evaluate(() => new Promise((resolve, reject) => {
             const frame = document.querySelector('#engine'), channel = new MessageChannel();
@@ -100,19 +144,23 @@ const waitForServer = async () => {
             frame.contentWindow.postMessage({type: 'st-mobile-connect'}, location.origin, [channel.port2]);
             setTimeout(() => channel.port1.postMessage({id: 1, method: 'handshake'}), 200);
         }));
-        assert.equal(handshake.bridgeBuild, '0.9.0');
+        assert.equal(handshake.bridgeBuild, '0.9.1');
         assert.equal(handshake.protocolVersion, 2);
         assert.equal(handshake.capabilities.legacyConfigurationMigration, true);
         assert.deepEqual(errors, []);
 
-        fs.writeFileSync(path.join(evidence, 'gate-f-packaged-roundtrip.json'), JSON.stringify({
+        fs.writeFileSync(path.join(evidence, 'zip-installed-roundtrip.json'), JSON.stringify({
             archive: path.basename(archive),
+            archiveSha256: crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex'),
             installFlow: 'extract ZIP -> packaged prepare.cjs --mock -> installed start.cjs --mock',
             installedManifestVersion: installedManifest.version,
-            frontendBuild: '0.9.0',
+            frontendBuild: '0.9.1',
             handshake: {bridgeBuild: handshake.bridgeBuild, protocolVersion: handshake.protocolVersion, capabilities: handshake.capabilities},
             mockConversationSavedAfterReload: true,
             preferencesAfterReload: {theme: 'paper', messageFormat: 'messenger'},
+            folderAfterReload: {name: folderName, assignedCharacterCount: 1},
+            migrationRoutes,
+            nativeMigration,
             errors,
             timestamp: new Date().toISOString(),
         }, null, 2));

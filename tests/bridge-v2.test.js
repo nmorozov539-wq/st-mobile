@@ -5,7 +5,7 @@ import {createNativeSettingsHost} from '../prototype/extension/native-settings-h
 import {createNativeHostLock,nativeHostOwnsEngine} from '../prototype/extension/native-host-lock.js';
 
 test('protocol v2 handshake is explicit and unavailable capabilities stay false',()=>{
- const value=handshakeContract({bridgeBuild:'0.9.0',sessionId:'s',adapter:{runtimeVersion:'1.19.0'}});
+ const value=handshakeContract({bridgeBuild:'0.9.1',sessionId:'s',adapter:{runtimeVersion:'1.19.0'}});
  assert.equal(value.protocolVersion,PROTOCOL_VERSION);assert.deepEqual(value.capabilities.nativeSettingsHost,{connection:false,presets:false});
 });
 test('bridge rejects malformed and unknown operations promptly',async()=>{
@@ -41,7 +41,7 @@ test('native opening rejects adapter, workspace and pending-recovery conflicts',
  const host=createNativeSettingsHost({document,isBusy:lock,projection:async()=>({})});
  workspace=true;await assert.rejects(host.run({action:'open',surface:'connection'}),{code:'BUSY'});workspace=false;adapter=true;await assert.rejects(host.run({action:'open',surface:'connection'}),{code:'BUSY'});adapter=false;
  await assert.rejects(host.run({action:'open',surface:'connection',recoveryPending:true}),{code:'BUSY'});
- const opened=await host.run({action:'open',surface:'connection'});assert.equal(opened.mode,'full-native-fallback');await host.run({action:'close',surfaceId:opened.surfaceId});
+ const opened=await host.run({action:'open',surface:'connection'});assert.equal(opened.mode,'pocket-themed-native');await host.run({action:'close',surfaceId:opened.surfaceId});
 });
 test('native host intercepts global keyboard shortcuts while preserving control defaults',async()=>{
  const connection=element('rm_api_block'),required=element('main_api'),listeners=new Map();connection.contains=node=>node===required;

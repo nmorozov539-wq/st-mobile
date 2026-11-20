@@ -1,9 +1,9 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.9.0';
-import {icon} from './icons.js?build=0.9.0';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.9.0';
-import {FRONTEND_BUILD} from './build.js?build=0.9.0';
-import {createConfigurationMigrationPage} from './configuration-migration-page.js?build=0.9.0';
+import {el, btn} from './wi-ui.js?build=0.9.1';
+import {icon} from './icons.js?build=0.9.1';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.9.1';
+import {FRONTEND_BUILD} from './build.js?build=0.9.1';
+import {createConfigurationMigrationPage} from './configuration-migration-page.js?build=0.9.1';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
@@ -244,9 +244,13 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }
  function nativeTab(page,surface) {
-  page.append(el('p',surface==='connection'?'Connection is owned by SillyTavern. Pocket opens the original native controls in the existing engine session.':'Presets and generation are owned by the active SillyTavern API. Pocket does not copy or reinterpret these fields.','sp-note'));
-  const open=btn(`Open native ${surface==='connection'?'Connection':'Presets & generation'}`,()=>onNativeSettings(surface),'btn primary sp-primary');open.disabled=!connected()||locked();page.append(open);
   const mount=el('div','','native-settings-mount');mount.id='native-settings-mount';mount.setAttribute('role','region');mount.setAttribute('aria-label','SillyTavern native settings');page.append(mount);
+ }
+ function openOwnedTopic(next) {
+  const native = next === 'connection' || next === 'presets';
+  if (native && migrationPage.state()?.ownership !== 'native') { tab = 'migration'; render(); return; }
+  tab = next; render();
+  if (native) onNativeSettings(next);
  }
  function layoutTab(page){
   const value=getLayout(),format=el('div','','segmented sp-seg');format.setAttribute('role','group');format.setAttribute('aria-label','Message format');
@@ -270,7 +274,7 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   const reconnectRow = el('div', '', 'sp-row sp-row-static'); const lead = el('span', '', 'sp-row-icon'); lead.append(icon('server')); const text = el('span', '', 'sp-row-text'); text.append(el('strong', 'SillyTavern engine'), el('small', engine, `sp-row-value ${connected() ? 'ok' : 'err'}`)); const re = btn('', () => reconnect(), 'btn quiet sp-link'); re.append(icon('refresh'), ' Reconnect'); reconnectRow.append(lead, text, re);
   const provider = !selected ? (failure ? 'Could not read the connection' : 'Loading…') : `${selected.source === 'deepseek' ? 'DeepSeek' : selected.source === 'custom' ? (sameEndpoint(selected.endpoint, PROXY_ENDPOINT) ? 'Proxy' : 'OpenAI-compatible') : selected.source} · ${selected.model || 'no model'}`;
   const migration=migrationPage.state();
-  group('Engine', [reconnectRow,row({glyph:'plug',title:'Connection',value:provider,tone:config?.onlineStatus==='no_connection'?'err':'',open:()=>{tab='connection';render();},id:'settings-connection'}),row({glyph:'sliders',title:'Presets & generation',value:selected?.preset||'No preset selected',open:()=>{tab='presets';render();},id:'settings-presets'}),row({glyph:'shield',title:'Configuration ownership',value:migration?.ownership==='native'?'Native SillyTavern':migration?.ownership==='preparing'?'Preservation in progress':'Legacy Pocket scopes',open:()=>{tab='migration';render();},id:'settings-migration'})]);
+  group('Engine', [reconnectRow,row({glyph:'plug',title:'Connection',value:provider,tone:config?.onlineStatus==='no_connection'?'err':'',open:()=>openOwnedTopic('connection'),id:'settings-connection'}),row({glyph:'sliders',title:'Presets & generation',value:selected?.preset||'No preset selected',open:()=>openOwnedTopic('presets'),id:'settings-presets'}),row({glyph:'shield',title:'Configuration ownership',value:migration?.ownership==='native'?'Native SillyTavern':migration?.ownership==='preparing'?'Preservation in progress':'Legacy Pocket scopes',open:()=>{tab='migration';render();},id:'settings-migration'})]);
   group('Interface', [row({glyph:'eye',title:'Appearance',value:`${look.textSize} px · ${look.spacing} spacing`,open:()=>{tab='appearance';render();},id:'settings-appearance'}),row({glyph:'library',title:'Layout & reading',value:`${getLayout().messageFormat} · WI ${getLayout().wiPlacement}`,open:()=>{tab='layout';render();},id:'settings-layout'})]);
   group('About',[row({glyph:'mug',title:'About',value:`Pocket Tavern ${FRONTEND_BUILD}`,open:()=>{tab='about';render();},id:'settings-about'}),row({glyph:'server',title:'Diagnostics',value:`${diagnostics().length} recent event${diagnostics().length===1?'':'s'}`,open:()=>{tab='diagnostics';render();},id:'settings-diagnostics'})]);
  }
@@ -289,7 +293,7 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
  }
  function wideCategories(){
   const nav=el('nav','','settings-categories');nav.setAttribute('aria-label','Settings categories');
-  for(const [label,items] of [['Engine',[['connection','plug'],['presets','sliders'],['migration','shield']]],['Interface',[['appearance','eye'],['layout','library']]],['About',[['about','mug'],['diagnostics','server']]]]){nav.append(el('h2',label,'sp-group-label'));for(const [id,glyph] of items){const b=btn('',()=>{tab=id;render();},'settings-category',{'aria-current':tab===id?'page':'false','data-topic':id});b.append(icon(glyph),el('span',topicNames[id]));nav.append(b);}}
+  for(const [label,items] of [['Engine',[['connection','plug'],['presets','sliders'],['migration','shield']]],['Interface',[['appearance','eye'],['layout','library']]],['About',[['about','mug'],['diagnostics','server']]]]){nav.append(el('h2',label,'sp-group-label'));for(const [id,glyph] of items){const b=btn('',()=>openOwnedTopic(id),'settings-category',{'aria-current':tab===id?'page':'false','data-topic':id});b.append(icon(glyph),el('span',topicNames[id]));nav.append(b);}}
   return nav;
  }
  function render(content) {

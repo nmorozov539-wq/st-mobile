@@ -14,9 +14,16 @@ export function assetName(value) {
     if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 120 || /[\\/<>:"|?*\x00-\x1f]/.test(value) || /[. ]$/.test(value)) throw Error('Use a name without filename punctuation or trailing spaces/dots.');
     return value;
 }
-export function characterUpdate(key, draft) {
+function mergeReplacement(previous, next) {
+    if (!previous || typeof previous !== 'object' || Array.isArray(previous) || !next || typeof next !== 'object' || Array.isArray(next)) return next;
+    const patch = structuredClone(next);
+    for (const field of Object.keys(previous)) if (!Object.hasOwn(next, field)) patch[field] = '__@@UNSET@@__';
+    for (const [field, value] of Object.entries(next)) if (value && typeof value === 'object' && !Array.isArray(value)) patch[field] = mergeReplacement(previous[field], value);
+    return patch;
+}
+export function characterUpdate(key, draft, previous=null) {
     const data = safeObject(draft); assetName(data.name);
-    const update = { avatar:key, data };
+    const update = { avatar:key, data:previous ? mergeReplacement(safeObject(previous), data) : data };
     for (const field of ['name','description','personality','scenario','first_mes','mes_example']) update[field] = data[field] ?? '';
     return update;
 }

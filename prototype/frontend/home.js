@@ -1,7 +1,7 @@
 // Home: a starting point. Continue the last chat, jump to a recent one, or pick a character.
 // Status comes from known state only; nothing here sends a paid request.
-import {icon} from './icons.js?build=0.9.0';
-import {plainPreview} from './preview.js?build=0.9.0';
+import {icon} from './icons.js?build=0.9.1';
+import {plainPreview} from './preview.js?build=0.9.1';
 
 export function homeStatus({connected, initializing, generating, onlineStatus, apiChecked}) {
  const engine = initializing ? {label: 'Connecting…', tone: 'wait'} : !connected ? {label: 'Not connected', tone: 'bad'} : generating ? {label: 'Working', tone: 'ok'} : {label: 'Connected', tone: 'ok'};
@@ -80,11 +80,9 @@ export function renderHome(content, {status, loaded, stalled, connected, configu
   const empty = node('div', null, 'home-empty');
   const badge = node('div', null, 'home-badge'); badge.append(icon('mug'));
   const buttons = node('div', null, 'home-empty-actions');
-  const importButton = btn('Import a card', 'btn primary', actions.importCharacters, 'upload');
-  const createButton = btn('Create one', 'btn secondary', actions.createCharacter, 'plus');
-  importButton.disabled = createButton.disabled = !connected;
-  buttons.append(importButton, createButton);
-  empty.append(badge, node('h2', 'Your tavern is empty', 'home-empty-title'), node('p', 'Bring in a character card from your phone, or write one from scratch.', 'home-empty-text'), buttons);
+  const addButton = btn('Add a character', 'btn primary', actions.allCharacters, 'plus');
+  addButton.disabled = !connected; buttons.append(addButton);
+  empty.append(badge, node('h2', 'Your tavern is empty', 'home-empty-title'), node('p', 'Add a character, then start your first story.', 'home-empty-text'), buttons);
   wrap.append(empty);
   return;
  }

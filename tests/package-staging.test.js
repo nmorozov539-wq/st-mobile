@@ -13,15 +13,15 @@ test('shared phone staging produces a complete matched and licensed manifest',()
     try {
         const manifest=stagePackage(path.resolve('.'),staged,{sourceCommit:'0123456789abcdef'});
         assert.equal(manifest.sourceCommit,'0123456789abcdef');
-        assert.equal(manifest.packageVersion,'0.9.0');
+        assert.equal(manifest.packageVersion,'0.9.1');
         assert.equal(manifest.engineVersion,'1.19.0');
         assert.equal(manifest.bridgeProtocol,2);
         assert.ok(manifest.files['LICENSE']);
         assert.ok(manifest.files['THIRD_PARTY_NOTICES.md']);
         assert.ok(manifest.files['frontend/LICENSE-lucide.txt']);
         assert.ok(manifest.files['summaryception/LICENSE']);
-        assert.equal(JSON.parse(fs.readFileSync(path.join(staged,'extension/manifest.json'))).version,'0.9.0');
-        assert.match(fs.readFileSync(path.join(staged,'frontend/build.js'),'utf8'),/FRONTEND_BUILD = '0\.9\.0'/);
+        assert.equal(JSON.parse(fs.readFileSync(path.join(staged,'extension/manifest.json'))).version,'0.9.1');
+        assert.match(fs.readFileSync(path.join(staged,'frontend/build.js'),'utf8'),/FRONTEND_BUILD = '0\.9\.1'/);
         assert.doesNotMatch(fs.readFileSync(path.join(staged,'extension/index.js'),'utf8'),/const panel/);
         assert.equal(verifyPackage(staged).sourceCommit,'0123456789abcdef');
         fs.appendFileSync(path.join(staged,'frontend/build.js'),'\nchanged');

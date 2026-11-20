@@ -1,7 +1,7 @@
-import {icon} from './icons.js?build=0.9.0';
-import {validColour} from './char-colour.js?build=0.9.0';
-import {createCharacterAssociations} from './character-associations.js?build=0.9.0';
-import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.9.0';
+import {icon} from './icons.js?build=0.9.1';
+import {validColour} from './char-colour.js?build=0.9.1';
+import {createCharacterAssociations} from './character-associations.js?build=0.9.1';
+import {characterGreetings,organizeGreeting,creatorNotesDocument} from './character-data.js?build=0.9.1';
 
 export function createCharacterEditor({format,converter,sanitize,storage=localStorage,associationOptions,colourOf=async()=>null,globalPreset=()=>''}) {
     const links=createCharacterAssociations(associationOptions);
@@ -32,14 +32,16 @@ export function createCharacterEditor({format,converter,sanitize,storage=localSt
         const metadata=[draft.creator&&`by ${draft.creator}`,draft.character_version&&`v${draft.character_version}`].filter(Boolean).join(' · ');if(metadata)heading.append(node('small',metadata));
         if(mode==='read'){const tags=node('div');tags.className='character-tags';for(const value of draft.tags??[])tags.append(node('span',String(value)));heading.append(tags);}else field(heading,'Tags (comma separated)',(draft.tags??[]).join(', '),value=>draft.tags=value.split(',').map(x=>x.trim()).filter(Boolean),{rows:1,type:'text'});identity.append(heading);body.append(identity);
         if(mode==='edit'){
-            // Chat colour: saved in the card so it travels with it. Empty means automatic (read from the portrait).
+            // Empty is a real Automatic mode. Its swatch previews the resolved portrait/theme colour; it is never a fake saved gold.
             const own=validColour(draft.extensions?.pocket_tavern?.color),row=node('div');row.className='character-colour';
-            const label=node('label');label.append(node('span','Chat colour'));const input=node('input');input.type='color';input.value=own??'#d9b46a';input.setAttribute('aria-label','Chat colour');
-            const note=node('small',own?'Picked by hand':'Automatic, from the portrait');
-            const set=value=>{draft.extensions={...(draft.extensions??{}),pocket_tavern:{...(draft.extensions?.pocket_tavern??{}),color:value}};changed();};
-            input.oninput=()=>{set(input.value);note.textContent='Picked by hand';reset.hidden=false;};
-            const reset=button('Automatic',()=>{set('');note.textContent='Automatic, from the portrait';reset.hidden=true;});reset.hidden=!own;
-            label.append(input);row.append(label,note,reset);body.append(row);
+            const modeLabel=node('label');modeLabel.append(node('span','Chat colour mode'));const modeSelect=node('select');modeSelect.setAttribute('aria-label','Chat colour mode');for(const [value,text] of [['automatic','Automatic'],['custom','Custom']]){const option=node('option',text);option.value=value;option.selected=own?value==='custom':value==='automatic';modeSelect.append(option);}modeLabel.append(modeSelect);
+            const label=node('label');label.append(node('span',own?'Custom colour':'Automatic preview'));const input=node('input');input.type='color';input.value=own??'#808080';input.disabled=!own;input.setAttribute('aria-label',own?'Custom chat colour':'Automatic chat colour preview');
+            const note=node('small',own?'Custom override · saved only with the character':'Resolving portrait and theme colour…');let resolved=null;
+            const set=value=>{const pocket={...(draft.extensions?.pocket_tavern??{})};if(value)pocket.color=value;else delete pocket.color;draft.extensions={...(draft.extensions??{}),pocket_tavern:pocket};changed();};
+            input.oninput=()=>{set(input.value);note.textContent='Custom override · saved only with the character';};
+            modeSelect.onchange=()=>{const custom=modeSelect.value==='custom';input.disabled=!custom;label.firstChild.textContent=custom?'Custom colour':'Automatic preview';input.setAttribute('aria-label',custom?'Custom chat colour':'Automatic chat colour preview');if(custom){const fallback=validColour(getComputedStyle(document.documentElement).getPropertyValue('--color-accent'))??'#808080';input.value=resolved??own??fallback;set(input.value);note.textContent='Custom override · saved only with the character';}else{set('');if(resolved)input.value=resolved;note.textContent=resolved?`Automatic preview · ${resolved}`:'Automatic · theme default';}};
+            Promise.resolve(key?colourOf(key,''):null).then(value=>{resolved=validColour(value?.color);if(modeSelect.value==='automatic'){if(resolved)input.value=resolved;note.textContent=resolved?`Automatic preview · ${resolved}`:'Automatic · theme default';}}).catch(()=>{if(modeSelect.value==='automatic')note.textContent='Automatic · theme default';});
+            label.append(input);row.append(modeLabel,label,note);body.append(row);
         }
         if(mode==='read'&&String(draft.creator_notes??'').trim()){
             const notes=node('details');notes.className='character-notes';notes.append(node('summary',"Creator’s Notes"));

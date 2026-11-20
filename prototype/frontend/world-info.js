@@ -1,8 +1,8 @@
 // Phase 6: World Info library page (folders, books, entries). Entry editor and Activation live in their own modules.
-import {icon} from './icons.js?build=0.9.0';
-import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.9.0';
-import {createEntryEditor} from './wi-entry.js?build=0.9.0';
-import {createActivationPage} from './wi-activation.js?build=0.9.0';
+import {icon} from './icons.js?build=0.9.1';
+import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.9.1';
+import {createEntryEditor} from './wi-entry.js?build=0.9.1';
+import {createActivationPage} from './wi-activation.js?build=0.9.1';
 
 const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
 const MARKERS = {keyword: 'Keyword', constant: 'Always on', vectorized: 'Vector'};
@@ -24,9 +24,9 @@ function readRegistry() {
 }
 function writeRegistry(list) { try { localStorage.setItem(REGISTRY_KEY, JSON.stringify([...new Set(list)])); } catch {} }
 
-export function createWorldInfoPanel({rpc, action, locked, connected = () => true, notify, navigate, setSubtitle, onPage = () => true}) {
+export function createWorldInfoPanel({rpc, action, locked, connected = () => true, notify, navigate, setSubtitle, onPage = () => true, workspace = () => ({visible: onPage('wi'), origin: 'wi'})}) {
  const request = (arg, timeout = 60000) => rpc('worldinfo', arg, timeout);
- let lib = null, loading = false, failure = '', container = null, loadedAt = 0;
+ let lib = null, loading = false, failure = '', container = null, loadedAt = 0, workspaceOrigin = 'wi';
  // Which books and folders are open is remembered on this device, like empty folders.
  const VIEW_KEY = 'pocket-tavern.wi-view.v1';
  const savedView = (() => { try { const value = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}'); return {books: Array.isArray(value.books) ? value.books : [], folders: Array.isArray(value.folders) ? value.folders : []}; } catch { return {books: [], folders: []}; } })();
@@ -93,7 +93,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
   return wrap;
  };
  function render() {
-  if (!container?.isConnected || !onPage('wi')) return;
+  if (!container?.isConnected || !workspace().visible) return;
   const page = el('div', '', 'wi-page');
   if (failure) { page.append(el('p', failure, 'wi-error'), btn('Retry', load)); }
   else if (!lib) page.append(el('p', 'Loading World Info…', 'wi-note'));
@@ -126,8 +126,9 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
   const result = await request({action: 'importBook', name: file.name.replace(/\.[^.]+$/, ''), data});
   notify(`Imported “${result.name}”.`); expanded.add(result.name); await load();
  });
- const entry = createEntryEditor({request, action, notify, locked, visible: () => onPage('wi-entry'), back: () => navigate('wi'), setSubtitle, changed: name => { details.delete(name); if (expanded.has(name)) loadBook(name); }});
- const activation = createActivationPage({request, action, notify, locked, visible: () => onPage('wi-activation'), back: () => navigate('wi'), changed: () => load()});
+ const returnToWorkspace = () => navigate(workspaceOrigin === 'library' ? {page: 'library', section: 'wi'} : {page: 'wi'});
+ const entry = createEntryEditor({request, action, notify, locked, visible: () => onPage('wi-entry'), back: returnToWorkspace, setSubtitle, changed: name => { details.delete(name); if (expanded.has(name)) loadBook(name); }});
+ const activation = createActivationPage({request, action, notify, locked, visible: () => onPage('wi-activation'), back: returnToWorkspace, changed: () => load()});
 
  async function toggleEntry(name, row, check) {
   if (!guard()) { check.checked = !row.disabled; return; }
@@ -226,11 +227,11 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
 
  return {
   headerActions() { const off = locked(); return [{id: 'wi-import', icon: 'upload', label: 'Import a lorebook', run: () => importInput.click(), disabled: off}, {id: 'wi-folder', icon: 'folderPlus', label: 'New folder', run: () => action(createFolder), disabled: off}, {id: 'wi-book', icon: 'plus', label: 'New book', run: () => action(createBook), disabled: off, primary: true}]; },
-  renderLibrary(content) { container = content; if (!importInput.isConnected) document.body.append(importInput); setSubtitle(''); if (!loading && (!lib || Date.now() - loadedAt > 5000)) load(); render(); },
+  renderLibrary(content) { container = content; const state = workspace(); if (state.visible) workspaceOrigin = state.origin === 'library' ? 'library' : 'wi'; if (!importInput.isConnected) document.body.append(importInput); setSubtitle(''); if (!loading && (!lib || Date.now() - loadedAt > 5000)) load(); render(); },
   renderEntry(content) { entry.render(content); },
   renderActivation(content) { activation.render(content); },
   reload: load,
   async openActivation() { await activation.open(); navigate('wi-activation'); },
-  leave(page) { return page === 'wi-entry' ? entry.cancel() : page === 'wi-activation' ? activation.cancel() : (navigate('wi'), undefined); },
+  leave(page) { return page === 'wi-entry' ? entry.cancel() : page === 'wi-activation' ? activation.cancel() : (returnToWorkspace(), undefined); },
  };
 }

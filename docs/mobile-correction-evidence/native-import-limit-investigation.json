@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-20",
+  "fixture": "Disposable SillyTavern 1.19.0 on Node 26.13.0",
+  "input": {
+    "format": "Valid chara_card_v2 JSON",
+    "sizeClass": "31 MiB payload plus JSON structure",
+    "transport": "Pocket File -> MessagePort -> FormData -> /api/characters/import"
+  },
+  "pinnedServerInspection": {
+    "bodyParserJsonLimit": "500mb",
+    "multerFieldSizeLimitBytes": 524288000,
+    "multerUploadStorage": "disk",
+    "jsonImportPath": "readFileSync(uploadPath, utf8), JSON.parse, then character PNG metadata write"
+  },
+  "observed": {
+    "nativeEndpointAcceptedUpload": true,
+    "nativeImporterStarted": true,
+    "savedReadbackCompleted": false,
+    "result": "SillyTavern process terminated with V8 JavaScript heap out of memory",
+    "lastReportedHeapMiBApprox": 2037.3,
+    "error": "FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory"
+  },
+  "decision": {
+    "raiseLimit": false,
+    "candidateLimitMiB": 30,
+    "reason": "The real pinned importer could not complete a valid card only slightly above the existing boundary. Pocket retains the existing guard and adds picker-side validation; it does not claim 32 or 64 MiB support."
+  }
+}

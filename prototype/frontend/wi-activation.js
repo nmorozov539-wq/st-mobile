@@ -1,5 +1,5 @@
 // Phase 6d: global World Info activation settings. Shared across all chats; saved only after ST confirms them.
-import {el, btn, checkbox, field, select, section, confirmDialog} from './wi-ui.js?build=0.9.0';
+import {el, btn, checkbox, field, select, section, confirmDialog} from './wi-ui.js?build=0.9.1';
 
 const STRATEGIES = [[0, 'Sorted evenly'], [1, 'Character lore first'], [2, 'Global lore first']];
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);

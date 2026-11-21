@@ -8,7 +8,7 @@ const playwrightPath = process.env.PLAYWRIGHT_MODULE || '/home/Riv/.cache/codex-
 const {chromium} = require(playwrightPath);
 
 const project = path.resolve(__dirname, '..');
-const archive = path.resolve(process.argv[2] || path.join(project, 'dist/pocket-tavern-combined-v0.9.2.zip'));
+const archive = path.resolve(process.argv[2] || path.join(project, 'dist/stm-combined-v0.9.2.zip'));
 const source = path.resolve(process.argv[3] || '/home/Riv/SillyTavern');
 const evidence = path.join(project, 'docs/mobile-correction-evidence');
 
@@ -30,7 +30,7 @@ const waitForServer = async () => {
         assert.equal(fs.existsSync(archive), true, `Missing package: ${archive}`);
         const unzip = spawnSync('unzip', ['-q', archive, '-d', root], {encoding: 'utf8'});
         assert.equal(unzip.status, 0, unzip.stderr || unzip.stdout);
-        const kitName = fs.readdirSync(root).find(name => name.startsWith('pocket-tavern-combined-v'));
+        const kitName = fs.readdirSync(root).find(name => name.startsWith('stm-combined-v'));
         assert.ok(kitName, 'Extracted package root was not found.');
         const kit = path.join(root, kitName);
         const prepare = spawnSync(process.execPath, [path.join(kit, 'prepare.cjs'), source, install, '--mock'], {encoding: 'utf8', timeout: 180000});
@@ -42,7 +42,7 @@ const waitForServer = async () => {
         const installedBuild = fs.readFileSync(installedBuildPath, 'utf8');
         assert.equal(installedManifest.version, '0.9.2');
         assert.match(installedBuild, /FRONTEND_BUILD = '0\.9\.2'/);
-        assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# Pocket Tavern combined prototype v0\.9\.2/m);
+        assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# STM combined prototype v0\.9\.2/m);
 
         launcher = spawn(process.execPath, [path.join(install, 'start.cjs'), '--mock'], {cwd: install, stdio: ['ignore', 'pipe', 'pipe']});
         for (const stream of [launcher.stdout, launcher.stderr]) stream.on('data', chunk => { logs.push(String(chunk)); if (logs.length > 300) logs.shift(); });
@@ -67,7 +67,7 @@ const waitForServer = async () => {
         const frame = page.locator('#engine').contentFrame();
         await frame.locator('html').evaluate(async () => {
             const ctx = SillyTavern.getContext();
-            ctx.extensionSettings.pocket_tavern = {...(ctx.extensionSettings.pocket_tavern ?? {}), version: 3, global: {preset: 'Default', model: 'st-mobile-mock', generation: {temperature: .73, openai_max_tokens: 515}, opaque: {retained: 'packaged-roundtrip'}}};
+            ctx.extensionSettings.stm = {...(ctx.extensionSettings.stm ?? {}), version: 3, global: {preset: 'Default', model: 'st-mobile-mock', generation: {temperature: .73, openai_max_tokens: 515}, opaque: {retained: 'packaged-roundtrip'}}};
             const {saveSettings} = await import('/script.js');
             await saveSettings();
         });
@@ -81,8 +81,8 @@ const waitForServer = async () => {
         await page.getByText('Native SillyTavern ownership', {exact: true}).waitFor({timeout: 120000});
         migrationRoutes.native = true;
         const nativeMigration = await frame.locator('html').evaluate(async () => {
-            const ctx = SillyTavern.getContext(), response = await fetch('/api/settings/get', {method: 'POST', headers: ctx.getRequestHeaders(), cache: 'no-store'}), body = await response.json(), settings = JSON.parse(body.settings), migration = settings.extension_settings?.pocket_tavern?.migration;
-            return {ownership: migration?.ownership, checkpoint: migration?.checkpoint, legacyGlobalRetained: !!settings.extension_settings?.pocket_tavern?.global};
+            const ctx = SillyTavern.getContext(), response = await fetch('/api/settings/get', {method: 'POST', headers: ctx.getRequestHeaders(), cache: 'no-store'}), body = await response.json(), settings = JSON.parse(body.settings), migration = settings.extension_settings?.stm?.migration;
+            return {ownership: migration?.ownership, checkpoint: migration?.checkpoint, legacyGlobalRetained: !!settings.extension_settings?.stm?.global};
         });
         assert.deepEqual(nativeMigration, {ownership: 'native', checkpoint: 'verified', legacyGlobalRetained: true});
         await page.locator('#page-back').click();

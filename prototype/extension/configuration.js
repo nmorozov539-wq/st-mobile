@@ -40,14 +40,14 @@ export function createConfigurationRuntime(getContext) {
     }
     return {
         read,
-        // Settings sets the global model and provider. Keep Pocket's global
+        // Settings sets the global model and provider. Keep STM's global
         // copy in step, or opening a chat would put the previous model back.
         async syncGlobalModel() {
             // While disconnected ST reports its built-in default, not a model you chose.
-            const ctx = getContext();if(ctx.mainApi!=='openai')return;const global = ctx.extensionSettings.pocket_tavern?.global, model = listedModel(model_list, getChatCompletionModel());
+            const ctx = getContext();if(ctx.mainApi!=='openai')return;const global = ctx.extensionSettings.stm?.global, model = listedModel(model_list, getChatCompletionModel());
             if (!global || !model || ctx.onlineStatus === 'no_connection' || global.model === model) return;
             global.model = model;
-            await verify(saved => saved.extension_settings?.pocket_tavern?.global?.model === model);
+            await verify(saved => saved.extension_settings?.stm?.global?.model === model);
         },
         async change({ kind, value }) {
             const ctx = getContext(), settings = ctx.chatCompletionSettings;
@@ -86,7 +86,7 @@ export function createConfigurationRuntime(getContext) {
                 settings.show_thoughts = value;
                 await verify(saved => saved.oai_settings?.show_thoughts === value);
             } else if (kind === 'source') {
-                if (!['openrouter', 'custom', 'deepseek'].includes(value)) fail('INVALID_ARGUMENT', 'Pocket supports OpenAI-compatible endpoints (OpenRouter, the proxy, custom) and DeepSeek.');
+                if (!['openrouter', 'custom', 'deepseek'].includes(value)) fail('INVALID_ARGUMENT', 'STM supports OpenAI-compatible endpoints (OpenRouter, the proxy, custom) and DeepSeek.');
                 if (ctx.mainApi !== 'openai') changeSelect('#main_api', 'openai');
                 changeSelect('#chat_completion_source', value);
                 await verify(saved => saved.main_api === 'openai' && saved.oai_settings?.chat_completion_source === value);
@@ -115,7 +115,7 @@ export function createConfigurationRuntime(getContext) {
             } else if (kind === 'providerKey' || kind === 'openrouterKey') {
                 if (typeof value !== 'string' || !value.trim() || value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a nonempty API key.');
                 const key = kind === 'openrouterKey' ? SECRET_KEYS.OPENROUTER : providerSecretKey(settings.chat_completion_source);
-                if (!await writeSecret(key, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
+                if (!await writeSecret(key, value.trim(), 'STM')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
             } else if (kind === 'test') {
                 if (ctx.mainApi !== 'openai' || !getChatCompletionModel()) fail('INVALID_ARGUMENT', 'Choose a chat-completion model first.');
                 if (settings.chat_completion_source === 'custom') validateEndpoint(settings.custom_url);
@@ -128,7 +128,7 @@ export function createConfigurationRuntime(getContext) {
                 {
                     if (typeof value === 'string' && value.trim()) {
                         if (value.length > 1000) fail('INVALID_ARGUMENT', 'Enter a valid API key.');
-                        if (!await writeSecret(key, value.trim(), 'Pocket Tavern')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
+                        if (!await writeSecret(key, value.trim(), 'STM')) fail('SETTINGS_UNVERIFIED', 'ST could not save the key.');
                     }
                     if (settings.chat_completion_source === 'openrouter' && !hasActiveSecret(secret_state[key])) fail('INVALID_ARGUMENT', 'Enter an OpenRouter API key, then press Connect.');
                     if (settings.chat_completion_source === 'deepseek' && !hasActiveSecret(secret_state[key])) fail('INVALID_ARGUMENT', 'Enter your DeepSeek API key, then press Connect.');

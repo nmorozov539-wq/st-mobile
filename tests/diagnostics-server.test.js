@@ -13,7 +13,7 @@ async function authenticate(endpoint,capability){const response=await fetch(endp
 const hostileHost=(port)=>new Promise((resolve,reject)=>{const request=http.request({host:'127.0.0.1',port,path:'/api/status',headers:{Host:'evil.invalid'}},response=>{response.resume();response.on('end',()=>resolve(response.statusCode));});request.on('error',reject);request.end();});
 
 test('diagnostics service requires fragment exchange, strict origin/host and a private cookie for logs and export',async()=>{
- const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-diag-'));let now=1000;const logger=new LogSupervisor(root);logger.record('engine','error','<script>alert(1)</script>');logger.record('engine','error','Authorization: Bearer abc123 {"api_key":"json-secret"}');logger.setStatus({engineState:'stopped',exitCode:7});const service=createDiagnosticsServer({logger,port:0,clock:()=>now,sessionLifetimeMs:5000,exportLifetimeMs:500});
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-diag-'));let now=1000;const logger=new LogSupervisor(root);logger.record('engine','error','<script>alert(1)</script>');logger.record('engine','error','Authorization: Bearer abc123 {"api_key":"json-secret"}');logger.setStatus({engineState:'stopped',exitCode:7});const service=createDiagnosticsServer({logger,port:0,clock:()=>now,sessionLifetimeMs:5000,exportLifetimeMs:500});
  try{const endpoint=await service.start();assert.match(endpoint.privateUrl,/#token=/);assert.match(js,/history\.replaceState/);
   assert.equal((await fetch(endpoint.origin+'/api/status')).status,401);
   assert.equal((await fetch(endpoint.origin+'/session',{method:'POST',headers:{Origin:'http://evil.invalid','Content-Type':'application/json'},body:JSON.stringify({token:service.capability})})).status,403);

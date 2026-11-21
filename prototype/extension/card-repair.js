@@ -1,4 +1,4 @@
-// Pocket 0.7.14 and earlier opened ST with a query string. jQuery UI then loaded a second copy of ST's page
+// STM 0.7.14 and earlier opened ST with a query string. jQuery UI then loaded a second copy of ST's page
 // into the Backgrounds tab, so every character save posted the advanced fields twice and ST stored them as
 // two-item lists. The first item is the value from the real form; this puts it back as plain text.
 const TOP = ['personality', 'scenario', 'mes_example', 'creatorcomment', 'talkativeness'];
@@ -25,8 +25,8 @@ export function cardRepair(card) {
 }
 
 export async function repairDoubledCards(getContext) {
-    // Kept outside pocket_tavern, whose namespace the workspace creates and versions itself.
-    const ctx = getContext(), settings = ctx.extensionSettings.pocket_tavern_repairs ??= {};
+    // Kept outside stm, whose namespace the workspace creates and versions itself.
+    const ctx = getContext(), settings = ctx.extensionSettings.stm_repairs ??= {};
     if (settings.doubledCardFields >= 1) return [];
     const post = async (url, body) => {
         const response = await fetch(url, { method: 'POST', headers: ctx.getRequestHeaders(), body: JSON.stringify(body) });

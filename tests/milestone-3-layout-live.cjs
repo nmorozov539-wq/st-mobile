@@ -4,8 +4,8 @@ const path = require('node:path');
 const playwrightPath = process.env.PLAYWRIGHT_MODULE || '/home/Riv/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
 const {chromium} = require(playwrightPath);
 
-const origin = process.env.POCKET_BASE_URL || 'http://127.0.0.1:8123';
-const out = process.env.POCKET_EVIDENCE_DIR || path.resolve(__dirname, '../docs/milestone-3-evidence');
+const origin = process.env.STM_BASE_URL || 'http://127.0.0.1:8123';
+const out = process.env.STM_EVIDENCE_DIR || path.resolve(__dirname, '../docs/milestone-3-evidence');
 fs.mkdirSync(out, {recursive: true});
 
 (async () => {
@@ -72,7 +72,7 @@ fs.mkdirSync(out, {recursive: true});
     checks.push('Reading clean, streaming and bounded human-readable error states');
 
     await page.evaluate(() => {
-        const key = 'pocket-tavern.layout.v1', value = JSON.parse(localStorage.getItem(key));
+        const key = 'stm.layout.v1', value = JSON.parse(localStorage.getItem(key));
         localStorage.setItem(key, JSON.stringify({...value, messageFormat: 'messenger'}));
     });
     await page.close();

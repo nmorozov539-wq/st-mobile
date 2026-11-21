@@ -48,11 +48,11 @@ function prepare(source, target, bundle = __dirname, options = {}) {
         patchEngine(target,source);
         if(options.combined){
             for(const name of ['public/scripts/tokenizers.js','src/server-main.js','src/fetch-patch.js','public/script.js']){
-                const saved=path.join(target,'.pocket-base',name); fs.mkdirSync(path.dirname(saved),{recursive:true});fs.copyFileSync(path.join(source,name),saved);
+                const saved=path.join(target,'.stm-base',name); fs.mkdirSync(path.dirname(saved),{recursive:true});fs.copyFileSync(path.join(source,name),saved);
             }
             for(const name of ['start.cjs','log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','update-core.cjs','compatibility.cjs','package-staging.cjs'])fs.copyFileSync(path.join(bundle,name),path.join(target,name));
         }
-        fs.writeFileSync(path.join(target,options.combined ? '.pocket-tavern.json' : '.pocket-tavern-test.json'),JSON.stringify({version:1,source,created:new Date().toISOString(),dataRoot:'data',mode:options.combined?'combined':'test',mock:!!options.mock,dependencies:options.copyDependencies?'copied':'shared'}));
+        fs.writeFileSync(path.join(target,options.combined ? '.stm.json' : '.stm-test.json'),JSON.stringify({version:1,source,created:new Date().toISOString(),dataRoot:'data',mode:options.combined?'combined':'test',mock:!!options.mock,dependencies:options.copyDependencies?'copied':'shared'}));
     } catch (error) { throw Error(`${error.message}\nAn incomplete NEW test folder may remain at ${target}; your regular ST was not modified.`); }
     return target;
 }
@@ -60,7 +60,7 @@ module.exports = {prepare};
 if (require.main === module) {
     try {
         const source = process.argv[2] || path.join(os.homedir(),'SillyTavern');
-        const target = process.argv[3] || path.join(os.homedir(),'pocket-tavern-phone-test');
+        const target = process.argv[3] || path.join(os.homedir(),'stm-phone-test');
         console.log('Preparing an isolated test tavern. This may take a minute…');
         console.log('Ready:',prepare(source,target));
         console.log('Next: node start-test.cjs');

@@ -1,8 +1,8 @@
 // Uses only the explicitly prepared mock fixture. No private ST data or paid requests.
 const assert=require('node:assert/strict'),fs=require('node:fs');
-const marker=JSON.parse(fs.readFileSync('/tmp/pocket-release-engine/.pocket-tavern.json'));
+const marker=JSON.parse(fs.readFileSync('/tmp/stm-release-engine/.stm.json'));
 if(!marker.mock)throw Error('Prepared mock fixture required');
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 let passed=0;const check=(value,label)=>{assert.ok(value,label);passed++;console.log('PASS '+label);};
 module.exports=(async()=>{
  const browser=await chromium.launch({headless:true});let saved;

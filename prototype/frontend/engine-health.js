@@ -2,7 +2,7 @@ export async function probeEngine(request=fetch,timeoutMs=3500) {
     const controller=new AbortController();
     const timer=setTimeout(()=>controller.abort(),timeoutMs);
     try {
-        const response=await request(`/version?pocketHealth=${Date.now()}`,{cache:'no-store',signal:controller.signal});
+        const response=await request(`/version?stmHealth=${Date.now()}`,{cache:'no-store',signal:controller.signal});
         if(!response.ok)throw Error('Engine did not answer.');
         const version=await response.json();
         if(version.pkgVersion!=='1.19.0')throw Error('Unexpected engine version.');

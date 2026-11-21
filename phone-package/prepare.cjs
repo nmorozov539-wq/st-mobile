@@ -7,7 +7,7 @@ const mock=argumentsList.includes('--mock');
 const paths=argumentsList.filter(argument=>argument!=='--mock');
 try {
     const source=paths[0]||path.join(os.homedir(),'SillyTavern');
-    const target=paths[1]||path.join(os.homedir(),'pocket-tavern');
+    const target=paths[1]||path.join(os.homedir(),'stm');
     console.log('Preparing a combined tavern with fresh standard ST data and its own dependencies…');
     prepare(source,target,__dirname,{combined:true,copyDependencies:true,mock});
     console.log('Ready. Start with:');

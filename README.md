@@ -29,10 +29,10 @@ Build the Termux package:
 python3 scripts/build-phone-package.py
 ```
 
-The ZIP is written to `dist/`. For an existing phone installation, copy that ZIP and `phone-package/repair-pocket.cjs` to Android Downloads, stop Pocket Tavern, and run:
+The ZIP is written to `dist/`. For an existing phone installation, copy that ZIP and `phone-package/repair-stm.cjs` to Android Downloads, stop STM, and run:
 
 ```sh
-node ~/storage/downloads/repair-pocket.cjs
+node ~/storage/downloads/repair-stm.cjs
 ```
 
 Then open `http://127.0.0.1:8123/st-mobile/` on the phone.

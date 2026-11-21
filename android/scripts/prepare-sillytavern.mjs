@@ -35,7 +35,7 @@ for (const key of ['version', 'repository', 'commit']) {
 }
 
 const out = path.resolve(outArg);
-const stampFile = path.join(out, '.pocket-prepared');
+const stampFile = path.join(out, '.stm-prepared');
 const stamp = JSON.stringify({ commit: props.commit, version: props.version, script: SCRIPT_VERSION });
 if (fs.existsSync(stampFile) && fs.readFileSync(stampFile, 'utf8') === stamp) {
     console.log(`SillyTavern ${props.version} already prepared in ${out}`);

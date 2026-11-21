@@ -1,20 +1,20 @@
 const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const os=require('node:os');const {execFileSync}=require('node:child_process');
-const fixture=process.env.POCKET_REPAIR_FIXTURE||'/tmp/pocket-combined-engine';
-const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/repair-pocket.cjs');
+const fixture=process.env.STM_REPAIR_FIXTURE||'/tmp/stm-combined-engine';
+const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/repair-stm.cjs');
 (async()=>{
- const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-check-'));
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-repair-check-'));
  try{
   const destination=path.join(root,'extracted');fs.mkdirSync(destination);
-  const archive=path.resolve('pocket-tavern-combined-v0.9.2.zip');
+  const archive=path.resolve('stm-combined-v0.9.2.zip');
   const bundle=await extractKit(archive,destination,fixture);
   assert.ok(fs.existsSync(path.join(bundle,'prepare.cjs')));
   for(const file of ['frontend/libraries.js','frontend/libraries.css','extension/workspace.js','extension/new-chat.js','frontend/new-chat-panel.js','frontend/character-chats.js','extension/workspace-data.js','frontend/journal.js','frontend/engine-monitor.js','extension/alternative.js','frontend/chat-controls.js','frontend/model-panel.js','frontend/scoped-settings.js','frontend/icons.js','frontend/chat.css','frontend/preset.css','frontend/preset-panel.js','frontend/preset-state.js','extension/preset-state.js'])assert.ok(fs.existsSync(path.join(bundle,file)),`Missing foundation module ${file}`);
-  assert.match(fs.readFileSync(path.join(bundle,'summaryception/index.js'),'utf8'),/pocketExtensions/);
+  assert.match(fs.readFileSync(path.join(bundle,'summaryception/index.js'),'utf8'),/stmExtensions/);
   assert.ok(fs.existsSync(path.join(bundle,'summaryception/LICENSE')));
   assert.match(fs.readFileSync(path.join(bundle,'frontend/index.html'),'utf8'),/setting-endpoint/);
   assert.match(fs.readFileSync(path.join(bundle,'start.cjs'),'utf8'),/--proxy/);
-  fs.copyFileSync(archive,path.join(root,'pocket-tavern-combined-v0.9.2 (1).zip'));
-  assert.equal(locateArchive([root]),path.join(root,'pocket-tavern-combined-v0.9.2 (1).zip'));
+  fs.copyFileSync(archive,path.join(root,'stm-combined-v0.9.2 (1).zip'));
+  assert.equal(locateArchive([root]),path.join(root,'stm-combined-v0.9.2 (1).zip'));
   fs.mkdirSync(path.join(root,'working/node_modules/wreq-js'),{recursive:true});fs.writeFileSync(path.join(root,'working/node_modules/wreq-js/package.json'),'{}');
   assert.equal(locateProxy([path.join(root,'missing'),path.join(root,'working')]),path.join(root,'working'));
   const malicious=path.join(root,'bad.zip');
@@ -23,10 +23,10 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   assert.equal(fs.existsSync(path.join(root,'bad-output')),false);
   const target=path.join(root,'combined'),source=path.join(root,'proxy-source');
   for(const folder of ['public/scripts','src','data/default-user'])fs.mkdirSync(path.join(target,folder),{recursive:true});
-  fs.cpSync(path.join(fixture,'.pocket-base'),path.join(target,'.pocket-base'),{recursive:true});
+  fs.cpSync(path.join(fixture,'.stm-base'),path.join(target,'.stm-base'),{recursive:true});
   fs.symlinkSync(path.join(fixture,'node_modules'),path.join(target,'node_modules'),'dir');
   fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.0'}));
-  fs.writeFileSync(path.join(target,'.pocket-tavern.json'),JSON.stringify({version:1,mode:'combined',mock:false,source:'fixture'}));
+  fs.writeFileSync(path.join(target,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false,source:'fixture'}));
   fs.writeFileSync(path.join(target,'data/default-user/settings.json'),'SAVED SETTINGS');
   const localSummary=path.join(target,'data/default-user/extensions/Extension-Summaryception');fs.mkdirSync(localSummary,{recursive:true});fs.writeFileSync(path.join(localSummary,'index.js'),'ORIGINAL LOCAL CODE');
   fs.mkdirSync(path.join(source,'node_modules/wreq-js'),{recursive:true});
@@ -34,9 +34,9 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   fs.writeFileSync(path.join(source,'node_modules/wreq-js/index.cjs'),'module.exports={fetch(){}}');
   await repair({archive,source,target,launch:false});
   assert.equal(fs.readFileSync(path.join(target,'data/default-user/settings.json'),'utf8'),'SAVED SETTINGS');
-  assert.ok(fs.existsSync(path.join(target,'.pocket-proxy/index.cjs')));
-  assert.match(fs.readFileSync(path.join(localSummary,'index.js'),'utf8'),/pocketExtensions/);
-  assert.ok(fs.readdirSync(path.join(target,'.pocket-backups')).some(dir=>fs.readFileSync(path.join(target,'.pocket-backups',dir,'data/default-user/extensions/Extension-Summaryception/index.js'),'utf8')==='ORIGINAL LOCAL CODE'));
+  assert.ok(fs.existsSync(path.join(target,'.stm-proxy/index.cjs')));
+  assert.match(fs.readFileSync(path.join(localSummary,'index.js'),'utf8'),/stmExtensions/);
+  assert.ok(fs.readdirSync(path.join(target,'.stm-backups')).some(dir=>fs.readFileSync(path.join(target,'.stm-backups',dir,'data/default-user/extensions/Extension-Summaryception/index.js'),'utf8')==='ORIGINAL LOCAL CODE'));
   assert.match(fs.readFileSync(path.join(target,'public/st-mobile/index.html'),'utf8'),/edit-active-preset/);
   assert.ok(fs.existsSync(path.join(target,'public/st-mobile/preset-order.js')));
   assert.ok(fs.existsSync(path.join(target,'public/st-mobile/html-format.js')));

@@ -44,7 +44,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         listCharacters() {
             const ctx = context(), tagNames = new Map((Array.isArray(ctx.tags) ? ctx.tags : []).map(tag => [tag?.id, tag?.name]));
             const tagsOf = character => { const names = new Set(); for (const id of ctx.tagMap?.[character.avatar] ?? []) { const name = tagNames.get(id); if (typeof name === 'string' && name.trim()) names.add(name.trim()); } for (const name of character.data?.tags ?? character.tags ?? []) if (typeof name === 'string' && name.trim()) names.add(name.trim()); return [...names].slice(0, 24); };
-            return ctx.characters.map(character => ({ key: character.avatar, name: character.name, tags: tagsOf(character), added: Number.isFinite(Number(character.date_added)) ? Number(character.date_added) : null, fav: character.fav === true || character.fav === 'true' || character.data?.extensions?.fav === true, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()), color:/^#[0-9a-f]{6}$/i.test(character.data?.extensions?.pocket_tavern?.color??'')?character.data.extensions.pocket_tavern.color:null }));
+            return ctx.characters.map(character => ({ key: character.avatar, name: character.name, tags: tagsOf(character), added: Number.isFinite(Number(character.date_added)) ? Number(character.date_added) : null, fav: character.fav === true || character.fav === 'true' || character.data?.extensions?.fav === true, description:character.description??'', complete:character.shallow?null:[character.name,character.description,character.first_mes].every(value=>typeof value==='string'&&value.trim()), color:/^#[0-9a-f]{6}$/i.test(character.data?.extensions?.stm?.color??'')?character.data.extensions.stm.color:null }));
         },
         snapshot,
         async selectCharacter(key) {
@@ -100,7 +100,7 @@ export function createAdapter({ getContext, isBusy, supportedVersion, runtimeVer
         async extensions(argument) {
             context();
             const extension=extensions?.get(argument?.id);
-            if(!extension)fail('UNSUPPORTED','This extension has no Pocket integration installed.');
+            if(!extension)fail('UNSUPPORTED','This extension has no STM integration installed.');
             if(['read','stop','choice','export'].includes(argument.action))return clone(await extension.run(argument));
             if(selecting||active||isBusy())fail('BUSY','Finish the current engine operation first.');
             selecting=true;

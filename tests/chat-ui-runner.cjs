@@ -1,7 +1,7 @@
 // Owns only a prepared mock fixture. Run with port 8123 free and mock 8124 running.
 const fs=require('node:fs'),path=require('node:path'),{spawn}=require('node:child_process'),net=require('node:net');
-const fixture=process.env.POCKET_TEST_ENGINE||'/tmp/pocket-release-engine';
-const output=process.env.POCKET_UI_OUTPUT||'/tmp/pocket-chat-ui';
+const fixture=process.env.STM_TEST_ENGINE||'/tmp/stm-release-engine';
+const output=process.env.STM_UI_OUTPUT||'/tmp/stm-chat-ui';
 let server,exited;
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function start(){
@@ -14,10 +14,10 @@ async function start(){
 }
 async function stop(){if(!server||server.exitCode!==null)return;server.kill('SIGINT');await exited;}
 (async()=>{
- const marker=JSON.parse(fs.readFileSync(path.join(fixture,'.pocket-tavern.json')));
+ const marker=JSON.parse(fs.readFileSync(path.join(fixture,'.stm.json')));
  if(marker.mode!=='combined'||!marker.mock||JSON.parse(fs.readFileSync(path.join(fixture,'package.json'))).version!=='1.19.0')throw Error('Only an isolated prepared ST 1.19.0 mock fixture is permitted.');
- fs.mkdirSync(output,{recursive:true});process.env.POCKET_TEST_RESTART='1';
- global.pocketStopTestEngine=stop;global.pocketStartTestEngine=start;
+ fs.mkdirSync(output,{recursive:true});process.env.STM_TEST_RESTART='1';
+ global.stmStopTestEngine=stop;global.stmStartTestEngine=start;
  process.on('exit',()=>{if(server?.exitCode===null)server.kill('SIGINT');});
  try{await start();await require('./chat-ui.cjs');}finally{await stop();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

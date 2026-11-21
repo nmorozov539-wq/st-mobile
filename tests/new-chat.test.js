@@ -4,17 +4,17 @@ import {startNewChat,assertChatUnchanged,initializedChatSnapshot} from '../proto
 
 function fixture(){
  const source={characterKey:'character.png',chatId:'Original'},fresh={characterKey:source.characterKey,chatId:'Fresh'},card={name:'Native',description:'Description',first_mes:'Native greeting',extensions:{foreign:true}};
- const before={...source,header:{user_name:'Native user',unknown:{keep:42}},messages:[{is_user:false,mes:'Original greeting',extra:{foreign:'keep'}}],metadata:{integrity:'old',summaryception:{layers:[[{text:'Retained memory'}]]},foreign:{keep:true},pocket_tavern:{settings:{enabled:true,copy:{model:'old scoped model'}}}}};
+ const before={...source,header:{user_name:'Native user',unknown:{keep:42}},messages:[{is_user:false,mes:'Original greeting',extra:{foreign:'keep'}}],metadata:{integrity:'old',summaryception:{layers:[[{text:'Retained memory'}]]},foreign:{keep:true},stm:{settings:{enabled:true,copy:{model:'old scoped model'}}}}};
  const files=new Map([['Original',structuredClone(before)]]),events=[];let active='Original';
  const read=async target=>{events.push('read:'+target.chatId);if(!files.has(target.chatId))throw Object.assign(Error('Not found'),{code:'CHAT_NOT_FOUND'});return structuredClone(files.get(target.chatId));};
- const deps={read,readCard:async()=>structuredClone(card),activate:async target=>{active=target.chatId;events.push('activate:'+active);},createNative:async(target,receipt)=>{events.push('create:'+target.chatId);active=target.chatId;files.set(target.chatId,{...target,header:{unknown:'native header'},messages:[{is_user:false,is_system:false,mes:card.first_mes,swipes:[card.first_mes,'Native alternative'],extra:{native:'preserved'}}],metadata:{integrity:'new',pocket_tavern:{newChat:receipt}}});},verifyNative:async target=>{assert.equal(active,target.chatId);events.push('verify:'+target.chatId);return read(target);},deleteSaved:async target=>{events.push('delete:'+target.chatId);files.delete(target.chatId);}};
+ const deps={read,readCard:async()=>structuredClone(card),activate:async target=>{active=target.chatId;events.push('activate:'+active);},createNative:async(target,receipt)=>{events.push('create:'+target.chatId);active=target.chatId;files.set(target.chatId,{...target,header:{unknown:'native header'},messages:[{is_user:false,is_system:false,mes:card.first_mes,swipes:[card.first_mes,'Native alternative'],extra:{native:'preserved'}}],metadata:{integrity:'new',stm:{newChat:receipt}}});},verifyNative:async target=>{assert.equal(active,target.chatId);events.push('verify:'+target.chatId);return read(target);},deleteSaved:async target=>{events.push('delete:'+target.chatId);files.delete(target.chatId);}};
  const arg={action:'newChat',target:source,before:structuredClone(before),cardRevision:JSON.stringify(card),newChatId:fresh.chatId,operationId:'owned',deleteCurrent:false};
  return {arg,deps,files,events,before,card,get active(){return active;}};
 }
 test('fresh native greeting is verified without old deletion or copied chat settings/Memory',async()=>{
  const f=fixture(),result=await startNewChat(f.arg,f.deps);
  assert.equal(result.snapshot.chatId,'Fresh');assert.deepEqual(result.snapshot.messages[0].swipes,['Native greeting','Native alternative']);assert.equal(result.snapshot.messages[0].extra.native,'preserved');
- assert.equal(result.snapshot.metadata.summaryception,undefined);assert.equal(result.snapshot.metadata.pocket_tavern.settings,undefined);assert.deepEqual(f.files.get('Original'),f.before);assert.equal(result.undo,undefined);assert.equal(f.active,'Fresh');assert.ok(!f.events.some(e=>e.startsWith('delete:')));
+ assert.equal(result.snapshot.metadata.summaryception,undefined);assert.equal(result.snapshot.metadata.stm.settings,undefined);assert.deepEqual(f.files.get('Original'),f.before);assert.equal(result.undo,undefined);assert.equal(f.active,'Fresh');assert.ok(!f.events.some(e=>e.startsWith('delete:')));
 });
 test('optional deletion follows two independent native verifications and retains a complete Undo copy',async()=>{
  const f=fixture();f.arg.deleteCurrent=true;const result=await startNewChat(f.arg,f.deps);
@@ -38,7 +38,7 @@ test('source messages, Memory, opaque metadata and unknown header fields all gua
  await assert.rejects(startNewChat(f.arg,f.deps),e=>e.code==='NEW_CHAT_UNCERTAIN');assert.equal(f.files.has('Original'),true);assert.equal(f.files.has('Fresh'),true);assert.ok(!f.events.includes('delete:Original'));
 });
 test('failed greeting persistence or ownership checks always keep the old chat',async()=>{
- for(const corrupt of [v=>v.metadata.pocket_tavern.newChat.id='not-owned',v=>v.messages=[],v=>v.messages[0].is_user=true,v=>v.messages[0].mes=' ']){
+ for(const corrupt of [v=>v.metadata.stm.newChat.id='not-owned',v=>v.messages=[],v=>v.messages[0].is_user=true,v=>v.messages[0].mes=' ']){
   const f=fixture(),native=f.deps.createNative;f.arg.deleteCurrent=true;f.deps.createNative=async(...args)=>{await native(...args);corrupt(f.files.get('Fresh'));};
   await assert.rejects(startNewChat(f.arg,f.deps),e=>e.code==='NEW_CHAT_UNCERTAIN');assert.equal(f.files.has('Original'),true);assert.ok(!f.events.includes('delete:Original'));
  }

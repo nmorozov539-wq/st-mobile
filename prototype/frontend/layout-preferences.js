@@ -34,12 +34,12 @@ export function wideLayoutEligible(width, rootFontSize = 16) {
 }
 
 export function loadLayoutPreferences(storage) {
-    try { return normalizeLayoutPreferences(JSON.parse(storage.getItem('pocket-tavern.layout.v1') ?? '{}')); }
+    try { return normalizeLayoutPreferences(JSON.parse(storage.getItem('stm.layout.v1') ?? '{}')); }
     catch { return normalizeLayoutPreferences(); }
 }
 
 export function saveLayoutPreferences(storage, value) {
     const normalized = normalizeLayoutPreferences(value);
-    storage.setItem('pocket-tavern.layout.v1', JSON.stringify(normalized));
+    storage.setItem('stm.layout.v1', JSON.stringify(normalized));
     return normalized;
 }

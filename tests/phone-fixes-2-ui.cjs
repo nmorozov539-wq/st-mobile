@@ -1,7 +1,7 @@
 // 0.7.15 regressions from the 0.7.14 phone test, against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
-const origin=process.env.POCKET_TEST_ORIGIN||'http://127.0.0.1:8123';
+const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';
 let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
@@ -24,7 +24,7 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  await p.locator('#settings-button').click();await p.locator('#open-memory').click();await p.waitForSelector('.memory-page .memory-section');
  await back();ok(!(await p.locator('#chat-screen').isHidden()),'Back from Memory returns to the chat');
  await back();ok(await p.locator('#chat-screen').isHidden()&&await title()==='Chats','second Back returns to Chats');
- await back();ok(await title()==='Pocket Tavern','third Back returns Home');
+ await back();ok(await title()==='STM','third Back returns Home');
  ok(await p.evaluate(()=>history.length)===startLength,'in-app pages add no browser-history entries Chrome could skip');
  await p.locator('#reconnect').click().catch(async()=>{await p.evaluate(()=>document.getElementById('reconnect').click());});await ready();
  ok(await p.evaluate(()=>history.length)===startLength,'reloading the engine adds no history entry');
@@ -33,18 +33,18 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  const health=async()=>{const r=await fetch('http://127.0.0.1:8124/health');return r.json();};
  const openFirstChat=async()=>{if(!(await p.locator('#chat-screen').isHidden()))return;await p.locator('[data-page="chats"]').click();await p.waitForSelector('.chat-open');await p.locator('.chat-open').first().click();await p.waitForFunction(()=>!document.querySelector('#chat-screen').hidden);await p.waitForTimeout(1200);if(await p.locator('#persona-choice').isVisible())await p.locator('#persona-choice [data-close]').click();};
  const send=async t=>{await p.locator('#draft').fill(t);await p.locator('#send').click();await p.waitForFunction(()=>document.querySelector('#stop').hidden&&/Reply saved/.test(document.querySelector('#status').textContent),null,{timeout:60000}).catch(async e=>{throw Error(e.message+' · '+await p.locator('#status').textContent()+' · '+await p.locator('#send-error').textContent()+' · '+await p.evaluate(()=>[...document.querySelectorAll('dialog[open]')].map(d=>d.id).join(',')));});};
- const toHome=async()=>{for(let i=0;i<6;i++){if(!(await p.locator('#chat-screen').isHidden())||await title()!=='Pocket Tavern'||await p.locator('dialog[open]').count())await back();else break;}};
+ const toHome=async()=>{for(let i=0;i<6;i++){if(!(await p.locator('#chat-screen').isHidden())||await title()!=='STM'||await p.locator('dialog[open]').count())await back();else break;}};
 
  // Earlier runs may leave Summaryception on; these checks need an idle engine.
- const memoryOff=()=>engine.evaluate(async()=>{const m=window.pocketExtensions?.get('summaryception');await m?.run({action:'stop'});await m?.run({action:'settings',value:{enabled:false}}).catch(()=>{});});
+ const memoryOff=()=>engine.evaluate(async()=>{const m=window.stmExtensions?.get('summaryception');await m?.run({action:'stop'});await m?.run({action:'settings',value:{enabled:false}}).catch(()=>{});});
  await memoryOff();await p.waitForTimeout(1500);
  // A failed earlier run may have left ST on DeepSeek; start from the custom mock endpoint.
- const customMock=()=>engine.evaluate(async()=>{const c=SillyTavern.getContext(),s=c.chatCompletionSettings;s.reverse_proxy='';if(s.chat_completion_source!=='custom'){const e=document.querySelector('#chat_completion_source');e.value='custom';e.dispatchEvent(new Event('change',{bubbles:true}));}const g=c.extensionSettings.pocket_tavern?.global;if(g)g.model='st-mobile-mock';s.custom_model='st-mobile-mock';await c.saveSettings?.();document.querySelector('#api_button_openai')?.click();});
+ const customMock=()=>engine.evaluate(async()=>{const c=SillyTavern.getContext(),s=c.chatCompletionSettings;s.reverse_proxy='';if(s.chat_completion_source!=='custom'){const e=document.querySelector('#chat_completion_source');e.value='custom';e.dispatchEvent(new Event('change',{bubbles:true}));}const g=c.extensionSettings.stm?.global;if(g)g.model='st-mobile-mock';s.custom_model='st-mobile-mock';await c.saveSettings?.();document.querySelector('#api_button_openai')?.click();});
  await customMock();await p.waitForTimeout(3000);
 
  // Token count: older replies are counted on demand, not only new ones.
  await openFirstChat();await send('older reply for tokens');
- await p.evaluate(()=>{const key='pocket-tavern.appearance.v1';const v=JSON.parse(localStorage.getItem(key)||'{}');v.details={...(v.details??{}),tokens:true};localStorage.setItem(key,JSON.stringify(v));});
+ await p.evaluate(()=>{const key='stm.appearance.v1';const v=JSON.parse(localStorage.getItem(key)||'{}');v.details={...(v.details??{}),tokens:true};localStorage.setItem(key,JSON.stringify(v));});
  await p.reload();await ready();await openFirstChat();
  await p.waitForFunction(()=>[...document.querySelectorAll('#messages article:not(.user) .message-detail')].some(n=>/\d+ tokens/.test(n.textContent)&&!n.hidden),null,{timeout:20000});
  ok(true,'older replies show a token count');

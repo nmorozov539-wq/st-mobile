@@ -101,7 +101,7 @@
 #preset-scopes>button,#model-scopes>button{font-size:13px;min-height:40px}
 
 /* Problems push content down instead of covering it: the banners sit above the page in the flow. */
-.pocket-shell>#recovery,.pocket-shell>#save-retry{order:-1;position:static;margin:8px 12px 0;z-index:auto}
+.stm-shell>#recovery,.stm-shell>#save-retry{order:-1;position:static;margin:8px 12px 0;z-index:auto}
 .list-waiting strong{color:var(--color-muted-text)}
 
 /* Touch targets: at least 40px, or a larger invisible hit area where the layout must stay compact. */

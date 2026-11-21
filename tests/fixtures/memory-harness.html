@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="memory.css"><style>body{background:#181b20;color:#dce1eb;font:15px system-ui;margin:0}#landing{height:100vh;overflow:auto}</style></head><body><section id="landing"><div id="page-content"></div></section>
 <script type="module">
 import {createMemoryPanel} from './memory.js';
-const base=()=>({id:'summaryception',version:'5.5.4-pocket',busy:false,waiting:false,
+const base=()=>({id:'summaryception',version:'5.5.4-stm',busy:false,waiting:false,
  settings:{enabled:true,pauseSummarization:false,verbatimTurns:10,turnsPerSummary:3,snippetsPerLayer:20,snippetsPerPromotion:3,maxLayers:5,disableGhosting:false,summarizerResponseLength:0,promptPreset:'narrative',summarizerUserPrompt:'NARRATIVE PROMPT',summarizerSystemPrompt:'SYS',injectionTemplate:'<ctx>{{summary}}</ctx>',stripPatterns:['<x>'],savedCustomPrompts:{Mine:'my saved'},debugMode:false,traceMode:false,connectionSource:'default'},
  memory:{layers:[[{text:'One.',turnRange:[0,2],timestamp:1700000000000},{text:'Two.',turnRange:[3,5],timestamp:1700000100000}],[{text:'Promoted.'}]],summarizedUpTo:5},
  injection:'<ctx>Promoted. One. Two.</ctx>',failure:'',needsRebuild:false,backlog:null,target:{characterKey:'a.png',chatId:'Chat 1'}});

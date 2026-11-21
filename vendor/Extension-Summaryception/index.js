@@ -845,7 +845,7 @@ async function callSummarizer(storyTxt, contextStr) {
                     promptLength: prompt.length,
                 });
 
-                const result = await (pocketMode ? pocketSummarizerRequest(s, prompt, signal) : Promise.race([
+                const result = await (stmMode ? stmSummarizerRequest(s, prompt, signal) : Promise.race([
                     sendSummarizerRequest(s, s.summarizerSystemPrompt, prompt),
                     new Promise((_, reject) => {
                         const timer = setTimeout(() => reject(new Error('Request timed out after 120s')), TUNING.llmRequestTimeout);
@@ -929,7 +929,7 @@ async function callSummarizer(storyTxt, contextStr) {
         }
 
         const status = lastError?.status || lastError?.response?.status || '';
-        if(pocketMode)pocketFailure='Summary request failed after retries. Original turns were retained; check the connection.';
+        if(stmMode)stmFailure='Summary request failed after retries. Original turns were retained; check the connection.';
         console.error(LOG_PREFIX, 'Summarization failed after all retries:', lastError);
         toastr.error(
             `Summarization failed after ${RETRY_CONFIG.maxRetries} retries${status ? ` (${status})` : ''}. Batch skipped — will retry on next trigger.`,
@@ -951,8 +951,8 @@ async function callSummarizer(storyTxt, contextStr) {
 
 async function maybeSummarizeTurnsOriginal() {
     const s = getSettings();
-    if(pocketMode && SillyTavern.getContext().groupId){pocketFailure='Pocket memory supports single-character chats only.';return;}
-    if(pocketMode && s.connectionSource && s.connectionSource!=='default'){pocketFailure='Use the Default ST connection for Pocket memory; other connection settings are preserved.';return;}
+    if(stmMode && SillyTavern.getContext().groupId){stmFailure='STM memory supports single-character chats only.';return;}
+    if(stmMode && s.connectionSource && s.connectionSource!=='default'){stmFailure='Use the Default ST connection for STM memory; other connection settings are preserved.';return;}
     if (!s.enabled) return;
     if (s.pauseSummarization) return;
     if (isSummarizing) return;
@@ -1006,7 +1006,7 @@ async function maybeSummarizeTurnsOriginal() {
     }
 
     const remaining = getAssistantTurns(chat).filter(t => !chat[t.index].extra?.sc_ghosted);
-    if ((!pocketMode || !pocketStopped) && remaining.length > s.verbatimTurns && remaining.length - s.verbatimTurns <= backlogThreshold) {
+    if ((!stmMode || !stmStopped) && remaining.length > s.verbatimTurns && remaining.length - s.verbatimTurns <= backlogThreshold) {
         await maybeSummarizeTurnsOriginal();
     }
 }
@@ -1280,7 +1280,7 @@ async function runCatchup(visibleTurns, overflow) {
     try {
         let consecutiveFailures = 0;
 
-        while (!cancelled && (!pocketMode || !pocketStopped)) {
+        while (!cancelled && (!stmMode || !stmStopped)) {
             trace(`  Loop iteration - completed: ${completed}, failed: ${failed}`);
 
             const { chat } = SillyTavern.getContext();
@@ -1361,7 +1361,7 @@ async function runCatchup(visibleTurns, overflow) {
 // ─── Catch-Up Dialog ─────────────────────────────────────────────────
 
 async function showCatchupDialog(overflowCount, estimatedCalls) {
-    if (pocketMode) return new Promise(resolve => { pocketBacklog = {overflowCount, estimatedCalls, resolve}; });
+    if (stmMode) return new Promise(resolve => { stmBacklog = {overflowCount, estimatedCalls, resolve}; });
     return new Promise((resolve) => {
         const s = getSettings();
 
@@ -1531,7 +1531,7 @@ function updateInjection() {
         const { setExtensionPrompt } = SillyTavern.getContext();
         const s = getSettings();
 
-        if (!s.enabled || SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid) {
+        if (!s.enabled || SillyTavern.getContext().chatMetadata.stm?.memoryInvalid) {
             if (_lastInjected !== '') {
                 setExtensionPrompt(MODULE_NAME, '',
                     TUNING.injectionPosition, TUNING.injectionDepth,
@@ -1559,15 +1559,15 @@ function updateInjection() {
 
 function onMessageReceived(messageIndex, type) {
     // Opening or creating a native greeting must never start a paid Memory call.
-    if (pocketMode && type === 'first_message') return;
+    if (stmMode && type === 'first_message') return;
     if (!getSettings().enabled) return;
     try {
         const { chat } = SillyTavern.getContext();
         const msg = chat[messageIndex];
         if (msg && !msg.is_user && !msg.is_system) {
             log('New assistant message at index', messageIndex);
-            const target=pocketMode?pocketTarget():undefined;
-            if(pocketMode){void maybeSummarizeTurns(target).then(()=>{updateInjection();updateUI();});return;}
+            const target=stmMode?stmTarget():undefined;
+            if(stmMode){void maybeSummarizeTurns(target).then(()=>{updateInjection();updateUI();});return;}
             setTimeout(async () => {
                 await maybeSummarizeTurns(target);
                 updateInjection();
@@ -1582,7 +1582,7 @@ function onMessageReceived(messageIndex, type) {
 function onChatChanged() {
     log('Chat changed.');
     catchupDismissed = false;
-    if(pocketMode){void repairIfBranched(pocketTarget()).then(()=>{updateInjection();updateUI();});return;}
+    if(stmMode){void repairIfBranched(stmTarget()).then(()=>{updateInjection();updateUI();});return;}
     setTimeout(async () => {
         await repairIfBranched();
         updateInjection();
@@ -2154,7 +2154,7 @@ function bindUIEvents() {
 
     $(document).on('click', '#sc_force_summarize', async function () {
         const s = getSettings();
-        if (!s.enabled || SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid) {
+        if (!s.enabled || SillyTavern.getContext().chatMetadata.stm?.memoryInvalid) {
             toastr.warning('Enable Summaryception first.');
             return;
         }
@@ -2788,64 +2788,64 @@ async function fetchProfilesFallback(selectElement, currentValue) {
     });
 })();
 
-// Pocket Tavern integration. Full pipeline ownership includes persistence and dialogs.
-const pocketMode = window.parent !== window && (window.name === 'pocket-engine' || new URLSearchParams(location.search).has('mobileRuntime'));
-let pocketWorking = false, pocketBacklog = null, pocketFailure = '', pocketTimer, pocketRepairTimer, pocketStopped=false;
-let pocketPendingAuto=null, pocketPendingRepair=null;
-const pocketEngineBusy = () => window.pocketEngineBusy?.() ?? true;
-const pocketTarget = () => {const ctx=SillyTavern.getContext();return JSON.stringify([ctx.characters?.[ctx.characterId]?.avatar??ctx.characterId??null,ctx.chatId??null]);};
-async function maybeSummarizeTurns(target=pocketTarget()) {
+// STM integration. Full pipeline ownership includes persistence and dialogs.
+const stmMode = window.parent !== window && (window.name === 'stm-engine' || new URLSearchParams(location.search).has('mobileRuntime'));
+let stmWorking = false, stmBacklog = null, stmFailure = '', stmTimer, stmRepairTimer, stmStopped=false;
+let stmPendingAuto=null, stmPendingRepair=null;
+const stmEngineBusy = () => window.stmEngineBusy?.() ?? true;
+const stmTarget = () => {const ctx=SillyTavern.getContext();return JSON.stringify([ctx.characters?.[ctx.characterId]?.avatar??ctx.characterId??null,ctx.chatId??null]);};
+async function maybeSummarizeTurns(target=stmTarget()) {
     const ctx=SillyTavern.getContext(),settings=getSettings();
-    if(ctx.chatMetadata.pocket_tavern?.memoryInvalid || !settings.enabled || settings.pauseSummarization){clearTimeout(pocketTimer);pocketPendingAuto=null;updateInjection();return;}
-    if (!pocketMode) return maybeSummarizeTurnsOriginal();
-    if(target!==pocketTarget()){clearTimeout(pocketTimer);pocketPendingAuto=null;pocketFailure='Deferred memory update cancelled because the chat changed.';return;}
-    if(pocketWorking || pocketEngineBusy()){pocketPendingAuto=target;clearTimeout(pocketTimer);pocketTimer=setTimeout(()=>maybeSummarizeTurns(target),500);return;}
-    clearTimeout(pocketTimer);pocketPendingAuto=null;pocketWorking=true;pocketFailure='';pocketStopped=false;
-    try { await maybeSummarizeTurnsOriginal(); updateInjection();await window.pocketVerifyMemory(); }
-    catch(error){pocketFailure=error.message??'Summary failed.';}
-    finally {pocketWorking=false;}
+    if(ctx.chatMetadata.stm?.memoryInvalid || !settings.enabled || settings.pauseSummarization){clearTimeout(stmTimer);stmPendingAuto=null;updateInjection();return;}
+    if (!stmMode) return maybeSummarizeTurnsOriginal();
+    if(target!==stmTarget()){clearTimeout(stmTimer);stmPendingAuto=null;stmFailure='Deferred memory update cancelled because the chat changed.';return;}
+    if(stmWorking || stmEngineBusy()){stmPendingAuto=target;clearTimeout(stmTimer);stmTimer=setTimeout(()=>maybeSummarizeTurns(target),500);return;}
+    clearTimeout(stmTimer);stmPendingAuto=null;stmWorking=true;stmFailure='';stmStopped=false;
+    try { await maybeSummarizeTurnsOriginal(); updateInjection();await window.stmVerifyMemory(); }
+    catch(error){stmFailure=error.message??'Summary failed.';}
+    finally {stmWorking=false;}
 }
-async function repairIfBranched(target=pocketTarget()) {
-    if(SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid){clearTimeout(pocketRepairTimer);pocketPendingRepair=null;updateInjection();return;}
-    if(!pocketMode)return repairIfBranchedOriginal();
+async function repairIfBranched(target=stmTarget()) {
+    if(SillyTavern.getContext().chatMetadata.stm?.memoryInvalid){clearTimeout(stmRepairTimer);stmPendingRepair=null;updateInjection();return;}
+    if(!stmMode)return repairIfBranchedOriginal();
     const current=SillyTavern.getContext();
     // Most CHAT_CHANGED events need no repair. Do not reserve the engine or
-    // save unchanged metadata just because Pocket activated/reloaded a chat.
-    if(!current.chat?.length || (current.chatMetadata[MODULE_NAME]?.summarizedUpTo??-1)<current.chat.length){clearTimeout(pocketRepairTimer);pocketPendingRepair=null;updateInjection();return;}
-    if(target!==pocketTarget()){clearTimeout(pocketRepairTimer);pocketPendingRepair=null;pocketFailure='Deferred memory repair cancelled because the chat changed.';return;}
-    if(pocketWorking || pocketPendingAuto || pocketEngineBusy()){pocketPendingRepair=target;clearTimeout(pocketRepairTimer);pocketRepairTimer=setTimeout(()=>repairIfBranched(target),500);return;}
-    clearTimeout(pocketRepairTimer);pocketPendingRepair=null;
+    // save unchanged metadata just because STM activated/reloaded a chat.
+    if(!current.chat?.length || (current.chatMetadata[MODULE_NAME]?.summarizedUpTo??-1)<current.chat.length){clearTimeout(stmRepairTimer);stmPendingRepair=null;updateInjection();return;}
+    if(target!==stmTarget()){clearTimeout(stmRepairTimer);stmPendingRepair=null;stmFailure='Deferred memory repair cancelled because the chat changed.';return;}
+    if(stmWorking || stmPendingAuto || stmEngineBusy()){stmPendingRepair=target;clearTimeout(stmRepairTimer);stmRepairTimer=setTimeout(()=>repairIfBranched(target),500);return;}
+    clearTimeout(stmRepairTimer);stmPendingRepair=null;
     const ctx=SillyTavern.getContext();if(ctx.groupId || !ctx.chatId || ctx.characterId===undefined)return;
-    pocketWorking=true;
-    try{await repairIfBranchedOriginal();updateInjection();await SillyTavern.getContext().saveChat();await window.pocketVerifyMemory();}catch(error){pocketFailure=error.message;}
-    finally{pocketWorking=false;}
+    stmWorking=true;
+    try{await repairIfBranchedOriginal();updateInjection();await SillyTavern.getContext().saveChat();await window.stmVerifyMemory();}catch(error){stmFailure=error.message;}
+    finally{stmWorking=false;}
 }
-const pocketRead = () => {
+const stmRead = () => {
     const s=getSettings();
-    return {id:MODULE_NAME,version:'5.5.4-pocket',busy:!!(pocketWorking||isSummarizing||pocketPendingAuto||pocketPendingRepair),waiting:!!(pocketPendingAuto||pocketPendingRepair)&&!pocketWorking&&!isSummarizing,
-        waitingFor:pocketPendingAuto?'summary':pocketPendingRepair?'repair':null,
+    return {id:MODULE_NAME,version:'5.5.4-stm',busy:!!(stmWorking||isSummarizing||stmPendingAuto||stmPendingRepair),waiting:!!(stmPendingAuto||stmPendingRepair)&&!stmWorking&&!isSummarizing,
+        waitingFor:stmPendingAuto?'summary':stmPendingRepair?'repair':null,
         settings:{enabled:s.enabled,pauseSummarization:s.pauseSummarization,verbatimTurns:s.verbatimTurns,turnsPerSummary:s.turnsPerSummary,snippetsPerLayer:s.snippetsPerLayer,snippetsPerPromotion:s.snippetsPerPromotion,summarizerResponseLength:s.summarizerResponseLength,promptPreset:s.promptPreset,summarizerUserPrompt:s.summarizerUserPrompt,connectionSource:s.connectionSource,maxLayers:s.maxLayers,disableGhosting:s.disableGhosting,debugMode:s.debugMode,traceMode:s.traceMode,injectionTemplate:s.injectionTemplate,summarizerSystemPrompt:s.summarizerSystemPrompt,stripPatterns:[...(s.stripPatterns??[])],savedCustomPrompts:{...(s.savedCustomPrompts??{})}},
-        memory:structuredClone(SillyTavern.getContext().chatMetadata[MODULE_NAME]??{layers:[],summarizedUpTo:-1,ghostedIndices:[]}),injection:(()=>{try{return getSettings().enabled?assembleSummaryBlock():'';}catch{return '';}})(),failure:pocketFailure,needsRebuild:!!SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid,
-        backlog:pocketBacklog?{turns:pocketBacklog.overflowCount,calls:pocketBacklog.estimatedCalls}:null};
+        memory:structuredClone(SillyTavern.getContext().chatMetadata[MODULE_NAME]??{layers:[],summarizedUpTo:-1,ghostedIndices:[]}),injection:(()=>{try{return getSettings().enabled?assembleSummaryBlock():'';}catch{return '';}})(),failure:stmFailure,needsRebuild:!!SillyTavern.getContext().chatMetadata.stm?.memoryInvalid,
+        backlog:stmBacklog?{turns:stmBacklog.overflowCount,calls:stmBacklog.estimatedCalls}:null};
 };
-const pocketPersist=async()=>{updateInjection();await SillyTavern.getContext().saveMetadata();await SillyTavern.getContext().saveChat();updateUI();await window.pocketVerifyMemory();};
-const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)throw Error('Memory file has an unsupported layer list.');let n=0;return layers.map(layer=>{if(!Array.isArray(layer))throw Error('Memory file layers must be lists.');return layer.map(sn=>{if(typeof sn?.text!=='string'||!sn.text.trim()||sn.text.length>20000||++n>5000)throw Error('Memory file has an invalid snippet.');const out={text:sn.text};if(Array.isArray(sn.turnRange)&&sn.turnRange.length===2&&sn.turnRange.every(Number.isInteger)&&sn.turnRange[0]>=0&&sn.turnRange[1]>=sn.turnRange[0])out.turnRange=[sn.turnRange[0],sn.turnRange[1]];if(Number.isFinite(sn.timestamp))out.timestamp=sn.timestamp;if(sn.regenerated===true)out.regenerated=true;return out;});});};
-(window.pocketExtensions ??= new Map()).set(MODULE_NAME,{
-    read:pocketRead,
+const stmPersist=async()=>{updateInjection();await SillyTavern.getContext().saveMetadata();await SillyTavern.getContext().saveChat();updateUI();await window.stmVerifyMemory();};
+const stmPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)throw Error('Memory file has an unsupported layer list.');let n=0;return layers.map(layer=>{if(!Array.isArray(layer))throw Error('Memory file layers must be lists.');return layer.map(sn=>{if(typeof sn?.text!=='string'||!sn.text.trim()||sn.text.length>20000||++n>5000)throw Error('Memory file has an invalid snippet.');const out={text:sn.text};if(Array.isArray(sn.turnRange)&&sn.turnRange.length===2&&sn.turnRange.every(Number.isInteger)&&sn.turnRange[0]>=0&&sn.turnRange[1]>=sn.turnRange[0])out.turnRange=[sn.turnRange[0],sn.turnRange[1]];if(Number.isFinite(sn.timestamp))out.timestamp=sn.timestamp;if(sn.regenerated===true)out.regenerated=true;return out;});});};
+(window.stmExtensions ??= new Map()).set(MODULE_NAME,{
+    read:stmRead,
     async run({action,value}){
-        if(action==='read')return pocketRead();
-        if(action==='export')return {...pocketRead(),exported:structuredClone(getChatStore())};
+        if(action==='read')return stmRead();
+        if(action==='export')return {...stmRead(),exported:structuredClone(getChatStore())};
         if(action==='choice'){
-            if(!pocketBacklog || !['catchup','partial','skip'].includes(value))throw Error('The backlog choice is no longer available.');
-            const resolve=pocketBacklog.resolve;pocketBacklog=null;resolve(value);return pocketRead();
+            if(!stmBacklog || !['catchup','partial','skip'].includes(value))throw Error('The backlog choice is no longer available.');
+            const resolve=stmBacklog.resolve;stmBacklog=null;resolve(value);return stmRead();
         }
         if(action==='stop'){
-            clearTimeout(pocketTimer);clearTimeout(pocketRepairTimer);pocketPendingAuto=null;pocketPendingRepair=null;pocketStopped=true;
-            if(pocketBacklog){const resolve=pocketBacklog.resolve;pocketBacklog=null;resolve('cancel');}
-            abortSummarization();return pocketRead();
+            clearTimeout(stmTimer);clearTimeout(stmRepairTimer);stmPendingAuto=null;stmPendingRepair=null;stmStopped=true;
+            if(stmBacklog){const resolve=stmBacklog.resolve;stmBacklog=null;resolve('cancel');}
+            abortSummarization();return stmRead();
         }
-        if(pocketWorking||isSummarizing||pocketPendingAuto||pocketPendingRepair)throw Error('Summaryception is busy. Stop it or wait before changing its settings.');
-        pocketWorking=true;pocketFailure='';pocketStopped=false;
+        if(stmWorking||isSummarizing||stmPendingAuto||stmPendingRepair)throw Error('Summaryception is busy. Stop it or wait before changing its settings.');
+        stmWorking=true;stmFailure='';stmStopped=false;
         try{
             if(action==='settings'){
                 const s=getSettings();
@@ -2858,7 +2858,7 @@ const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)t
                     else if(key==='injectionTemplate'){if(typeof v!=='string'||!v.includes('{{summary}}')||v.length>20000)throw Error('The injection wrapper must contain {{summary}}.');}
                     else if(key==='summarizerSystemPrompt'){if(typeof v!=='string'||v.length>20000)throw Error('Expected system prompt text.');}
                     else if(key==='stripPatterns'){if(!Array.isArray(v)||v.length>50||v.some(x=>typeof x!=='string'||!x||x.length>200))throw Error('Strip patterns must be up to 50 non-empty lines.');}
-                    else if(key==='connectionSource'){if(v!=='default')throw Error('Pocket can switch only back to the Default ST connection.');}
+                    else if(key==='connectionSource'){if(v!=='default')throw Error('STM can switch only back to the Default ST connection.');}
                     else if(key==='savedCustomPrompts'){if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length>100||Object.entries(v).some(([k,t])=>!k||k.length>80||typeof t!=='string'||t.length>50000))throw Error('Saved prompts are invalid.');}
                     else if(key==='summarizerUserPrompt'){if(typeof v!=='string')throw Error('Expected prompt text.');}
                     else throw Error('Unsupported memory setting.');
@@ -2866,22 +2866,22 @@ const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)t
                 if(value.promptPreset && s.promptPreset==='custom' && value.promptPreset!=='custom')s.lastCustomPrompt=value.summarizerUserPrompt??s.summarizerUserPrompt;
                 Object.assign(s,value);
                 if(value.promptPreset && value.promptPreset!=='custom')s.summarizerUserPrompt=PROMPT_PRESETS[value.promptPreset];
-                value.summarizerUserPrompt=s.summarizerUserPrompt;await window.pocketSaveSettings(value);updateInjection();updateUI();
+                value.summarizerUserPrompt=s.summarizerUserPrompt;await window.stmSaveSettings(value);updateInjection();updateUI();
             }else if(action==='summarize'){
-                if(SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. No automatic rebuild is available in this version.');
-                if(SillyTavern.getContext().groupId)throw Error('Pocket memory supports single-character chats only.');
+                if(SillyTavern.getContext().chatMetadata.stm?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. No automatic rebuild is available in this version.');
+                if(SillyTavern.getContext().groupId)throw Error('STM memory supports single-character chats only.');
                 if(!getSettings().enabled)throw Error('Enable Summaryception first.');
-                if(getSettings().connectionSource && getSettings().connectionSource!=='default')throw Error('Choose Default ST as Summaryception’s connection in full ST before summarizing in Pocket.');
+                if(getSettings().connectionSource && getSettings().connectionSource!=='default')throw Error('Choose Default ST as Summaryception’s connection in full ST before summarizing in STM.');
                 const {chat}=SillyTavern.getContext(),s=getSettings();
                 const turns=getAssistantTurns(chat).filter(t=>!chat[t.index].extra?.sc_ghosted);
                 // Report what happened: a short chat has nothing past the verbatim window.
                 const layers=()=>JSON.stringify(getChatStore().layers),before=layers();
                 if(turns.length>s.verbatimTurns)await runCatchup(turns,turns.length-s.verbatimTurns);
-                updateInjection();await SillyTavern.getContext().saveChat();await window.pocketVerifyMemory();
-                return {...pocketRead(),summaryResult:{replies:turns.length,verbatim:s.verbatimTurns,changed:layers()!==before}};
+                updateInjection();await SillyTavern.getContext().saveChat();await window.stmVerifyMemory();
+                return {...stmRead(),summaryResult:{replies:turns.length,verbatim:s.verbatimTurns,changed:layers()!==before}};
             }else if(action==='snippet'){
                 const ctx=SillyTavern.getContext(),store=getChatStore(),{op,layer,index,expected,text}=value??{};
-                if(ctx.chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
+                if(ctx.chatMetadata.stm?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
                 if(!Number.isInteger(layer)||!Number.isInteger(index))throw Error('Choose a saved snippet.');
                 const sn=store.layers[layer]?.[index];
                 if(!sn||sn.text!==expected)throw Error('That snippet changed. Reopen Saved memories and try again.');
@@ -2895,7 +2895,7 @@ const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)t
                     store.summarizedUpTo=ends.length?Math.max(...ends):-1;
                 }else if(op==='regenerate'){
                     if(!sn.turnRange)throw Error('Only Layer 0 snippets have source turns to regenerate.');
-                    if(ctx.groupId)throw Error('Pocket memory supports single-character chats only.');
+                    if(ctx.groupId)throw Error('STM memory supports single-character chats only.');
                     if(getSettings().connectionSource && getSettings().connectionSource!=='default')throw Error('Choose Default ST as Summaryception’s connection first.');
                     const story=buildPassageFromRange(ctx.chat,sn.turnRange[0],sn.turnRange[1]);
                     if(!story.trim())throw Error('Source turns are empty. Cannot regenerate.');
@@ -2903,48 +2903,48 @@ const pocketPlainSnippets=layers=>{if(!Array.isArray(layers)||layers.length>20)t
                     isSummarizing=true;
                     let summary;
                     try{summary=await callSummarizer(story,others.join(' ')||'(none yet)');}finally{isSummarizing=false;}
-                    if(!summary)throw Error(pocketStopped?'Regeneration stopped. The original snippet was kept.':'Regeneration failed. The original snippet was kept.');
+                    if(!summary)throw Error(stmStopped?'Regeneration stopped. The original snippet was kept.':'Regeneration failed. The original snippet was kept.');
                     sn.text=summary;sn.timestamp=Date.now();sn.regenerated=true;
                 }else throw Error('Unknown snippet operation.');
-                await pocketPersist();
+                await stmPersist();
             }else if(action==='clear'){
-                if(SillyTavern.getContext().groupId)throw Error('Pocket memory supports single-character chats only.');
+                if(SillyTavern.getContext().groupId)throw Error('STM memory supports single-character chats only.');
                 await unghostAllMessages();
                 const store=getChatStore();store.layers.length=0;store.summarizedUpTo=-1;store.ghostedIndices=[];
-                const meta=SillyTavern.getContext().chatMetadata;if(meta.pocket_tavern)delete meta.pocket_tavern.memoryInvalid;
-                pocketBacklog=null;
-                await pocketPersist();
+                const meta=SillyTavern.getContext().chatMetadata;if(meta.stm)delete meta.stm.memoryInvalid;
+                stmBacklog=null;
+                await stmPersist();
             }else if(action==='import'){
                 const ctx=SillyTavern.getContext();
-                if(ctx.groupId)throw Error('Pocket memory supports single-character chats only.');
-                if(ctx.chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
+                if(ctx.groupId)throw Error('STM memory supports single-character chats only.');
+                if(ctx.chatMetadata.stm?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
                 const data=value?.data;
                 if(!data||!Array.isArray(data.layers))throw Error('This is not a Summaryception memory file.');
-                const layers=pocketPlainSnippets(data.layers);
+                const layers=stmPlainSnippets(data.layers);
                 const upTo=Number.isInteger(data.summarizedUpTo)?data.summarizedUpTo:-1;
                 if(upTo<-1||upTo>=ctx.chat.length)throw Error('This memory belongs to a longer conversation than the open chat.');
                 await unghostAllMessages();
                 const store=getChatStore();store.layers=layers;store.summarizedUpTo=upTo;store.ghostedIndices=[];
                 if(upTo>=0)await ghostMessagesUpTo(upTo);
-                await pocketPersist();
+                await stmPersist();
             }else if(action==='repair'){
-                if(SillyTavern.getContext().chatMetadata.pocket_tavern?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
+                if(SillyTavern.getContext().chatMetadata.stm?.memoryInvalid)throw Error('Memory needs rebuilding after history changes. Clear memory first.');
                 await repairIfBranchedOriginal();
-                await pocketPersist();
+                await stmPersist();
             }else if(action==='reset'){
                 const s=getSettings(),keys=['verbatimTurns','turnsPerSummary','snippetsPerLayer','snippetsPerPromotion','maxLayers','summarizerSystemPrompt','summarizerUserPrompt','promptPreset','injectionTemplate','summarizerResponseLength','debugMode','traceMode'];
                 const next=Object.fromEntries(keys.map(k=>[k,defaultSettings[k]]));next.stripPatterns=[...defaultSettings.stripPatterns];
                 Object.assign(s,next);
-                await window.pocketSaveSettings(next);updateInjection();updateUI();
+                await window.stmSaveSettings(next);updateInjection();updateUI();
             }else throw Error('Unknown memory operation.');
-            return pocketRead();
-        }catch(error){pocketFailure=error.message;throw error;}
-        finally{pocketWorking=false;}
+            return stmRead();
+        }catch(error){stmFailure=error.message;throw error;}
+        finally{stmWorking=false;}
     }
 });
 
-async function pocketSummarizerRequest(settings,prompt,signal){
-    if(settings.connectionSource && settings.connectionSource!=='default')throw Error('Pocket memory currently requires Summaryception’s Default ST connection. Choose it in full ST; your other connection settings are preserved.');
+async function stmSummarizerRequest(settings,prompt,signal){
+    if(settings.connectionSource && settings.connectionSource!=='default')throw Error('STM memory currently requires Summaryception’s Default ST connection. Choose it in full ST; your other connection settings are preserved.');
     const ctx=SillyTavern.getContext();
     const abort=()=>ctx.eventSource.emit(ctx.eventTypes?.GENERATION_STOPPED??ctx.event_types.GENERATION_STOPPED);
     signal.addEventListener('abort',abort,{once:true});

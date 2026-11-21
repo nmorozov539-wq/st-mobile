@@ -1,4 +1,4 @@
-# Pocket Tavern for Android (Step 2: bundled SillyTavern)
+# STM for Android (Step 2: bundled SillyTavern)
 
 Runs **unmodified SillyTavern 1.19.0** on Node.js 22, **in-process** (libnode via JNI) inside the app's own
 `:runtime` process, started by a foreground service. No Termux. The WebView shows SillyTavern's own UI.
@@ -20,7 +20,7 @@ Runs **unmodified SillyTavern 1.19.0** on Node.js 22, **in-process** (libnode vi
 - The prebuilt Node runtime is downloaded at build time and checked against the SHA-256 in
   `node-runtime.properties` (build fails on mismatch). See `../THIRD_PARTY_NOTICES.md`.
 
-Not yet (later steps): Pocket Tavern frontend, private socket + token gateway (for now any app on the phone
+Not yet (later steps): STM frontend, private socket + token gateway (for now any app on the phone
 can reach `127.0.0.1:8123`), wake lock while generating, exports/downloads from the WebView, backup.
 
 Build: Android SDK with NDK 28.2.13676358 and CMake 3.22.1, JDK 17+, git and Node.js 20+ (npm) on PATH,

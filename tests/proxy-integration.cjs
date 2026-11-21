@@ -32,12 +32,12 @@ async function transport(){
  console.log('Proxy routing, credential forwarding, SSE, failure handling and cancellation passed.');
 }
 async function launcher(){
- const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-proxy-launch-'));
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-proxy-launch-'));
  let child;
  try{
-  fs.writeFileSync(path.join(root,'.pocket-tavern.json'),JSON.stringify({version:1,mode:'combined',mock:false}));
-  fs.mkdirSync(path.join(root,'.pocket-proxy'));
-  fs.writeFileSync(path.join(root,'.pocket-proxy/index.cjs'),"require('node:http').createServer((_q,r)=>r.end('proxy fixture')).listen(8001,'127.0.0.1',()=>console.log('OpenRouter TLS-proxy listening on http://127.0.0.1:8001'))");
+  fs.writeFileSync(path.join(root,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false}));
+  fs.mkdirSync(path.join(root,'.stm-proxy'));
+  fs.writeFileSync(path.join(root,'.stm-proxy/index.cjs'),"require('node:http').createServer((_q,r)=>r.end('proxy fixture')).listen(8001,'127.0.0.1',()=>console.log('OpenRouter TLS-proxy listening on http://127.0.0.1:8001'))");
   fs.writeFileSync(path.join(root,'server.js'),"require('node:http').createServer((_q,r)=>r.end('ST fixture')).listen(8123,'127.0.0.1',()=>console.log('ST fixture ready'))");
   child=spawn(process.execPath,[path.resolve('phone-package/start.cjs'),root,'--proxy'],{stdio:['ignore','pipe','pipe']});
   let output='';

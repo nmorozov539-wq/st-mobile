@@ -1,7 +1,7 @@
 // Exercises the World Info runtime against a real isolated ST 1.19.0 fixture (port 8123, mock model on 8124).
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
-const origin=process.env.POCKET_TEST_ORIGIN||'http://127.0.0.1:8123';
+const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';
 let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});

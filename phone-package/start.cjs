@@ -9,16 +9,16 @@ const {LAUNCHER_LOCK,JOURNAL,acquireLifecycleLock}=require('./update-core.cjs');
 
 function readLaunch(target,mock=false,proxy=false,{diagnosticsOnly=false}={}){
     target=fs.realpathSync(target);
-    const marker=JSON.parse(fs.readFileSync(path.join(target,'.pocket-tavern.json')));
-    if(marker.version!==1||marker.mode!=='combined')throw Error('Not a recognized combined Pocket Tavern folder.');
-    if(!diagnosticsOnly&&mock!==marker.mock)throw Error(marker.mock?'This fixture requires --mock. Prepare a normal combined folder for OpenRouter.':`This is your normal install, so --mock is refused to keep test data out of it. Use a separate --mock install: unzip the Pocket Tavern ZIP, and in its folder run once: node prepare.cjs ${marker.source??'~/SillyTavern'} ~/pocket-tavern-mock --mock — then start it with: node ~/pocket-tavern-mock/start.cjs --mock`);
+    const marker=JSON.parse(fs.readFileSync(path.join(target,'.stm.json')));
+    if(marker.version!==1||marker.mode!=='combined')throw Error('Not a recognized combined STM folder.');
+    if(!diagnosticsOnly&&mock!==marker.mock)throw Error(marker.mock?'This fixture requires --mock. Prepare a normal combined folder for OpenRouter.':`This is your normal install, so --mock is refused to keep test data out of it. Use a separate --mock install: unzip the STM ZIP, and in its folder run once: node prepare.cjs ${marker.source??'~/SillyTavern'} ~/stm-mock --mock — then start it with: node ~/stm-mock/start.cjs --mock`);
     if(proxy&&mock)throw Error('The real OpenRouter proxy cannot run in a mock fixture.');
-    if(proxy&&!fs.existsSync(path.join(target,'.pocket-proxy/index.cjs')))throw Error('The optional proxy is not installed. Run setup-proxy.cjs with your working or-proxy folder first.');
-    return {target,marker,proxy,ports:diagnosticsOnly?[]:[8123,...(mock?[8124]:[]),...(proxy?[8001]:[])],commands:diagnosticsOnly?[]:[...(proxy?[{source:'proxy',args:['.pocket-proxy/index.cjs']}]:[]),...(mock?[{source:'mock',args:['mock-model.mjs']}]:[]),{source:'engine',args:['server.js','--port','8123','--listen','false','--browserLaunchEnabled','false','--dataRoot',path.join(target,'data')]}]};
+    if(proxy&&!fs.existsSync(path.join(target,'.stm-proxy/index.cjs')))throw Error('The optional proxy is not installed. Run setup-proxy.cjs with your working or-proxy folder first.');
+    return {target,marker,proxy,ports:diagnosticsOnly?[]:[8123,...(mock?[8124]:[]),...(proxy?[8001]:[])],commands:diagnosticsOnly?[]:[...(proxy?[{source:'proxy',args:['.stm-proxy/index.cjs']}]:[]),...(mock?[{source:'mock',args:['mock-model.mjs']}]:[]),{source:'engine',args:['server.js','--port','8123','--listen','false','--browserLaunchEnabled','false','--dataRoot',path.join(target,'data')]}]};
 }
-const portFree=port=>new Promise((resolve,reject)=>{const server=net.createServer();server.once('error',()=>reject(Error(`Port ${port} is busy. Stop the previous Pocket Tavern session.`)));server.listen(port,'127.0.0.1',()=>server.close(resolve));});
-function acquireLauncher(target){return acquireLifecycleLock(target,'Pocket launcher');}
-function assertNoUpdate(target){if(fs.existsSync(path.join(target,JOURNAL)))throw Error('An interrupted Pocket update needs recovery. Keep the engine stopped and rerun update-from-git.cjs for this installation.');}
+const portFree=port=>new Promise((resolve,reject)=>{const server=net.createServer();server.once('error',()=>reject(Error(`Port ${port} is busy. Stop the previous STM session.`)));server.listen(port,'127.0.0.1',()=>server.close(resolve));});
+function acquireLauncher(target){return acquireLifecycleLock(target,'STM launcher');}
+function assertNoUpdate(target){if(fs.existsSync(path.join(target,JOURNAL)))throw Error('An interrupted STM update needs recovery. Keep the engine stopped and rerun update-from-git.cjs for this installation.');}
 
 async function launch(target,mock=false,proxy=false,{diagnosticsOnly=false,diagnosticsPort=8125,loggerOptions={},serverFactory=createDiagnosticsServer,portChecks=null}={}){
     const plan=readLaunch(target,mock,proxy,{diagnosticsOnly});assertNoUpdate(plan.target);const releaseLauncher=acquireLauncher(plan.target);
@@ -38,14 +38,14 @@ async function launch(target,mock=false,proxy=false,{diagnosticsOnly=false,diagn
         console.log(`Private engine log: ${endpoint.privateUrl}`);
         console.log('The fragment is a local viewing capability. Do not paste it into chats or support messages.');
         if(diagnosticsOnly){console.log('Diagnostics-only mode: the SillyTavern engine was not started. Ctrl+C closes this viewer.');return{plan,logger,diagnostics,children,stop,endpoint};}
-        console.log(`Installed Pocket Tavern version: ${packageVersion} · folder: ${plan.target}`);
-        console.log('Starting Pocket Tavern. Open http://127.0.0.1:8123/st-mobile/ after ST finishes starting.');
+        console.log(`Installed STM version: ${packageVersion} · folder: ${plan.target}`);
+        console.log('Starting STM. Open http://127.0.0.1:8123/st-mobile/ after ST finishes starting.');
         console.log('One ST server owns this installation’s data. Ctrl+C stops the session.');
         if(proxy)console.log('Optional OpenRouter proxy enabled. Choose Custom and base URL http://127.0.0.1:8001/api/v1 in Settings.');
         for(const command of plan.commands){
             let readyResolve,readyReject,deadline;const waiting=command.source==='proxy'?new Promise((resolve,reject)=>{readyResolve=resolve;readyReject=reject;deadline=setTimeout(()=>reject(Error('The optional proxy did not start within 15 seconds.')),15000);}):null;
-            const child=spawn(process.execPath,command.args,{cwd:plan.target,stdio:['inherit','pipe','pipe']});child.pocketSource=command.source;children.push(child);
-            const transform=line=>line.replace('http://127.0.0.1:8123/ to open SillyTavern','http://127.0.0.1:8123/st-mobile/ to open Pocket Tavern');
+            const child=spawn(process.execPath,command.args,{cwd:plan.target,stdio:['inherit','pipe','pipe']});child.stmSource=command.source;children.push(child);
+            const transform=line=>line.replace('http://127.0.0.1:8123/ to open SillyTavern','http://127.0.0.1:8123/st-mobile/ to open STM');
             logger.attach(child.stdout,{source:command.source,severity:'info',transform,onLine:line=>{if(line==='OpenRouter TLS-proxy listening on http://127.0.0.1:8001'){clearTimeout(deadline);readyResolve?.();}}});
             logger.attach(child.stderr,{source:command.source,severity:'error'});
             child.once('error',error=>{logger.record('launcher','error',`${command.source} failed to start: ${error.message}`);if(waiting){clearTimeout(deadline);readyReject?.(error);}if(command.source==='engine')logger.setStatus({...logger.getStatus(),engineState:'stopped',exitCode:1,reason:error.message});});

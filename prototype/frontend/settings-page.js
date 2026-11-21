@@ -7,7 +7,7 @@ import {createConfigurationMigrationPage} from './configuration-migration-page.j
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';
-const DIRECT_KEY = 'pocket-tavern.direct-endpoint.v1';
+const DIRECT_KEY = 'stm.direct-endpoint.v1';
 const MANUAL = '\u0000manual';
 export const sameEndpoint = (a, b) => String(a ?? '').trim().replace(/\/+$/, '') === String(b ?? '').trim().replace(/\/+$/, '');
 
@@ -152,7 +152,7 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
    say('Endpoint switched · Ready to connect', 'ok'); render();
   }, 'toggle sp-switch', {role: 'switch', 'aria-checked': String(proxyOn()), 'aria-label': 'Use proxy'});
   row.append(toggle); page.append(row);
-  page.append(el('p', proxyUp === null ? 'Checking proxy…' : proxyOn() ? (proxyUp ? 'Proxy running' : 'Proxy not detected. Start Pocket Tavern with the proxy, then Connect.') : (proxyUp ? 'Proxy available' : 'Proxy stopped'), `sp-note ${proxyOn() && proxyUp === false ? 'warn' : ''}`));
+  page.append(el('p', proxyUp === null ? 'Checking proxy…' : proxyOn() ? (proxyUp ? 'Proxy running' : 'Proxy not detected. Start STM with the proxy, then Connect.') : (proxyUp ? 'Proxy available' : 'Proxy stopped'), `sp-note ${proxyOn() && proxyUp === false ? 'warn' : ''}`));
 
   const endpoint = el('input'); endpoint.type = 'url'; endpoint.value = form.endpoint; endpoint.autocomplete = 'off'; endpoint.spellcheck = false;
   const side = el('small', proxyOn() ? 'Proxy' : 'Direct');
@@ -192,7 +192,7 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   const test = btn('', testMessage, 'btn secondary sp-secondary', working ? {disabled: ''} : {}); test.append(icon('chat'), ' Test message');
   page.append(test, el('p', `Using ${form.model || config.selected.model || 'no model selected'}`, 'sp-note'), el('p', 'Sends a small generation request. Provider charges may apply.', 'sp-note'));
   if (form.reply) page.append(el('div', `Test reply · ${form.reply.model} ${form.reply.text}`, 'sp-reply'));
-  page.append(el('p', `Pocket Tavern ${FRONTEND_BUILD} · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'));
+  page.append(el('p', `STM ${FRONTEND_BUILD} · engine bridge ${config.bridgeBuild ?? 'older build — update and restart ST'}`, 'sp-note'));
  }
 
  // SillyTavern stores a reply's token count only when its own "Message token
@@ -241,7 +241,7 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   preview.append(el('p', 'Seraphina', 'who'), Object.assign(el('p', 'She smiles, tracing a faded line through the mountains.', 'bubble'), {style: 'font-style:italic'}), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Here. But we should leave before dawn. We have a long road ahead.”</span>'}), line);
   const you = el('div', '', 'user-bubble'); you.append(el('p', 'You', 'who'), Object.assign(el('p', '', 'bubble'), {innerHTML: '<span class="dialogue">“Then we’d better get some sleep.”</span>'})); preview.append(you);
   function updatePreview() { const bits = detailBits(); line.replaceChildren(...(bits.length ? bits.flatMap((bit, i) => i ? [' · ', ...bit] : bit) : ['No message details'])); }
-  updatePreview(); page.append(preview, el('p', 'Changes apply across Pocket Tavern. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
+  updatePreview(); page.append(preview, el('p', 'Changes apply across STM. The preview uses sample text; real details appear only when a saved reply has them.', 'sp-note'));
  }
  function nativeTab(page,surface) {
   const mount=el('div','','native-settings-mount');mount.id='native-settings-mount';mount.setAttribute('role','region');mount.setAttribute('aria-label','SillyTavern native settings');page.append(mount);
@@ -258,9 +258,9 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   page.append(el('p','Message format','sp-label'),format,el('p','Reading keeps a shared text column. Messenger uses left/right bubbles without changing saved messages or gestures.','sp-note'));
   const wi=el('div','','sp-switch-row');wi.append(el('span','Fold World Info into Library'),btn('',()=>{setLayout({...value,wiPlacement:value.wiPlacement==='library'?'destination':'library'});render();},'toggle sp-switch',{role:'switch','aria-checked':String(value.wiPlacement==='library'),'aria-label':'Fold World Info into Library'}));page.append(wi,el('p','Unfolding restores World Info to its saved destination position.','sp-note'));
  }
- function aboutTab(page){page.append(el('h2','Pocket Tavern','sp-heading'),el('p',`Frontend ${FRONTEND_BUILD}`,'sp-note'),el('p',`Engine bridge ${config?.bridgeBuild??'unavailable'}`,'sp-note'),el('p','Layout v4 browser/Termux development build. APK packaging and general extension hosting are separate milestones.','sp-note'));}
+ function aboutTab(page){page.append(el('h2','STM','sp-heading'),el('p',`Frontend ${FRONTEND_BUILD}`,'sp-note'),el('p',`Engine bridge ${config?.bridgeBuild??'unavailable'}`,'sp-note'),el('p','Layout v4 browser/Termux development build. APK packaging and general extension hosting are separate milestones.','sp-note'));}
  function diagnosticsTab(page){
-  page.append(el('p','Recent Pocket and SillyTavern notices stay on this device. Engine terminal output is kept separately by the launcher.','sp-note'));
+  page.append(el('p','Recent STM and SillyTavern notices stay on this device. Engine terminal output is kept separately by the launcher.','sp-note'));
   const actions=el('div','','sp-actions'),logs=btn('Open engine log',openEngineLog,'btn primary'),clear=btn('Clear recent events',()=>{clearDiagnostics();render();},'btn quiet');actions.append(logs,clear);page.append(actions);
   const items=diagnostics().slice(0,100);if(!items.length){page.append(el('p','No recent diagnostic events.','sp-note'));return;}
   const list=el('div','','diagnostic-events');for(const item of items){const details=el('details','','diagnostic-event'),heading=el('summary'),meta=el('span',`${item.source} · ${item.category} · ${new Date(item.timestamp).toLocaleString()}`,'diagnostic-meta');heading.append(el('strong',item.summary),meta);details.append(heading);if(item.detail)details.append(el('pre',item.detail,'diagnostic-detail'));details.append(el('small',`Outcome: ${item.outcome}${item.operationId?` · operation ${item.operationId}`:''}`,'sp-note'));list.append(details);}page.append(list);
@@ -274,9 +274,9 @@ export function createSettingsPage({onChecked=()=>{},onPresets=()=>{},onNativeSe
   const reconnectRow = el('div', '', 'sp-row sp-row-static'); const lead = el('span', '', 'sp-row-icon'); lead.append(icon('server')); const text = el('span', '', 'sp-row-text'); text.append(el('strong', 'SillyTavern engine'), el('small', engine, `sp-row-value ${connected() ? 'ok' : 'err'}`)); const re = btn('', () => reconnect(), 'btn quiet sp-link'); re.append(icon('refresh'), ' Reconnect'); reconnectRow.append(lead, text, re);
   const provider = !selected ? (failure ? 'Could not read the connection' : 'Loading…') : `${selected.source === 'deepseek' ? 'DeepSeek' : selected.source === 'custom' ? (sameEndpoint(selected.endpoint, PROXY_ENDPOINT) ? 'Proxy' : 'OpenAI-compatible') : selected.source} · ${selected.model || 'no model'}`;
   const migration=migrationPage.state();
-  group('Engine', [reconnectRow,row({glyph:'plug',title:'Connection',value:provider,tone:config?.onlineStatus==='no_connection'?'err':'',open:()=>openOwnedTopic('connection'),id:'settings-connection'}),row({glyph:'sliders',title:'Presets & generation',value:selected?.preset||'No preset selected',open:()=>openOwnedTopic('presets'),id:'settings-presets'}),row({glyph:'shield',title:'Configuration ownership',value:migration?.ownership==='native'?'Native SillyTavern':migration?.ownership==='preparing'?'Preservation in progress':'Legacy Pocket scopes',open:()=>{tab='migration';render();},id:'settings-migration'})]);
+  group('Engine', [reconnectRow,row({glyph:'plug',title:'Connection',value:provider,tone:config?.onlineStatus==='no_connection'?'err':'',open:()=>openOwnedTopic('connection'),id:'settings-connection'}),row({glyph:'sliders',title:'Presets & generation',value:selected?.preset||'No preset selected',open:()=>openOwnedTopic('presets'),id:'settings-presets'}),row({glyph:'shield',title:'Configuration ownership',value:migration?.ownership==='native'?'Native SillyTavern':migration?.ownership==='preparing'?'Preservation in progress':'Legacy STM scopes',open:()=>{tab='migration';render();},id:'settings-migration'})]);
   group('Interface', [row({glyph:'eye',title:'Appearance',value:`${look.textSize} px · ${look.spacing} spacing`,open:()=>{tab='appearance';render();},id:'settings-appearance'}),row({glyph:'library',title:'Layout & reading',value:`${getLayout().messageFormat} · WI ${getLayout().wiPlacement}`,open:()=>{tab='layout';render();},id:'settings-layout'})]);
-  group('About',[row({glyph:'mug',title:'About',value:`Pocket Tavern ${FRONTEND_BUILD}`,open:()=>{tab='about';render();},id:'settings-about'}),row({glyph:'server',title:'Diagnostics',value:`${diagnostics().length} recent event${diagnostics().length===1?'':'s'}`,open:()=>{tab='diagnostics';render();},id:'settings-diagnostics'})]);
+  group('About',[row({glyph:'mug',title:'About',value:`STM ${FRONTEND_BUILD}`,open:()=>{tab='about';render();},id:'settings-about'}),row({glyph:'server',title:'Diagnostics',value:`${diagnostics().length} recent event${diagnostics().length===1?'':'s'}`,open:()=>{tab='diagnostics';render();},id:'settings-diagnostics'})]);
  }
  const topicNames={home:'Overview',connection:'Connection',presets:'Presets & generation',migration:'Configuration ownership',appearance:'Appearance',layout:'Layout & reading',about:'About',diagnostics:'Diagnostics'};
  function renderTopic(page){

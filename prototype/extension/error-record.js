@@ -18,8 +18,8 @@ export function classifyError(value={}){
  if(code==='TIMEOUT'||/timed? out|timeout/.test(evidence))return {category:'timeout',summary:'The request timed out. Its saved state must be checked before retrying.',source:'provider',actions:['view-saved-conversation','inspect-details']};
  if(/interrupted stream|stream.*(ended|closed|interrupted)|premature close/.test(evidence))return {category:'interrupted_stream',summary:'The response stream ended unexpectedly. Any saved partial reply remains available.',source:'provider',actions:['view-saved-conversation','inspect-details']};
  if(['ENGINE_UNAVAILABLE','DISCONNECTED'].includes(code)||/engine.*(unavailable|stopped)|session expired/.test(evidence))return {category:'engine_unavailable',summary:'The local engine is unavailable. Drafts and saved chats were kept.',source:'engine',actions:['open-logs','inspect-details']};
- if(/PERSISTENCE|SAVE_|UNVERIFIED|save.*(failed|verify)|readback/.test(`${code} ${message}`))return {category:'save_failed',summary:'Pocket could not verify the saved result. Inspect the conversation before retrying.',source:'Pocket',actions:['view-saved-conversation','inspect-details','open-logs']};
- return {category:'unknown',summary:messageOf(value).slice(0,240)||'The request failed for an unknown reason.',source:'Pocket',actions:['inspect-details','open-logs']};
+ if(/PERSISTENCE|SAVE_|UNVERIFIED|save.*(failed|verify)|readback/.test(`${code} ${message}`))return {category:'save_failed',summary:'STM could not verify the saved result. Inspect the conversation before retrying.',source:'STM',actions:['view-saved-conversation','inspect-details','open-logs']};
+ return {category:'unknown',summary:messageOf(value).slice(0,240)||'The request failed for an unknown reason.',source:'STM',actions:['inspect-details','open-logs']};
 }
 
 export function normalizeErrorRecord(value={},context={}){

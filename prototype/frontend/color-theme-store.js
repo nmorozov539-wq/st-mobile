@@ -1,8 +1,8 @@
 import {applyTheme, ColorThemeError, normalizeTheme} from './color-theme.js';
 import {importSillyTavernTheme} from './st-theme-import.js';
 
-export const THEME_STORAGE_KEY = 'pocket-tavern.themes.v1';
-export const COLOR_THEME_STORAGE_KEY = 'pocket-tavern.color-themes.v1';
+export const THEME_STORAGE_KEY = 'stm.themes.v1';
+export const COLOR_THEME_STORAGE_KEY = 'stm.color-themes.v1';
 const STORAGE_VERSION = 1;
 
 const copy = value => JSON.parse(JSON.stringify(value));

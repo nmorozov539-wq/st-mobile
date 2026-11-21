@@ -4,8 +4,8 @@ const path = require('node:path');
 const playwrightPath = process.env.PLAYWRIGHT_MODULE || '/home/Riv/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
 const {chromium} = require(playwrightPath);
 
-const origin = process.env.POCKET_BASE_URL || 'http://127.0.0.1:8123';
-const out = process.env.POCKET_EVIDENCE_DIR || path.resolve(__dirname, '../docs/mobile-correction-evidence');
+const origin = process.env.STM_BASE_URL || 'http://127.0.0.1:8123';
+const out = process.env.STM_EVIDENCE_DIR || path.resolve(__dirname, '../docs/mobile-correction-evidence');
 fs.mkdirSync(out, {recursive: true});
 
 (async () => {
@@ -68,7 +68,7 @@ fs.mkdirSync(out, {recursive: true});
     }));
 
     await page.evaluate(() => {
-        const key = 'pocket-tavern.layout.v1';
+        const key = 'stm.layout.v1';
         const current = JSON.parse(localStorage.getItem(key) || '{}');
         localStorage.setItem(key, JSON.stringify({...current, version: 1, order: ['chats', 'wi', 'home', 'extensions', 'library'], wiPlacement: 'library', messageFormat: 'reading'}));
     });
@@ -113,7 +113,7 @@ fs.mkdirSync(out, {recursive: true});
     await openFirstChat();
     await page.waitForFunction(() => document.documentElement.dataset.messageFormat === 'messenger');
     geometry.messenger = await messageGeometry();
-    if (process.env.POCKET_DEBUG_GEOMETRY) console.log(JSON.stringify(geometry.messenger, null, 2));
+    if (process.env.STM_DEBUG_GEOMETRY) console.log(JSON.stringify(geometry.messenger, null, 2));
     const incoming = geometry.messenger.messages.find(item => !item.user), outgoing = geometry.messenger.messages.find(item => item.user);
     assert.ok(incoming && outgoing);
     assert.ok(incoming.bubble.width < 390 * .82 || outgoing.bubble.width < 390 * .82, 'short Messenger bubbles are content-sized');

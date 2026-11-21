@@ -1,4 +1,4 @@
-# Pocket Tavern combined prototype v0.9.2
+# STM combined prototype v0.9.2
 
 ## Update your existing phone installation
 
@@ -7,7 +7,7 @@ Git is the normal update path. Stop the installed launcher with Ctrl+C, then clo
 ```sh
 git clone <trusted-repository-url> ~/st-mobile
 cd ~/st-mobile
-node phone-package/update-from-git.cjs --target ~/pocket-tavern --ref dev
+node phone-package/update-from-git.cjs --target ~/stm --ref dev
 ```
 
 For later updates, fetch the source checkout and repeat the updater command. The updater resolves the requested ref to one exact commit, stages and verifies the complete package, keeps user data/settings/config outside the replacement, and retains up to two code backups. It never asks for or stores credentials; normal Git SSH or HTTPS authentication applies. The saved source URL has embedded credentials removed.
@@ -16,21 +16,21 @@ Do not update while the launcher is running. A launcher and updater share one li
 
 ```sh
 cd ~/st-mobile
-node phone-package/update-from-git.cjs --target ~/pocket-tavern --rollback
+node phone-package/update-from-git.cjs --target ~/stm --rollback
 ```
 
-The complete ZIP and repair script remain an offline/manual fallback. Put matching copies of **pocket-tavern-combined-v0.9.2.zip** and **repair-pocket.cjs** in Android Downloads, stop the launcher, then run:
+The complete ZIP and repair script remain an offline/manual fallback. Put matching copies of **stm-combined-v0.9.2.zip** and **repair-stm.cjs** in Android Downloads, stop the launcher, then run:
 
 ```sh
-node ~/storage/downloads/repair-pocket.cjs
+node ~/storage/downloads/repair-stm.cjs
 ```
 
 For a manual update from an extracted complete kit:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.9.2
-node update-test.cjs ~/pocket-tavern
-cd ~/pocket-tavern
+cd ~/storage/downloads/stm-combined-v0.9.2
+node update-test.cjs ~/stm
+cd ~/stm
 node start.cjs --proxy
 ```
 
@@ -45,7 +45,7 @@ Logs are local, bounded, rotated, and redacted for common authorization headers,
 The viewer shows live status, filtering, pause/follow, older lines and selected-line copy. If the engine crashes, it remains available and clearly shows **Engine stopped**; there is no automatic restart. To inspect existing logs without starting the engine:
 
 ```sh
-cd ~/pocket-tavern
+cd ~/stm
 node start.cjs --diagnostics-only
 ```
 
@@ -56,27 +56,27 @@ Use `--diagnostics-port <port>` only when the default local diagnostics port is 
 The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.9.2
-node prepare.cjs ~/SillyTavern ~/pocket-tavern
-cd ~/pocket-tavern
+cd ~/storage/downloads/stm-combined-v0.9.2
+node prepare.cjs ~/SillyTavern ~/stm
+cd ~/stm
 node start.cjs
 ```
 
-One server serves Pocket at `/st-mobile/` and native ST at `/`. Standard data is `~/pocket-tavern/data/default-user`. Your usual ST data/code are not changed. Ctrl+C stops the launcher and its children.
+One server serves STM at `/st-mobile/` and native ST at `/`. Standard data is `~/stm/data/default-user`. Your usual ST data/code are not changed. Ctrl+C stops the launcher and its children.
 
 ## Optional OpenRouter proxy
 
 If you already have the working `~/or-proxy` dependency folder on this phone, install the bundled optional proxy from the extracted kit once:
 
 ```sh
-node setup-proxy.cjs ~/or-proxy ~/pocket-tavern
-cd ~/pocket-tavern
+node setup-proxy.cjs ~/or-proxy ~/stm
+cd ~/stm
 node start.cjs --proxy
 ```
 
 Choose Custom, endpoint **http://127.0.0.1:8001/api/v1**, save your key in ST's Custom slot and Connect. ST adds `/models` and `/chat/completions`. The launcher waits for the proxy before ST and stops both together. A busy port prevents startup. Setup copies dependencies only, no keys/logs/settings, and refuses overwriting an installed proxy. Plain `start.cjs` does not start it. Direct OpenRouter mode bypasses it.
 
-Connect loads model availability; Test message sends a tiny provider request without adding to a chat. Keys stay in ST and never enter Pocket's pending-change journal. A provider may charge for generation/test requests.
+Connect loads model availability; Test message sends a tiny provider request without adding to a chat. Keys stay in ST and never enter STM's pending-change journal. A provider may charge for generation/test requests.
 
 ## Character association controls retained from 0.7.5
 
@@ -116,9 +116,9 @@ Phone testing is deferred at the user’s request. Keep the outstanding checks i
 Use a different fresh folder so mock testing cannot touch real-provider data:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.9.2
-node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
-cd ~/pocket-tavern-combined-test
+cd ~/storage/downloads/stm-combined-v0.9.2
+node prepare.cjs ~/SillyTavern ~/stm-combined-test --mock
+cd ~/stm-combined-test
 node start.cjs --mock
 ```
 
@@ -129,7 +129,7 @@ Try `[think]`, `[slow]` or `[fail]`. One launcher starts ST and the local mock. 
 Back up and stop both engines first. Prepare a NEW normal combined folder and do not start it yet. From the extracted kit:
 
 ```sh
-node import-data.cjs ~/SillyTavern/data/default-user ~/pocket-tavern
+node import-data.cjs ~/SillyTavern/data/default-user ~/stm
 ```
 
 The importer refuses existing destination user data, merges, mock installs and symlinked user files. It copies normal settings/cards/chats/presets/lorebooks/personas/credentials; original files remain intact. Server config and third-party extension code are separate. Use the actual path if your usual data root differs. One engine owns a data folder; sharing it between running servers is unsupported.

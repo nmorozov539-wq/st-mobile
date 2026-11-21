@@ -94,6 +94,6 @@ export function createPresetPanel({load,change,action,available,importPreset}) {
     $('preset-inherit').onclick=()=>action(()=>save('inheritPreset'));
     $('preset-back').onclick=()=>{if(view==='main')dialog.close();else{show('main');render();}};
     dialog.addEventListener('cancel',e=>{if(view!=='main'){e.preventDefault();show('main');render();}});
-    dialog.addEventListener('pocket-back',e=>{if(view!=='main'){e.preventDefault();show('main');render();}});
+    dialog.addEventListener('stm-back',e=>{if(view!=='main'){e.preventDefault();show('main');render();}});
     return {setAvailable(){lock();},async open(value){origin=value;state=null;configuration=null;$('preset-fields').replaceChildren();$('preset-entries').replaceChildren();$('preset-list').replaceChildren();$('preset-name').textContent='';scope=origin?'chat':'global';feedback='Loading presets…';dialog.showModal();show('main');busy=true;lock();renderStatus();try{await refresh();feedback='';}catch(e){feedback=e.message;throw e;}finally{busy=false;render();}},update(value,pending){if(!dialog.open||!state)return;state=value;if(view==='main')render();if(pending!==undefined){feedback=pending?'Changes pending until the engine finishes.':'Changes saved';renderStatus();}}};
 }

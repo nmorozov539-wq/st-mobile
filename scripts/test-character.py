@@ -15,7 +15,7 @@ while offset < len(raw):
     if kind != b'tEXt':
         chunks.append(chunk)
     offset += 12 + size
-card = {'name': 'Moss', 'description': 'A friendly little forest guide used for local prototype tests.', 'personality': 'Curious and kind', 'scenario': '', 'first_mes': 'Hello! I am Moss. Shall we test the pocket tavern?', 'mes_example': '', 'creatorcomment': 'Disposable local fixture', 'avatar': 'none', 'chat': 'Moss prototype', 'talkativeness': '0.5'}
+card = {'name': 'Moss', 'description': 'A friendly little forest guide used for local prototype tests.', 'personality': 'Curious and kind', 'scenario': '', 'first_mes': 'Hello! I am Moss. Shall we test the stm?', 'mes_example': '', 'creatorcomment': 'Disposable local fixture', 'avatar': 'none', 'chat': 'Moss prototype', 'talkativeness': '0.5'}
 payload = b'chara\0' + base64.b64encode(json.dumps(card).encode())
 kind = b'tEXt'
 chunk = struct.pack('>I', len(payload)) + kind + payload + struct.pack('>I', zlib.crc32(kind + payload) & 0xffffffff)

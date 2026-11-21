@@ -1,4 +1,4 @@
-const prefix = 'pocket-tavern.v1.';
+const prefix = 'stm.v1.';
 export function createLocalState(storage) {
     const read = (key, fallback) => { try { const value = JSON.parse(storage.getItem(prefix + key)); return value ?? fallback; } catch { return fallback; } };
     const write = (key, value) => storage.setItem(prefix + key, JSON.stringify(value));

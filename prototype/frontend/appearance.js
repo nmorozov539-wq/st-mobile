@@ -1,5 +1,5 @@
 // Global reading preferences. Stored on this device only; never sent to the engine.
-export const STORAGE_KEY = 'pocket-tavern.appearance.v1';
+export const STORAGE_KEY = 'stm.appearance.v1';
 export const DEFAULT_APPEARANCE = Object.freeze({textSize: 16, spacing: 'normal', background: 'gradient', thinking: 'collapsed', details: Object.freeze({time: true, clock: false, model: false, tokens: false})});
 export const SPACING = {compact: 1.45, normal: 1.7, spacious: 1.95};
 export const TEXT_SIZE = {min: 13, max: 24};

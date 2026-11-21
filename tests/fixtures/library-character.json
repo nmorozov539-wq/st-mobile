@@ -2,7 +2,7 @@
   "spec": "chara_card_v2",
   "spec_version": "2.0",
   "data": {
-    "name": "Pocket Imported Fixture",
+    "name": "STM Imported Fixture",
     "description": "Imported card",
     "personality": "Patient",
     "scenario": "Library",

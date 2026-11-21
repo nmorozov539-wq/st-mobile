@@ -8,7 +8,7 @@ const ENGINE_VERSION = '1.19.0';
 const BRIDGE_PROTOCOL = 2;
 
 const PACKAGE_ENTRIES = Object.freeze([
-    ...['prepare-test.cjs','start-test.cjs','update-test.cjs','update-from-git.cjs','update-core.cjs','compatibility.cjs','session-init.mjs','PHONE-README.md','prepare.cjs','start.cjs','log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','import-data.cjs','setup-proxy.cjs','proxy.cjs','repair-pocket.cjs','package-staging.cjs'].map(name => ({source:`phone-package/${name}`, destination:name})),
+    ...['prepare-test.cjs','start-test.cjs','update-test.cjs','update-from-git.cjs','update-core.cjs','compatibility.cjs','session-init.mjs','PHONE-README.md','prepare.cjs','start.cjs','log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','import-data.cjs','setup-proxy.cjs','proxy.cjs','repair-stm.cjs','package-staging.cjs'].map(name => ({source:`phone-package/${name}`, destination:name})),
     {source:'prototype/frontend', destination:'frontend'},
     {source:'prototype/extension', destination:'extension'},
     {source:'vendor/Extension-Summaryception', destination:'summaryception'},
@@ -61,7 +61,7 @@ function transformPackage(destination) {
 
     const manifestPath = path.join(destination,'extension/manifest.json');
     const manifest = JSON.parse(fs.readFileSync(manifestPath,'utf8'));
-    manifest.display_name = 'Pocket Tavern · phone prototype';
+    manifest.display_name = 'STM · phone prototype';
     manifest.version = PACKAGE_VERSION;
     fs.writeFileSync(manifestPath, JSON.stringify(manifest,null,2) + '\n');
 
@@ -97,7 +97,7 @@ function writePackageManifest(destination,{sourceCommit=null}={}) {
     const files = {};
     for (const file of walkFiles(destination)) {
         const relative = path.relative(destination,file).split(path.sep).join('/');
-        if (relative === 'pocket-package-manifest.json') continue;
+        if (relative === 'stm-package-manifest.json') continue;
         files[relative] = {sha256:hashFile(file), bytes:fs.statSync(file).size};
     }
     const manifest = {
@@ -108,12 +108,12 @@ function writePackageManifest(destination,{sourceCommit=null}={}) {
         sourceCommit,
         files,
     };
-    fs.writeFileSync(path.join(destination,'pocket-package-manifest.json'), JSON.stringify(manifest,null,2) + '\n');
+    fs.writeFileSync(path.join(destination,'stm-package-manifest.json'), JSON.stringify(manifest,null,2) + '\n');
     return manifest;
 }
 
 function verifyPackage(destination) {
-    const manifestPath = path.join(destination,'pocket-package-manifest.json');
+    const manifestPath = path.join(destination,'stm-package-manifest.json');
     const manifest = JSON.parse(fs.readFileSync(manifestPath,'utf8'));
     if (manifest.schemaVersion !== 1 || manifest.packageVersion !== PACKAGE_VERSION || manifest.engineVersion !== ENGINE_VERSION || manifest.bridgeProtocol !== BRIDGE_PROTOCOL) throw Error('Package manifest compatibility metadata is invalid.');
     for (const [relative,expected] of Object.entries(manifest.files)) {
@@ -121,7 +121,7 @@ function verifyPackage(destination) {
         if (!file.startsWith(path.resolve(destination) + path.sep) || !fs.statSync(file).isFile()) throw Error(`Package manifest path is invalid: ${relative}`);
         if (fs.statSync(file).size !== expected.bytes || hashFile(file) !== expected.sha256) throw Error(`Package file verification failed: ${relative}`);
     }
-    const actual = walkFiles(destination).map(file => path.relative(destination,file).split(path.sep).join('/')).filter(name => name !== 'pocket-package-manifest.json').sort();
+    const actual = walkFiles(destination).map(file => path.relative(destination,file).split(path.sep).join('/')).filter(name => name !== 'stm-package-manifest.json').sort();
     const recorded = Object.keys(manifest.files).sort();
     if (JSON.stringify(actual) !== JSON.stringify(recorded)) throw Error('Package contains files outside its manifest.');
     verifyMatchedBuild(destination);

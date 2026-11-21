@@ -1,8 +1,8 @@
-// Real Pocket DOM on a phone viewport against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+// Real STM DOM on a phone viewport against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');const fs=require('node:fs');
-const origin=process.env.POCKET_TEST_ORIGIN||'http://127.0.0.1:8123';
-const out=process.env.POCKET_UI_OUTPUT||'/tmp/pocket-wi-ui';fs.mkdirSync(out,{recursive:true});
+const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';
+const out=process.env.STM_UI_OUTPUT||'/tmp/stm-wi-ui';fs.mkdirSync(out,{recursive:true});
 let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});

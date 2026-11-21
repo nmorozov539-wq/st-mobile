@@ -2,12 +2,12 @@
 from pathlib import Path
 import subprocess, tempfile, zipfile
 project=Path(__file__).resolve().parents[1]
-with tempfile.TemporaryDirectory(prefix='pocket-kit-') as temp:
-    kit=Path(temp)/'pocket-tavern-combined-v0.9.2';kit.mkdir()
+with tempfile.TemporaryDirectory(prefix='stm-kit-') as temp:
+    kit=Path(temp)/'stm-combined-v0.9.2';kit.mkdir()
     kit.rmdir()
     commit=subprocess.run(['git','rev-parse','HEAD'],cwd=project,check=True,capture_output=True,text=True).stdout.strip()
     subprocess.run(['node',str(project/'scripts/stage-phone-package.cjs'),str(kit),commit],cwd=project,check=True)
-    output=project/'dist/pocket-tavern-combined-v0.9.2.zip';output.parent.mkdir(exist_ok=True)
+    output=project/'dist/stm-combined-v0.9.2.zip';output.parent.mkdir(exist_ok=True)
     # The phone extracts with ST's yauzl 2.10, which stalls on a deflated entry
     # larger than 64 KiB compressed. Already-compressed files (fonts, images)
     # are stored as they are, and the build stops if any other entry would hit the limit.

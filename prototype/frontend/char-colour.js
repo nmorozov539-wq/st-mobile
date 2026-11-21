@@ -79,7 +79,7 @@ export function rawColourFromPixels(pixels){
 }
 export function colourFromPixels(pixels,bg=BG){const raw=rawColourFromPixels(pixels);const picked=refineForChat(fromHex(raw),bg);return picked?toHex(picked):null;}
 
-const CACHE_KEY='pocket-tavern.char-colour.v2';
+const CACHE_KEY='stm.char-colour.v2';
 function readCache(storage){try{const v=JSON.parse(storage.getItem(CACHE_KEY));return v&&typeof v==='object'?v:{};}catch{return {};}}
 function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.decoding='async';img.onload=()=>resolve(img);img.onerror=()=>reject(Error('Avatar did not load'));img.src=src;});}
 // A small fingerprint of the picture: the cache follows the avatar, so a new

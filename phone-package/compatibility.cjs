@@ -22,7 +22,7 @@ function replaceExact(source,oldText,newText,label){
 }
 function patchEngine(target,source,{apply=true,cookieRoot=target}={}){
     const read=name=>fs.readFileSync(path.join(target,name),'utf8');
-    const cookieName='pocket-tavern-test-'+crypto.createHash('sha256').update(fs.realpathSync(cookieRoot)).digest('hex').slice(0,12);
+    const cookieName='stm-test-'+crypto.createHash('sha256').update(fs.realpathSync(cookieRoot)).digest('hex').slice(0,12);
     let tokenizers=replaceExact(read('public/scripts/tokenizers.js'),tokenizerOld,tokenizerNew,'Tokenizer');
     if(!tokenizers.includes('import { getRequestHeaders, characters, event_types,')) tokenizers=replaceExact(tokenizers,'import { characters, event_types,','import { getRequestHeaders, characters, event_types,','Tokenizer imports');
     let server=read('src/server-main.js');
@@ -33,9 +33,9 @@ function patchEngine(target,source,{apply=true,cookieRoot=target}={}){
     const sessionOld=`const tokenResponse = await fetch('/csrf-token');
         const tokenData = await tokenResponse.json();
         token = tokenData.token;`;
-    const sessionNew=`token = await initializePocketSession();`;
+    const sessionNew=`token = await initializeStmSession();`;
     client=replaceExact(client,sessionOld,sessionNew,'Startup session');
-    const sessionImport="import { initializePocketSession } from './scripts/pocket-session-init.js';";
+    const sessionImport="import { initializeStmSession } from './scripts/stm-session-init.js';";
     if(!client.includes(sessionImport))client=sessionImport+'\n'+client;
     const tokenRouteOld=`app.get('/csrf-token', (req, res) => {
         res.json({
@@ -58,7 +58,7 @@ function patchEngine(target,source,{apply=true,cookieRoot=target}={}){
             const file=path.join(folder,entry.name);
             if(entry.isDirectory())scan(file);
             else if(entry.isFile()&&entry.name.endsWith('.wasm')){
-                const relative=path.join('.pocket-wasm',path.relative(dependencies,file));
+                const relative=path.join('.stm-wasm',path.relative(dependencies,file));
                 wasm.push({file,real:fs.realpathSync(file),relative});
             }
         }
@@ -70,8 +70,8 @@ function patchEngine(target,source,{apply=true,cookieRoot=target}={}){
     const isUnderServerDirectory = isPathUnderParent(serverDirectory, filePath);`;
     const fetchNew=`let filePath = path.resolve(fileURLToPath(url));
     // Only exact codec WASM files copied into this test server are aliased.
-    const pocketWasmAliases = ${JSON.stringify(aliases)};
-    if (Object.hasOwn(pocketWasmAliases, filePath)) filePath = path.join(serverDirectory, pocketWasmAliases[filePath]);
+    const stmWasmAliases = ${JSON.stringify(aliases)};
+    if (Object.hasOwn(stmWasmAliases, filePath)) filePath = path.join(serverDirectory, stmWasmAliases[filePath]);
     const isUnderServerDirectory = isPathUnderParent(serverDirectory, filePath);`;
     // An update uses the original copied file before regenerating aliases.
     fetchPatch=replaceExact(fetchPatch,fetchOld,fetchNew,'Codec fetch');
@@ -80,7 +80,7 @@ function patchEngine(target,source,{apply=true,cookieRoot=target}={}){
         fs.writeFileSync(path.join(target,'public/scripts/tokenizers.js'),tokenizers);
         fs.writeFileSync(path.join(target,'src/server-main.js'),server);
         fs.writeFileSync(path.join(target,'public/script.js'),client);
-        fs.copyFileSync(path.join(__dirname,'session-init.mjs'),path.join(target,'public/scripts/pocket-session-init.js'));
+        fs.copyFileSync(path.join(__dirname,'session-init.mjs'),path.join(target,'public/scripts/stm-session-init.js'));
         fs.writeFileSync(path.join(target,'src/fetch-patch.js'),fetchPatch);
     }
     return {cookieName,wasmFiles:wasm.length};

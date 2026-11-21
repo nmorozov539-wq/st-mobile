@@ -1,6 +1,6 @@
 /* Layout v4 structural rules. Themes may restyle these surfaces, not move them. */
 :root{--page-gutter:16px}
-.pocket-shell{width:100%;max-width:1180px;min-height:100svh;height:100dvh}
+.stm-shell{width:100%;max-width:1180px;min-height:100svh;height:100dvh}
 .page-heading button,#bottom-nav button,.library-tabs button,.home-config-row,.home-start-chat{min-height:44px;min-width:44px}
 .home-configuration{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .home-config-row{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;text-align:left;background:var(--color-surface);border-color:var(--color-border);min-width:0}
@@ -44,7 +44,7 @@ html[data-message-format=messenger] #chat-screen .user .bubble{font-family:var(-
  #bottom-nav{max-width:760px;width:100%;margin-inline:auto}
 }
 @media (min-width:900px){
- .pocket-shell{border-inline:var(--shape-border-width) solid var(--color-border)}
+ .stm-shell{border-inline:var(--shape-border-width) solid var(--color-border)}
  html[data-wide-layout=true] #landing.home-screen #page-content{padding-top:20px}html[data-wide-layout=true] .home-page{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);align-items:start;max-width:1024px;gap:24px}
  html[data-wide-layout=true] .home-configuration,html[data-wide-layout=true] .home-continue,html[data-wide-layout=true] .home-start{grid-column:1}html[data-wide-layout=true] .home-block,html[data-wide-layout=true] .home-start-chat{grid-column:2}html[data-wide-layout=true] .home-page>.home-block{grid-row:1/span 3}
  html[data-wide-layout=true] .character-grid-row.cards{grid-template-columns:repeat(3,minmax(160px,1fr))}

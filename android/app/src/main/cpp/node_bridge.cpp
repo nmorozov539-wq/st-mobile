@@ -1,6 +1,6 @@
 // Adapted from RodneyCw1/SillyTavern-Android (AGPL-3.0),
 // android/app/src/main/cpp/node_bridge.cpp.
-// Changes: JNI symbol renamed for package app.pockettavern; comments added.
+// Changes: JNI symbol renamed for package app.stm; comments added.
 //
 // Runs Node.js in the calling thread of the current process (node::Start blocks
 // until the event loop exits). stdout/stderr are redirected to capped private log files.
@@ -82,7 +82,7 @@ void drainLog(int readFd, const std::string& path) {
 } // namespace
 
 extern "C" JNIEXPORT jint JNICALL
-Java_app_pockettavern_NodeRuntime_start(JNIEnv* env, jobject, jobjectArray input, jstring logPath) {
+Java_app_stm_NodeRuntime_start(JNIEnv* env, jobject, jobjectArray input, jstring logPath) {
     const char* log = env->GetStringUTFChars(logPath, nullptr);
     const std::string logFile(log);
     env->ReleaseStringUTFChars(logPath, log);

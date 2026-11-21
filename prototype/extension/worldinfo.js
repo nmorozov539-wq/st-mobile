@@ -1,4 +1,4 @@
-// World Info bridge for Pocket. Uses ST's own save/entry helpers and verifies every write by reading the file back.
+// World Info bridge for STM. Uses ST's own save/entry helpers and verifies every write by reading the file back.
 import {
     world_info, selected_world_info, saveWorldInfo, createWorldInfoEntry, duplicateWorldInfoEntry, deleteWorldInfoEntry,
     getFreeWorldName, deleteWorldInfo, updateWorldInfoList, updateWorldInfoSettings, getWorldInfoSettings, setWIOriginalDataValue,

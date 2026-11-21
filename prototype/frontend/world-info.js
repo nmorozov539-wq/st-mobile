@@ -4,7 +4,7 @@ import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, 
 import {createEntryEditor} from './wi-entry.js?build=0.9.2';
 import {createActivationPage} from './wi-activation.js?build=0.9.2';
 
-const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
+const REGISTRY_KEY = 'stm.wi-folders.v1';
 const MARKERS = {keyword: 'Keyword', constant: 'Always on', vectorized: 'Vector'};
 const iconIn = (tag, name, className) => { const n = el(tag, '', className); n.append(icon(name)); return n; };
 const iconButton = (name, onclick, className, attrs) => { const b = btn('', onclick, className, attrs); b.append(icon(name)); return b; };
@@ -28,7 +28,7 @@ export function createWorldInfoPanel({rpc, action, locked, connected = () => tru
  const request = (arg, timeout = 60000) => rpc('worldinfo', arg, timeout);
  let lib = null, loading = false, failure = '', container = null, loadedAt = 0, workspaceOrigin = 'wi';
  // Which books and folders are open is remembered on this device, like empty folders.
- const VIEW_KEY = 'pocket-tavern.wi-view.v1';
+ const VIEW_KEY = 'stm.wi-view.v1';
  const savedView = (() => { try { const value = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}'); return {books: Array.isArray(value.books) ? value.books : [], folders: Array.isArray(value.folders) ? value.folders : []}; } catch { return {books: [], folders: []}; } })();
  const remember = set => { const add = set.add.bind(set), remove = set.delete.bind(set), save = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify({books: [...expanded], folders: [...openFolders]})); } catch {} }; set.add = value => { add(value); save(); return set; }; set.delete = value => { const had = remove(value); save(); return had; }; return set; };
  const expanded = remember(new Set(savedView.books)), openFolders = remember(new Set(savedView.folders)), details = new Map(), pending = new Set();

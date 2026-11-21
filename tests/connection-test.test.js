@@ -18,7 +18,7 @@ test('health failure and timeout restore settings and never retry',async()=>{
 test('character edits preserve opaque extensions and embedded lorebooks without sharing references',()=>{
  const draft={name:'Fixture',extensions:{foreign:{value:7}},character_book:{entries:[{content:'Lore'}]},alternate_greetings:['One','Two']};
  const result=characterUpdate('Fixture.png',draft);assert.deepEqual(result.data,draft);result.data.extensions.foreign.value=8;assert.equal(draft.extensions.foreign.value,7);
- const reset=characterUpdate('Fixture.png',{...draft,extensions:{foreign:{value:7},pocket_tavern:{}}},{...draft,extensions:{foreign:{value:7},pocket_tavern:{color:'#123456'}}});assert.equal(reset.data.extensions.pocket_tavern.color,'__@@UNSET@@__');
+ const reset=characterUpdate('Fixture.png',{...draft,extensions:{foreign:{value:7},stm:{}}},{...draft,extensions:{foreign:{value:7},stm:{color:'#123456'}}});assert.equal(reset.data.extensions.stm.color,'__@@UNSET@@__');
  assert.throws(()=>safeObject(JSON.parse('{"__proto__": {"x":1}}')));assert.throws(()=>assertUnchanged({name:'changed'},JSON.stringify(draft)),/changed/);
  assert.throws(()=>characterUpdate('f.png',{name:'../bad'}));
 });

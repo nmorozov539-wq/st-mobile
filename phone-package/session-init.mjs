@@ -1,6 +1,6 @@
 // Validate a fresh browser session before ST loads or saves settings.
 // Only read/token and ping requests run here; no settings writes are retried.
-export async function initializePocketSession(request=fetch,{attempts=3,timeoutMs=5000}={}) {
+export async function initializeStmSession(request=fetch,{attempts=3,timeoutMs=5000}={}) {
     for(let attempt=0;attempt<attempts;attempt++) {
         const controller=new AbortController();
         const timer=setTimeout(()=>controller.abort(),timeoutMs);

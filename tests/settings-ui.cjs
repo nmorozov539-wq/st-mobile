@@ -1,8 +1,8 @@
-// Real Pocket DOM at phone width against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+// Real STM DOM at phone width against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');const fs=require('node:fs');
-const origin=process.env.POCKET_TEST_ORIGIN||'http://127.0.0.1:8123';
-const out=process.env.POCKET_UI_OUTPUT||'/tmp/pocket-settings-ui';fs.mkdirSync(out,{recursive:true});
+const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';
+const out=process.env.STM_UI_OUTPUT||'/tmp/stm-settings-ui';fs.mkdirSync(out,{recursive:true});
 let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
@@ -63,11 +63,11 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  const kept=await page.evaluate(()=>({line:document.documentElement.style.getPropertyValue('--chat-line'),bg:document.documentElement.dataset.background,font:document.documentElement.style.getPropertyValue('--chat-font')}));
  ok(kept.line==='1.95'&&kept.bg==='plain'&&kept.font==='20px','preferences persist after reload');
  // restore defaults for later runs
- await page.evaluate(()=>localStorage.removeItem('pocket-tavern.appearance.v1'));
+ await page.evaluate(()=>localStorage.removeItem('stm.appearance.v1'));
  // The app opens on Home; tapping Home again would resume the latest chat.
  await page.waitForSelector('.home-page');await page.locator('#app-settings').click();await page.waitForSelector('.sp-page');
  await page.locator('#page-back').click();
- ok(await page.locator('#page-title').textContent()==='Pocket Tavern','back returns to Home');
+ ok(await page.locator('#page-title').textContent()==='STM','back returns to Home');
  ok(errors.length===0,'no page errors '+errors.join('|'));
  console.log(`${passed} checks passed`);await browser.close();
 })().catch(e=>{console.error(e);process.exit(1);});

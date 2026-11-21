@@ -1,6 +1,6 @@
 import {normalizeErrorRecord,sanitizeNoticeText} from './error-record.js?build=0.9.2';
 
-const WRAPPER=Symbol.for('pocket-tavern.native-notice-wrapper');
+const WRAPPER=Symbol.for('stm.native-notice-wrapper');
 export function installNativeNoticeBridge({toast=globalThis.toastr,emit,context=()=>({})}={}){
  if(!toast||typeof emit!=='function')return()=>{};
  toast[WRAPPER]?.();

@@ -9,7 +9,7 @@ const {prepare}=require('../phone-package/prepare-test.cjs');
 const {update}=require('../phone-package/update-test.cjs');
 const {patchEngine}=require('../phone-package/compatibility.cjs');
 test('phone preparation isolates data and config, preserves source, and refuses repeat or wrong-version installation',()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-installer-test-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-installer-test-'));
     try {
         const source=path.join(root,'engine'),target=path.join(root,'test'),bundle=path.join(root,'bundle');
         for(const dir of ['public','src','default/content','node_modules','data']) fs.mkdirSync(path.join(source,dir),{recursive:true});
@@ -49,12 +49,12 @@ test('phone preparation isolates data and config, preserves source, and refuses 
         fs.mkdirSync(path.join(target,'data'),{recursive:true});fs.writeFileSync(path.join(target,'data/chat.jsonl'),'SAVED CHAT');
         fs.writeFileSync(path.join(target,'config.yaml'),'USER TEST CONFIG');
         const serverBefore=fs.readFileSync(path.join(target,'src/server-main.js'),'utf8');
-        assert.match(serverBefore,/pocket-tavern-test-/);
+        assert.match(serverBefore,/stm-test-/);
         assert.match(serverBefore,/Cache-Control.*no-store/);
-        assert.match(fs.readFileSync(path.join(target,'public/script.js'),'utf8'),/token = await initializePocketSession/);
-        assert.ok(fs.existsSync(path.join(target,'public/scripts/pocket-session-init.js')));
+        assert.match(fs.readFileSync(path.join(target,'public/script.js'),'utf8'),/token = await initializeStmSession/);
+        assert.ok(fs.existsSync(path.join(target,'public/scripts/stm-session-init.js')));
         assert.match(fs.readFileSync(path.join(target,'public/scripts/tokenizers.js'),'utf8'),/headers: getRequestHeaders/);
-        assert.equal(fs.readFileSync(path.join(target,'.pocket-wasm/png/codec/test.wasm'),'utf8'),'WASM FIXTURE');
+        assert.equal(fs.readFileSync(path.join(target,'.stm-wasm/png/codec/test.wasm'),'utf8'),'WASM FIXTURE');
         assert.match(fs.readFileSync(path.join(target,'src/fetch-patch.js'),'utf8'),/if \(!isUnderServerDirectory\) throw/);
         const result=update(target,bundle);
         assert.equal(fs.readFileSync(path.join(target,'data/chat.jsonl'),'utf8'),'SAVED CHAT');
@@ -73,15 +73,15 @@ test('phone preparation isolates data and config, preserves source, and refuses 
         assert.throws(()=>readLaunch(combined,true),/separate --mock/);
         fs.mkdirSync(path.join(combined,'data/default-user'),{recursive:true});
         fs.writeFileSync(path.join(combined,'data/default-user/settings.json'),'USER SETTINGS');
-        fs.mkdirSync(path.join(combined,'.pocket-proxy/node_modules'),{recursive:true});
-        fs.writeFileSync(path.join(combined,'.pocket-proxy/index.cjs'),'// old proxy');
-        fs.writeFileSync(path.join(combined,'.pocket-proxy/node_modules/keep'),'DEPENDENCIES');
+        fs.mkdirSync(path.join(combined,'.stm-proxy/node_modules'),{recursive:true});
+        fs.writeFileSync(path.join(combined,'.stm-proxy/index.cjs'),'// old proxy');
+        fs.writeFileSync(path.join(combined,'.stm-proxy/node_modules/keep'),'DEPENDENCIES');
         const combinedResult=update(combined,bundle);
         assert.equal(fs.readFileSync(path.join(combined,'data/default-user/settings.json'),'utf8'),'USER SETTINGS');
         assert.ok(fs.existsSync(path.join(combinedResult.backup,'start.cjs')));
-        assert.equal(fs.readFileSync(path.join(combined,'.pocket-proxy/index.cjs'),'utf8'),'// updated proxy fixture');
-        assert.equal(fs.readFileSync(path.join(combined,'.pocket-proxy/node_modules/keep'),'utf8'),'DEPENDENCIES');
-        assert.equal(fs.readFileSync(path.join(combinedResult.backup,'.pocket-proxy/index.cjs'),'utf8'),'// old proxy');
+        assert.equal(fs.readFileSync(path.join(combined,'.stm-proxy/index.cjs'),'utf8'),'// updated proxy fixture');
+        assert.equal(fs.readFileSync(path.join(combined,'.stm-proxy/node_modules/keep'),'utf8'),'DEPENDENCIES');
+        assert.equal(fs.readFileSync(path.join(combinedResult.backup,'.stm-proxy/index.cjs'),'utf8'),'// old proxy');
         // A combined update uses its retained unpatched source and own dependencies.
         fs.writeFileSync(path.join(source,'public/script.js'),'changed source');
         update(combined,bundle);
@@ -101,14 +101,14 @@ test('phone preparation isolates data and config, preserves source, and refuses 
 
 test('data import preserves standard files, leaves source untouched and refuses merging',()=>{
     const {importData}=require('../phone-package/import-data.cjs');
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-import-test-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-import-test-'));
     try{
         const source=path.join(root,'old/data/default-user'),target=path.join(root,'combined');
         fs.mkdirSync(source,{recursive:true});fs.mkdirSync(target);
         fs.writeFileSync(path.join(source,'settings.json'),'{}');fs.mkdirSync(path.join(source,'chats'));fs.writeFileSync(path.join(source,'chats/test.jsonl'),'ST CHAT');
-        fs.writeFileSync(path.join(target,'.pocket-tavern.json'),JSON.stringify({version:1,mode:'combined',mock:false}));fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.0'}));
+        fs.writeFileSync(path.join(target,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false}));fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.0'}));
         const linked=path.join(root,'linked-target'),outside=path.join(root,'outside');fs.mkdirSync(linked);fs.mkdirSync(outside);
-        fs.copyFileSync(path.join(target,'.pocket-tavern.json'),path.join(linked,'.pocket-tavern.json'));fs.copyFileSync(path.join(target,'package.json'),path.join(linked,'package.json'));fs.symlinkSync(outside,path.join(linked,'data'),'dir');
+        fs.copyFileSync(path.join(target,'.stm.json'),path.join(linked,'.stm.json'));fs.copyFileSync(path.join(target,'package.json'),path.join(linked,'package.json'));fs.symlinkSync(outside,path.join(linked,'data'),'dir');
         assert.throws(()=>importData(source,linked),/must not be a symlink/);assert.equal(fs.existsSync(path.join(outside,'default-user')),false);
         const destination=importData(source,target);
         assert.equal(fs.readFileSync(path.join(destination,'chats/test.jsonl'),'utf8'),'ST CHAT');assert.equal(fs.readFileSync(path.join(source,'chats/test.jsonl'),'utf8'),'ST CHAT');
@@ -118,7 +118,7 @@ test('data import preserves standard files, leaves source untouched and refuses 
 });
 
 test('repair reports a stalled update instead of exiting quietly as success',async()=>{
-    const {guardUnsettled}=require('../phone-package/repair-pocket.cjs');let beforeExit,messages=[];
+    const {guardUnsettled}=require('../phone-package/repair-stm.cjs');let beforeExit,messages=[];
     guardUnsettled(new Promise(()=>{}),{listen:handler=>beforeExit=handler,fail:message=>messages.push(message)});beforeExit();assert.match(messages[0],/Repair stopped: the update stalled/);
     messages=[];await guardUnsettled(Promise.reject(Error('bad zip')),{listen:()=>{},fail:message=>messages.push(message)});assert.match(messages[0],/Repair stopped: bad zip/);
     messages=[];await guardUnsettled(Promise.resolve(),{listen:()=>{},fail:message=>messages.push(message)});assert.deepEqual(messages,[]);

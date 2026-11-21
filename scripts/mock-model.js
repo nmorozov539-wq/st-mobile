@@ -27,7 +27,7 @@ const server = http.createServer(async (req, res) => {
         }
         requests++;
         const prompt = chat?JSON.stringify(input.messages):String(input.prompt??'');
-        lastRequest = {family:chat?'chat-completion':'text-completion',model:input.model,temperature:input.temperature,stream:!!input.stream,maxTokens:input.max_tokens??input.max_new_tokens,n:input.n,testMessage:chat&&input.messages?.length===1&&text==='Reply with OK.',summaryFixture:prompt.includes('auto_injected_historical_context'),personaFixture:prompt.includes('POCKET_PERSONA_SENTINEL'),loreFixture:prompt.includes('POCKET_LORE_SENTINEL')};
+        lastRequest = {family:chat?'chat-completion':'text-completion',model:input.model,temperature:input.temperature,stream:!!input.stream,maxTokens:input.max_tokens??input.max_new_tokens,n:input.n,testMessage:chat&&input.messages?.length===1&&text==='Reply with OK.',summaryFixture:prompt.includes('auto_injected_historical_context'),personaFixture:prompt.includes('STM_PERSONA_SENTINEL'),loreFixture:prompt.includes('STM_LORE_SENTINEL')};
         recentRequests.push({...lastRequest});if(recentRequests.length>8)recentRequests.shift();
         if (/\[fail\]/i.test(text)) {
             res.writeHead(503, { 'Content-Type': 'application/json' });

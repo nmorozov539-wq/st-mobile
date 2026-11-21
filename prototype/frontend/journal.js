@@ -1,4 +1,4 @@
-const key='pocket-tavern.pending-changes.v1';
+const key='stm.pending-changes.v1';
 export const revision=value=>JSON.stringify(value,(_,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(k=>[k,item[k]])):item);
 export function createJournal(storage){
     const read=()=>{try{return JSON.parse(storage.getItem(key))??[];}catch{return [];}};

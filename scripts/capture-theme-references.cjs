@@ -1,7 +1,7 @@
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path');
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),write=process.argv.includes('--write');
-const output=write?path.join(root,'docs/theme-references'):'/tmp/pocket-theme-references';
+const output=write?path.join(root,'docs/theme-references'):'/tmp/stm-theme-references';
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.woff2':'font/woff2'};
 const server=http.createServer((request,response)=>{
  const pathname=decodeURIComponent(new URL(request.url,'http://127.0.0.1').pathname),file=path.resolve(root,`.${pathname}`);

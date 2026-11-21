@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "app.pockettavern"
+    namespace = "app.stm"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
     defaultConfig {
-        applicationId = "app.pockettavern"
+        applicationId = "app.stm"
         minSdk = 29
         targetSdk = 36
         versionCode = 2
@@ -140,7 +140,7 @@ val prepareSillyTavern by tasks.registering(Exec::class) {
 val zipSillyTavern by tasks.registering(Zip::class) {
     description = "Zips the prepared SillyTavern tree for the APK's assets."
     dependsOn(prepareSillyTavern)
-    from(stPrepared) { exclude(".pocket-prepared") }
+    from(stPrepared) { exclude(".stm-prepared") }
     archiveFileName.set("sillytavern.zip")
     destinationDirectory.set(stAssets.map { it.dir("engine") })
     isPreserveFileTimestamps = false

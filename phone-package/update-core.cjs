@@ -11,16 +11,16 @@ const DATA_SCHEMA = 1;
 // v2 uses unique bakery-protocol claims inside a stable directory. The old
 // fixed pathname is read only for compatibility: it is never reclaimed by
 // unlinking, because doing so can delete a replacement owner's live lock.
-const LIFECYCLE_LOCK = '.pocket-lifecycle-locks';
+const LIFECYCLE_LOCK = '.stm-lifecycle-locks';
 const UPDATE_LOCK = LIFECYCLE_LOCK;
 const LAUNCHER_LOCK = LIFECYCLE_LOCK;
-const LEGACY_UNIFIED_LOCK = '.pocket-lifecycle.lock';
-const LEGACY_UPDATE_LOCK = '.pocket-update.lock';
-const LEGACY_LAUNCHER_LOCK = '.pocket-launcher.lock';
-const JOURNAL = '.pocket-update-transaction.json';
-const INSTALLED_MANIFEST = '.pocket-installed-manifest.json';
-const UPDATER_ROOT = '.pocket-updater';
-const BACKUP_ROOT = '.pocket-backups';
+const LEGACY_UNIFIED_LOCK = '.stm-lifecycle.lock';
+const LEGACY_UPDATE_LOCK = '.stm-update.lock';
+const LEGACY_LAUNCHER_LOCK = '.stm-launcher.lock';
+const JOURNAL = '.stm-update-transaction.json';
+const INSTALLED_MANIFEST = '.stm-installed-manifest.json';
+const UPDATER_ROOT = '.stm-updater';
+const BACKUP_ROOT = '.stm-backups';
 
 const ROOT_MANAGED = Object.freeze([
     'public/st-mobile',
@@ -30,8 +30,8 @@ const ROOT_MANAGED = Object.freeze([
     'src/server-main.js',
     'src/fetch-patch.js',
     'public/script.js',
-    'public/scripts/pocket-session-init.js',
-    '.pocket-wasm',
+    'public/scripts/stm-session-init.js',
+    '.stm-wasm',
     'mock-model.mjs',
     'start.cjs','log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','update-core.cjs','compatibility.cjs','package-staging.cjs',
 ]);
@@ -59,9 +59,9 @@ function readJson(file,required=true) {
 }
 
 function readMarker(target) {
-    const markerPath=path.join(target,'.pocket-tavern.json');
+    const markerPath=path.join(target,'.stm.json');
     const marker=readJson(markerPath);
-    if (marker.version!==1 || marker.mode!=='combined' || marker.dataRoot!=='data') throw Error('Not a recognized combined Pocket Tavern installation.');
+    if (marker.version!==1 || marker.mode!=='combined' || marker.dataRoot!=='data') throw Error('Not a recognized combined STM installation.');
     if (readJson(path.join(target,'package.json')).version!=='1.19.0') throw Error('This updater supports the pinned ST 1.19.0 installation only. The installation was not changed.');
     return {marker,markerPath};
 }
@@ -144,7 +144,7 @@ function acquireLifecycleLock(target,kind,{onState=()=>{},directory=LIFECYCLE_LO
     const claimDirectory=path.join(target,directory);
     for(const legacy of [LEGACY_UNIFIED_LOCK,LEGACY_UPDATE_LOCK,LEGACY_LAUNCHER_LOCK]){
         const file=path.join(target,legacy),state=legacyOwner(file,{invalidGraceMs});if(!state)continue;
-        if(!state.stale)throw Error(`Another Pocket lifecycle operation is active (${state.owner?.kind??'publishing'}, PID ${state.owner?.pid??'unknown'}).`);
+        if(!state.stale)throw Error(`Another STM lifecycle operation is active (${state.owner?.kind??'publishing'}, PID ${state.owner?.pid??'unknown'}).`);
         onState('legacy-stale-observed',{file,owner:state.owner,invalid:!!state.invalid});
         // Never unlink a fixed-path stale lock: another contender may already
         // have replaced it. New code coordinates in unique v2 claim paths.
@@ -162,16 +162,16 @@ function acquireLifecycleLock(target,kind,{onState=()=>{},directory=LIFECYCLE_LO
         while(true){
             const choosing=claimEntries(claimDirectory).find(item=>item.actor!==actor&&item.choosing);
             if(!choosing)break;
-            if(Date.now()>=deadline)throw Error(`Another Pocket lifecycle operation is active (${choosing.kind??'publishing'}, PID ${choosing.pid??'unknown'}).`);
+            if(Date.now()>=deadline)throw Error(`Another STM lifecycle operation is active (${choosing.kind??'publishing'}, PID ${choosing.pid??'unknown'}).`);
             waitSync(5);
         }
         const lower=claimEntries(claimDirectory).filter(item=>item.actor!==actor&&!item.choosing).sort((a,b)=>(a.ticket-b.ticket)||a.actor.localeCompare(b.actor))[0];
-        if(lower&&((lower.ticket<ticket)||(lower.ticket===ticket&&lower.actor<actor)))throw Error(`Another Pocket lifecycle operation is active (${lower.kind??'unknown'}, PID ${lower.pid??'unknown'}).`);
+        if(lower&&((lower.ticket<ticket)||(lower.ticket===ticket&&lower.actor<actor)))throw Error(`Another STM lifecycle operation is active (${lower.kind??'unknown'}, PID ${lower.pid??'unknown'}).`);
         // A legacy process may have appeared while this claim was being
         // published. A live or fresh-invalid old lock still wins.
         for(const legacy of [LEGACY_UNIFIED_LOCK,LEGACY_UPDATE_LOCK,LEGACY_LAUNCHER_LOCK]){
             const state=legacyOwner(path.join(target,legacy),{invalidGraceMs});
-            if(state&&!state.stale)throw Error(`An older Pocket lifecycle operation is active (PID ${state.owner?.pid??'unknown'}).`);
+            if(state&&!state.stale)throw Error(`An older STM lifecycle operation is active (PID ${state.owner?.pid??'unknown'}).`);
         }
     }catch(error){removeOwnedClaim(claim,actor);throw error;}
     let released=false;
@@ -185,8 +185,8 @@ function assertLauncherStopped(target) {
     const lock=path.join(target,LEGACY_LAUNCHER_LOCK);
     const owner=readJson(lock,false);
     if (!owner) return;
-    if (processAlive(owner.pid)) throw Error(`Pocket Tavern is still running (launcher PID ${owner.pid}). Stop it with Ctrl+C before updating.`);
-    throw Error(`Pocket Tavern launcher ownership is stale at ${lock}. Start and stop the launcher normally, or inspect and remove only this stale lock before updating.`);
+    if (processAlive(owner.pid)) throw Error(`STM is still running (launcher PID ${owner.pid}). Stop it with Ctrl+C before updating.`);
+    throw Error(`STM launcher ownership is stale at ${lock}. Start and stop the launcher normally, or inspect and remove only this stale lock before updating.`);
 }
 
 function portFree(port) {
@@ -199,7 +199,7 @@ function portFree(port) {
 
 async function assertStopped(target,ports=[8123]) {
     assertLauncherStopped(target);
-    for(const port of ports)if (!await portFree(port)) throw Error(`Port ${port} is busy. Stop Pocket Tavern before updating; a free port alone is not used as ownership proof.`);
+    for(const port of ports)if (!await portFree(port)) throw Error(`Port ${port} is busy. Stop STM before updating; a free port alone is not used as ownership proof.`);
 }
 
 function buildManagedStage(target,kit,stage) {
@@ -216,17 +216,17 @@ function buildManagedStage(target,kit,stage) {
 
     const engineFiles=['public/scripts/tokenizers.js','src/server-main.js','src/fetch-patch.js','public/script.js'];
     for (const name of engineFiles) {
-        const source=path.join(target,'.pocket-base',safeRelative(name));
+        const source=path.join(target,'.stm-base',safeRelative(name));
         if (!fs.existsSync(source)) throw Error(`Installation is missing its retained ST 1.19.0 base file: ${name}`);
         const destination=path.join(stage,safeRelative(name));fs.mkdirSync(path.dirname(destination),{recursive:true});fs.copyFileSync(source,destination);
     }
     patchEngine(stage,target,{cookieRoot:target});
-    fs.copyFileSync(path.join(kit,'session-init.mjs'),path.join(stage,'public/scripts/pocket-session-init.js'));
+    fs.copyFileSync(path.join(kit,'session-init.mjs'),path.join(stage,'public/scripts/stm-session-init.js'));
 
-    const proxy=path.join(target,'.pocket-proxy/index.cjs');
+    const proxy=path.join(target,'.stm-proxy/index.cjs');
     if (fs.existsSync(proxy)) {
-        fs.mkdirSync(path.join(stage,'.pocket-proxy'),{recursive:true});
-        fs.copyFileSync(path.join(kit,'proxy.cjs'),path.join(stage,'.pocket-proxy/index.cjs'));
+        fs.mkdirSync(path.join(stage,'.stm-proxy'),{recursive:true});
+        fs.copyFileSync(path.join(kit,'proxy.cjs'),path.join(stage,'.stm-proxy/index.cjs'));
     }
     for (const [bundleName,installedName] of [['extension','st-mobile-experiment'],['summaryception','Extension-Summaryception']]) {
         const local=`data/default-user/extensions/${installedName}`;
@@ -237,7 +237,7 @@ function buildManagedStage(target,kit,stage) {
 
 function walkStageRoots(stage,target) {
     const roots=[...ROOT_MANAGED];
-    if (fs.existsSync(path.join(stage,'.pocket-proxy/index.cjs'))) roots.push('.pocket-proxy/index.cjs');
+    if (fs.existsSync(path.join(stage,'.stm-proxy/index.cjs'))) roots.push('.stm-proxy/index.cjs');
     for (const name of ['st-mobile-experiment','Extension-Summaryception']) {
         const relative=`data/default-user/extensions/${name}`;
         if (fs.existsSync(path.join(stage,safeRelative(relative))) && fs.existsSync(path.join(target,safeRelative(relative)))) roots.push(relative);
@@ -282,7 +282,7 @@ function verifyInstalled(target,manifest) {
 
 function checkpoint(name,options,journal) {
     if (options.onCheckpoint) options.onCheckpoint(name,journal);
-    if (options.failAt===name || process.env.POCKET_UPDATE_FAIL_AT===name) throw Object.assign(Error(`Injected update failure at ${name}.`),{code:'INJECTED_FAILURE'});
+    if (options.failAt===name || process.env.STM_UPDATE_FAIL_AT===name) throw Object.assign(Error(`Injected update failure at ${name}.`),{code:'INJECTED_FAILURE'});
 }
 
 function backupMetadata(target,backupDir,journal) {
@@ -345,7 +345,7 @@ function restoreJournal(target,journal,options={}) {
         operation.recovery='done';persistJournal(target,journal);
     }
     if (journal.oldManifest) durableJson(path.join(target,INSTALLED_MANIFEST),journal.oldManifest); else fs.rmSync(path.join(target,INSTALLED_MANIFEST),{force:true});
-    if (journal.oldMarker) durableJson(path.join(target,'.pocket-tavern.json'),journal.oldMarker);
+    if (journal.oldMarker) durableJson(path.join(target,'.stm.json'),journal.oldMarker);
     journal.phase='restored';journal.restoredAt=new Date().toISOString();persistJournal(target,journal);
     fs.rmSync(journal.stage,{recursive:true,force:true});
     fs.rmSync(journal.backupDir,{recursive:true,force:true});
@@ -370,7 +370,7 @@ function pruneBackups(target,keep=2) {
 function commitTransaction(target,journal,markerUpdate,options={}) {
     durableJson(path.join(target,INSTALLED_MANIFEST),journal.newManifest);
     const marker={...journal.oldMarker,update:{...journal.oldMarker.update,...markerUpdate,installedAt:new Date().toISOString(),dataSchema:DATA_SCHEMA}};
-    durableJson(path.join(target,'.pocket-tavern.json'),marker);
+    durableJson(path.join(target,'.stm.json'),marker);
     checkpoint('after-manifest',options,journal);
     journal.phase='committed';journal.committedAt=new Date().toISOString();persistJournal(target,journal);
     fs.rmSync(journal.stage,{recursive:true,force:true});
@@ -405,14 +405,14 @@ function latestBackup(target) {
 
 function rollback(target,options={}) {
     target=fs.realpathSync(target);const {marker}=readMarker(target);
-    const selected=latestBackup(target);if(!selected)throw Error('No successful Pocket code backup is available to roll back. User data was not changed.');
+    const selected=latestBackup(target);if(!selected)throw Error('No successful STM code backup is available to roll back. User data was not changed.');
     if (selected.metadata.dataSchema!==DATA_SCHEMA || marker.update?.dataSchema && marker.update.dataSchema!==selected.metadata.dataSchema) throw Error('Rollback crosses an unsupported data-schema boundary. Keep the installation stopped and restore from a full data backup with matching code.');
     const stage=fs.mkdtempSync(path.join(target,UPDATER_ROOT,'rollback-'));
     for(const root of selected.metadata.managedRoots){const source=path.join(selected.dir,'code',safeRelative(root));if(fs.existsSync(source))fs.cpSync(source,path.join(stage,safeRelative(root)),{recursive:true});}
     const manifest=selected.metadata.installedManifest;
     if(!manifest){fs.rmSync(stage,{recursive:true,force:true});throw Error('The selected backup predates matched installed manifests and cannot be rolled back automatically.');}
     const journal=beginJournal(target,stage,manifest,'rollback');
-    try{replaceManaged(target,journal,options);const restoredMarker=selected.metadata.marker;durableJson(path.join(target,INSTALLED_MANIFEST),manifest);durableJson(path.join(target,'.pocket-tavern.json'),restoredMarker);journal.phase='committed';persistJournal(target,journal);fs.rmSync(stage,{recursive:true,force:true});fs.rmSync(path.join(target,JOURNAL),{force:true});pruneBackups(target,2);return {marker:restoredMarker,manifest,backup:selected.dir};}
+    try{replaceManaged(target,journal,options);const restoredMarker=selected.metadata.marker;durableJson(path.join(target,INSTALLED_MANIFEST),manifest);durableJson(path.join(target,'.stm.json'),restoredMarker);journal.phase='committed';persistJournal(target,journal);fs.rmSync(stage,{recursive:true,force:true});fs.rmSync(path.join(target,JOURNAL),{force:true});pruneBackups(target,2);return {marker:restoredMarker,manifest,backup:selected.dir};}
     catch(error){throw error;}
 }
 
@@ -429,7 +429,7 @@ function sanitizeRemoteUrl(value) {
 function runGit(args,{cwd,allowFailure=false}={}) {
     const result=spawnSync('git',['-c','core.hooksPath=/dev/null',...args],{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']});
     if(result.error)throw result.error;
-    if(result.status!==0&&!allowFailure){const detail=(result.stderr||result.stdout||'Git failed').trim();let message=detail;if(/auth|credential|permission denied|could not read username|publickey/i.test(detail))message='Git authentication failed. Use your normal SSH agent or Git credential helper; Pocket does not collect credentials. '+detail;else if(/could not resolve|network|timed out|unable to access|connection/i.test(detail))message='Git network access failed. The installed version is unchanged. '+detail;throw Object.assign(Error(message),{gitStatus:result.status});}
+    if(result.status!==0&&!allowFailure){const detail=(result.stderr||result.stdout||'Git failed').trim();let message=detail;if(/auth|credential|permission denied|could not read username|publickey/i.test(detail))message='Git authentication failed. Use your normal SSH agent or Git credential helper; STM does not collect credentials. '+detail;else if(/could not resolve|network|timed out|unable to access|connection/i.test(detail))message='Git network access failed. The installed version is unchanged. '+detail;throw Object.assign(Error(message),{gitStatus:result.status});}
     return result;
 }
 

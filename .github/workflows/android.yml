@@ -53,14 +53,14 @@ jobs:
           mkdir -p ../dist
           for f in app/build/outputs/apk/debug/*.apk; do
             abi=$(basename "$f" | sed -E 's/^app-(.*)-debug\.apk$/\1/')
-            cp "$f" "../dist/pocket-tavern-step2-${abi}-debug.apk"
+            cp "$f" "../dist/stm-step2-${abi}-debug.apk"
           done
           ls -la ../dist
           sha256sum ../dist/*.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: pocket-tavern-step2-debug
+          name: stm-step2-debug
           path: dist/*.apk
           if-no-files-found: error
 
@@ -108,7 +108,7 @@ jobs:
           disk-size: 6G
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
-          script: bash android/scripts/emulator-smoke.sh dist/pocket-tavern-step2-x86_64-debug.apk smoke
+          script: bash android/scripts/emulator-smoke.sh dist/stm-step2-x86_64-debug.apk smoke
 
       - uses: actions/upload-artifact@v4
         if: always()

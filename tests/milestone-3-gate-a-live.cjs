@@ -1,7 +1,7 @@
 const {chromium}=require('/home/Riv/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const fs=require('node:fs');const assert=require('node:assert/strict');
 const out='/home/Riv/Projects/st-mobile/docs/milestone-3-evidence';
-const readSaved=frame=>frame.locator('html').evaluate(async()=>{const ctx=SillyTavern.getContext();const response=await fetch('/api/settings/get',{method:'POST',headers:ctx.getRequestHeaders(),cache:'no-store'});const body=await response.json();const settings=JSON.parse(body.settings);return {pocket:settings.extension_settings?.pocket_tavern??null,mainApi:settings.main_api,customUrl:settings.oai_settings?.custom_url,preset:settings.oai_settings?.preset_settings_openai};});
+const readSaved=frame=>frame.locator('html').evaluate(async()=>{const ctx=SillyTavern.getContext();const response=await fetch('/api/settings/get',{method:'POST',headers:ctx.getRequestHeaders(),cache:'no-store'});const body=await response.json();const settings=JSON.parse(body.settings);return {stm:settings.extension_settings?.stm??null,mainApi:settings.main_api,customUrl:settings.oai_settings?.custom_url,preset:settings.oai_settings?.preset_settings_openai};});
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
@@ -13,7 +13,7 @@ const readSaved=frame=>frame.locator('html').evaluate(async()=>{const ctx=SillyT
  await page.locator('#app-settings').click();await page.locator('#settings-connection').click();
  const connectionTrigger=page.getByRole('button',{name:'Open native Connection'});await connectionTrigger.click();await page.waitForSelector('#engine.native-engine');
  assert.equal(await page.locator('#engine').evaluate(n=>n===document.activeElement),true,'host iframe receives focus');
- assert.equal(await frame.locator('html').evaluate(()=>window.pocketEngineBusy()),true,'native host participates in the shared mutation lock');
+ assert.equal(await frame.locator('html').evaluate(()=>window.stmEngineBusy()),true,'native host participates in the shared mutation lock');
  const rootBeforeClose=await frame.locator('#rm_api_block').evaluate(n=>({display:getComputedStyle(n).display,className:n.className}));
  assert.notEqual(rootBeforeClose.display,'none');
  const framed=await frame.locator('#rm_api_block').evaluate(n=>{const r=n.getBoundingClientRect();return {width:r.width,height:r.height,viewport:[innerWidth,innerHeight]};});assert.ok(framed.width>=framed.viewport[0]-2&&framed.height>=framed.viewport[1]-2,'requested surface contains the fallback viewport');
@@ -24,7 +24,7 @@ const readSaved=frame=>frame.locator('html').evaluate(async()=>{const ctx=SillyT
  await page.screenshot({path:`${out}/m3-gate-a-native-connection.png`,fullPage:true});
  await page.locator('#page-back').click();await page.waitForFunction(()=>!document.querySelector('#engine').classList.contains('native-engine'));
  const closeDurationMs=Date.now()-closeStarted,persistedChanged=await readSaved(frame);assert.equal(persistedChanged.customUrl,changed,'close flushes and reads back the original ST handler during its debounce window');
- assert.equal(await page.getByRole('button',{name:'Open native Connection'}).evaluate(n=>n===document.activeElement),true,'focus returns to Pocket trigger');
+ assert.equal(await page.getByRole('button',{name:'Open native Connection'}).evaluate(n=>n===document.activeElement),true,'focus returns to STM trigger');
  const restoredRoot=await frame.locator('#rm_api_block').evaluate(n=>({display:getComputedStyle(n).display,className:n.className,style:n.getAttribute('style')}));
  assert.ok(restoredRoot.className.includes('closedDrawer'),'original root class restored');
  await page.getByRole('button',{name:'Open native Connection'}).click();await page.waitForSelector('#engine.native-engine');await frame.locator('#custom_api_url_text').fill(original);await page.locator('#page-back').click();await page.waitForFunction(()=>!document.querySelector('#engine').classList.contains('native-engine'));const persistedRestored=await readSaved(frame);assert.equal(persistedRestored.customUrl,original,'fixture setting was restored through close readback');

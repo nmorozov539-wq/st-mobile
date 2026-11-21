@@ -14,7 +14,7 @@ test('drafts stay isolated per character and conversation and survive app recrea
     assert.throws(() => restored.moveDraft(c,b), /already has a local draft/);
 });
 test('corrupt local state fails safely and a request journal survives reload', () => {
-    const storage = memory(); storage.setItem('pocket-tavern.v1.pending','invalid');
+    const storage = memory(); storage.setItem('stm.v1.pending','invalid');
     const state = createLocalState(storage); assert.equal(state.pending(),null);
     state.begin({kind:'send',target:a,sessionId:'old',argument:{requestId:'one'}});
     assert.equal(createLocalState(storage).pending().argument.requestId,'one');

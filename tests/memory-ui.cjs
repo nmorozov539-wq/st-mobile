@@ -1,6 +1,6 @@
 // Drives the real prototype/frontend/memory.js against a stub Summaryception extension. No ST, keys or paid requests.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const root=path.join(__dirname,'..','prototype','frontend'),fixture=path.join(__dirname,'fixtures','memory-harness.html');
 module.exports=(async()=>{
 const server=http.createServer((q,r)=>{const name=q.url.split('?')[0].slice(1);const f=name==='memory.js'||name==='memory.css'?path.join(root,name):name===''||name==='harness.html'?fixture:null;if(!f||!fs.existsSync(f)){r.statusCode=404;return r.end();}r.setHeader('content-type',f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':'text/html');r.end(fs.readFileSync(f));}).listen(0,'127.0.0.1');

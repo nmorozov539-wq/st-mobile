@@ -1,7 +1,7 @@
 // 0.7.14 regressions from the 0.7.13 phone test, against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
-const {chromium}=require(process.env.POCKET_PLAYWRIGHT_MODULE||'playwright');
+const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
-const origin=process.env.POCKET_TEST_ORIGIN||'http://127.0.0.1:8123';
+const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';
 let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
@@ -15,7 +15,7 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  const back=async()=>{await p.keyboard.press('Escape');await p.waitForTimeout(600);};
  const stamp=Date.now().toString(36);
  // Earlier suites may leave Summaryception on; these checks need an idle engine.
- await engine.evaluate(async()=>{const s=SillyTavern.getContext().extensionSettings.summaryception;if(s)s.enabled=false;await window.pocketExtensions?.get('summaryception')?.run({action:'stop'});});
+ await engine.evaluate(async()=>{const s=SillyTavern.getContext().extensionSettings.summaryception;if(s)s.enabled=false;await window.stmExtensions?.get('summaryception')?.run({action:'stop'});});
  await p.waitForFunction(()=>!document.querySelector('#memory-notice')||document.querySelector('#memory-notice').hidden||!/Summarizing|Waiting|Choice/.test(document.querySelector('#memory-notice-text').textContent),null,{timeout:60000});
  await p.waitForTimeout(2500);
  const chatFile=(key,id)=>engine.evaluate(async(_,[key,id])=>{const c=SillyTavern.getContext();const r=await fetch('/api/chats/get',{method:'POST',headers:c.getRequestHeaders(),body:JSON.stringify({avatar_url:key,file_name:id})});return r.json();},[key,id]);
@@ -58,7 +58,7 @@ let passed=0;const ok=(v,n)=>{assert.ok(v,n);passed++;console.log('PASS '+n);};
  await p.locator('.persona-editor-avatar input[type=file]').setInputFiles({name:'a.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+tm+0AAAAASUVORK5CYII=','base64')});
  await p.locator('.persona-save').click();await p.waitForFunction(()=>document.querySelector('#page-title').textContent==='Personas',null,{timeout:30000});
  await p.waitForFunction(n=>document.querySelector('#page-content').textContent.includes(n),persona,{timeout:15000}).catch(()=>{});const toastText=await p.locator('#toast-text').textContent(),listed=await p.locator('#page-content').textContent();ok(!/draft/.test(toastText)&&listed.includes(persona),'persona with a portrait saves and returns to Personas');
- await back();ok(await title()==='Pocket Tavern','Back from a tab page goes Home');
+ await back();ok(await title()==='STM','Back from a tab page goes Home');
 
  // Importing a card with an embedded lorebook offers to import and link it.
  const card={spec:'chara_card_v2',spec_version:'2.0',data:{name:`Lore ${stamp}`,description:'d',personality:'',scenario:'',first_mes:'Hi',mes_example:'',creator_notes:'',system_prompt:'',post_history_instructions:'',alternate_greetings:[],tags:[],creator:'',character_version:'',extensions:{},

@@ -240,7 +240,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
   const usable = !source || source === 'default';
   content.append(memorySection('Summarizer connection', usable ? 'Use the main ST connection' : `Set to ${source} in full ST`, 'memory-connection', () => {
    const box = el('div');
-   box.append(el('p', usable ? 'Summaries use the main ST connection, including its proxy.' : `Summaryception is set to "${source}". Pocket can only summarize through the main ST connection; your other connection settings are kept.`, 'memory-hint'));
+   box.append(el('p', usable ? 'Summaries use the main ST connection, including its proxy.' : `Summaryception is set to "${source}". STM can only summarize through the main ST connection; your other connection settings are kept.`, 'memory-hint'));
    if (!usable) {
     const useMain = el('button', 'Use the main ST connection', 'btn secondary memory-secondary');
     useMain.disabled = off;
@@ -248,7 +248,7 @@ export function createMemoryPanel({visible = () => true, rpc, action, connected,
     box.append(useMain);
    }
    box.append(numberField('Summary output token limit (0 uses the preset)', 'summarizerResponseLength', 0));
-   box.append(el('small', 'Separate endpoints, API keys and models stay in full ST. Pocket never stores another provider’s key.', 'memory-hint'));
+   box.append(el('small', 'Separate endpoints, API keys and models stay in full ST. STM never stores another provider’s key.', 'memory-hint'));
    return box;
   }));
 

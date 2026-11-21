@@ -1,4 +1,4 @@
-/* Pocket Tavern design tokens. The colour values mirror Hearth so the first
+/* STM design tokens. The colour values mirror Hearth so the first
    paint is safe; color-theme.js replaces them from the validated theme file. */
 :root{
   color-scheme:dark;

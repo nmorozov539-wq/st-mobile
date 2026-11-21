@@ -21,7 +21,7 @@ test('native host owns one original surface, excludes mutations, restores styles
  const host=createNativeSettingsHost({document,isBusy:()=>busy,projection:async()=>({revision:'r2'}),emit:event=>events.push(event)});
  assert.deepEqual(host.capabilities(),{connection:false,presets:false});
  busy=true;await assert.rejects(host.run({action:'open',surface:'connection'}),{code:'BUSY'});busy=false;
- const opened=await host.run({action:'open',surface:'connection'});assert.equal(opened.state,'open');assert.equal(connection.focused,true);assert.ok(classes.has('pocket-native-settings-open'));
+ const opened=await host.run({action:'open',surface:'connection'});assert.equal(opened.state,'open');assert.equal(connection.focused,true);assert.ok(classes.has('stm-native-settings-open'));
  busy=true;await assert.rejects(host.run({action:'close',surfaceId:opened.surfaceId}),{code:'SAVE_IN_FLIGHT'});busy=false;
  await assert.rejects(host.run({action:'close',surfaceId:'stale'}),{code:'STALE_SURFACE'});
  const closed=await host.run({action:'close',surfaceId:opened.surfaceId});assert.equal(closed.state,'closed');assert.equal(closed.configuration.revision,'r2');assert.equal(connection.getAttribute('style'),'display:none');assert.deepEqual(events.map(event=>event.state),['open','saving','closed']);
@@ -41,7 +41,7 @@ test('native opening rejects adapter, workspace and pending-recovery conflicts',
  const host=createNativeSettingsHost({document,isBusy:lock,projection:async()=>({})});
  workspace=true;await assert.rejects(host.run({action:'open',surface:'connection'}),{code:'BUSY'});workspace=false;adapter=true;await assert.rejects(host.run({action:'open',surface:'connection'}),{code:'BUSY'});adapter=false;
  await assert.rejects(host.run({action:'open',surface:'connection',recoveryPending:true}),{code:'BUSY'});
- const opened=await host.run({action:'open',surface:'connection'});assert.equal(opened.mode,'pocket-themed-native');await host.run({action:'close',surfaceId:opened.surfaceId});
+ const opened=await host.run({action:'open',surface:'connection'});assert.equal(opened.mode,'stm-themed-native');await host.run({action:'close',surfaceId:opened.surfaceId});
 });
 test('native host intercepts global keyboard shortcuts while preserving control defaults',async()=>{
  const connection=element('rm_api_block'),required=element('main_api'),listeners=new Map();connection.contains=node=>node===required;

@@ -2,9 +2,9 @@
 // Recovery for the existing combined installation; never prepares/overwrites user data.
 const fs=require('node:fs');const path=require('node:path');const os=require('node:os');
 const net=require('node:net');const {spawn}=require('node:child_process');
-const RELEASE='0.8.0',PREFIX=`pocket-tavern-combined-v${RELEASE}/`;
+const RELEASE='0.8.0',PREFIX=`stm-combined-v${RELEASE}/`;
 // The release name may carry a suffix (0.8.0); browsers may add " (1)" or "-1" to repeat downloads.
-const archiveName=new RegExp(`^pocket-tavern-combined-v${RELEASE.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?:[ (\\-].*)?\\.zip$`);
+const archiveName=new RegExp(`^stm-combined-v${RELEASE.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?:[ (\\-].*)?\\.zip$`);
 async function extractKit(archive,destination,engine){
  const yauzl=require(require.resolve('yauzl',{paths:[engine]}));
  await new Promise((resolve,reject)=>yauzl.open(archive,{lazyEntries:true},(error,zip)=>{
@@ -47,31 +47,31 @@ function locateArchive(folders){
   }
  }
  candidates.sort((a,b)=>b.time-a.time);
- if(!candidates.length)throw Error('Cannot find pocket-tavern-combined-v0.8.0.zip. Put it beside this repair script or in Downloads.');
+ if(!candidates.length)throw Error('Cannot find stm-combined-v0.8.0.zip. Put it beside this repair script or in Downloads.');
  return candidates[0].file;
 }
 function locateProxy(folders){
  const source=folders.find(folder=>fs.existsSync(path.join(folder,'node_modules/wreq-js/package.json')));
- if(!source)throw Error('Cannot find the working proxy dependencies. Run: node repair-pocket.cjs /path/to/package.zip /path/to/or-proxy');
+ if(!source)throw Error('Cannot find the working proxy dependencies. Run: node repair-stm.cjs /path/to/package.zip /path/to/or-proxy');
  return source;
 }
 const portFree=port=>new Promise((resolve,reject)=>{
- const server=net.createServer();server.once('error',()=>reject(Error(`Port ${port} is busy. Stop the current Pocket Tavern and old proxy with Ctrl+C first; this script does not kill them.`)));
+ const server=net.createServer();server.once('error',()=>reject(Error(`Port ${port} is busy. Stop the current STM and old proxy with Ctrl+C first; this script does not kill them.`)));
  server.listen(port,'127.0.0.1',()=>server.close(resolve));
 });
-async function repair({archive,source,target=path.join(os.homedir(),'pocket-tavern'),launch=true}={}){
+async function repair({archive,source,target=path.join(os.homedir(),'stm'),launch=true}={}){
  const home=os.homedir();target=fs.realpathSync(target);
- const marker=JSON.parse(fs.readFileSync(path.join(target,'.pocket-tavern.json')));
- if(marker.mode!=='combined'||marker.mock||marker.version!==1)throw Error('This repair is for an existing normal combined Pocket Tavern installation.');
+ const marker=JSON.parse(fs.readFileSync(path.join(target,'.stm.json')));
+ if(marker.mode!=='combined'||marker.mock||marker.version!==1)throw Error('This repair is for an existing normal combined STM installation.');
  for(const port of [8123,8124,8001])await portFree(port);
  archive=archive||locateArchive([path.dirname(__filename),path.join(home,'storage/downloads'),'/storage/emulated/0/Download']);
  console.log('Using ZIP:',archive);console.log('Updating existing installation:',target);
- const stage=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-repair-'));
+ const stage=fs.mkdtempSync(path.join(os.tmpdir(),'stm-repair-'));
  try{
   const bundle=await extractKit(archive,stage,target);
   const result=require(path.join(bundle,'update-test.cjs')).update(target,bundle);
   console.log('Updated code. Existing chats/settings retained. Code backup:',result.backup);
-  if(!fs.existsSync(path.join(target,'.pocket-proxy/index.cjs'))){
+  if(!fs.existsSync(path.join(target,'.stm-proxy/index.cjs'))){
    source=source||locateProxy([path.join(home,'or-proxy'),path.join(home,'SillyTavern/or-proxy'),path.dirname(__filename)+'/or-proxy']);
    require(path.join(bundle,'setup-proxy.cjs')).setupProxy(source,target,bundle);
    console.log('Installed bundled proxy dependencies from:',source);

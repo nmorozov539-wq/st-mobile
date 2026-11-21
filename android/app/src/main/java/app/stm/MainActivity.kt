@@ -1,4 +1,4 @@
-package app.pockettavern
+package app.stm
 
 import android.Manifest
 import android.app.Activity

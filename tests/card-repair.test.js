@@ -13,7 +13,7 @@ test('repair runs once, merges only damaged cards, verifies, and reloads charact
  globalThis.fetch=async(url,{body})=>{const value=JSON.parse(body);if(url==='/api/characters/get')return {ok:true,json:async()=>structuredClone(cards[value.avatar_url])};const {avatar,...update}=value;merged.push(avatar);const card=cards[avatar];for(const [k,v] of Object.entries(update))if(k!=='data')card[k]=v;card.data={...card.data,...update.data,extensions:{...card.data.extensions,...update.data.extensions,depth_prompt:{...card.data.extensions.depth_prompt,...update.data.extensions.depth_prompt}}};return {ok:true,json:async()=>({})};};
  const ctx={extensionSettings:{},characters:[{avatar:'a.png'},{avatar:'b.png'}],getRequestHeaders:()=>({}),getCharacters:async()=>{reloaded++;},saveSettingsDebounced:()=>{saved++;}};
  assert.deepEqual(await repairDoubledCards(()=>ctx),['a.png']);
- assert.deepEqual(merged,['a.png']);assert.equal(reloaded,1);assert.equal(saved,1);assert.equal(ctx.extensionSettings.pocket_tavern_repairs.doubledCardFields,1);
+ assert.deepEqual(merged,['a.png']);assert.equal(reloaded,1);assert.equal(saved,1);assert.equal(ctx.extensionSettings.stm_repairs.doubledCardFields,1);
  assert.equal(cards['a.png'].data.extensions.depth_prompt.depth,4);
  assert.deepEqual(await repairDoubledCards(()=>ctx),[]);assert.deepEqual(merged,['a.png']);
 });

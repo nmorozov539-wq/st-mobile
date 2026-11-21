@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url);
 const {PACKAGE_ENTRIES,stagePackage,verifyPackage}=require('../phone-package/package-staging.cjs');
 
 test('shared phone staging produces a complete matched and licensed manifest',()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-package-stage-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-package-stage-'));
     const staged=path.join(root,'kit');
     try {
         const manifest=stagePackage(path.resolve('.'),staged,{sourceCommit:'0123456789abcdef'});

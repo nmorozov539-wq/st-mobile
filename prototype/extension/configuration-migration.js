@@ -12,7 +12,7 @@ export function redactConfiguration(value) {
 }
 export function archiveManifest(records,{generatedAt=new Date().toISOString()}={}) {
     const sanitized=records.map(record=>redactConfiguration(record));
-    return {version:1,kind:'pocket-tavern-configuration-preservation',generatedAt,inventoryRevision:compactRevision(sanitized),count:sanitized.length,
+    return {version:1,kind:'stm-configuration-preservation',generatedAt,inventoryRevision:compactRevision(sanitized),count:sanitized.length,
         processed:sanitized.map(record=>record.id),skipped:[],failed:[]};
 }
 export function collisionSafeName(base,names) {
@@ -24,11 +24,11 @@ export function collisionSafeName(base,names) {
 export function createConfigurationMigration({getContext,listHistory,readChat,saveSettings,readSavedSettings,presetManager,applyPreset,pendingOperations=()=>[],quarantinePending=async ids=>{if(ids.length)fail('QUARANTINE_UNAVAILABLE','Pending configuration changes could not be quarantined safely.');},isBusy=()=>false}) {
     let inventory=null,uncertain=null;
     const completed=new Map();
-    const namespace=()=>getContext().extensionSettings.pocket_tavern??null;
-    const writableNamespace=()=>getContext().extensionSettings.pocket_tavern??={version:3};
+    const namespace=()=>getContext().extensionSettings.stm??null;
+    const writableNamespace=()=>getContext().extensionSettings.stm??={version:3};
     const journal=()=>namespace()?.migration??{version:1,ownership:'legacy',checkpoint:'unscanned',mappings:{}};
-    async function reconcile(){const saved=await readSavedSettings(),actual=saved.extension_settings?.pocket_tavern?.migration;if(actual)writableNamespace().migration=clone(actual);else if(namespace()?.migration)delete writableNamespace().migration;uncertain=null;return actual??{version:1,ownership:'legacy',checkpoint:'unscanned',mappings:{}};}
-    async function persist(next){const before=clone(namespace()?.migration??null);writableNamespace().migration=clone(next);try{await saveSettings();const saved=await readSavedSettings(),actual=saved.extension_settings?.pocket_tavern?.migration;if(revision(actual)!==revision(next))fail('MIGRATION_UNVERIFIED','Migration progress could not be verified in saved settings.');uncertain=null;return clone(next);}catch(error){try{const actual=await reconcile();if(revision(actual)===revision(next))return clone(next);throw Object.assign(Error(`Migration progress was not saved: ${error.message}`),{code:'MIGRATION_UNVERIFIED'});}catch(readError){if(readError.code==='MIGRATION_UNVERIFIED')throw readError;uncertain={before,next,error:error.message,readbackError:readError.message};writableNamespace().migration={...(before??{version:1,mappings:{}}),ownership:'preparing',checkpoint:'uncertain',uncertain:true};fail('MIGRATION_UNCERTAIN','Migration save outcome is uncertain. Engine configuration stays locked until saved settings can be read back.');}}}
+    async function reconcile(){const saved=await readSavedSettings(),actual=saved.extension_settings?.stm?.migration;if(actual)writableNamespace().migration=clone(actual);else if(namespace()?.migration)delete writableNamespace().migration;uncertain=null;return actual??{version:1,ownership:'legacy',checkpoint:'unscanned',mappings:{}};}
+    async function persist(next){const before=clone(namespace()?.migration??null);writableNamespace().migration=clone(next);try{await saveSettings();const saved=await readSavedSettings(),actual=saved.extension_settings?.stm?.migration;if(revision(actual)!==revision(next))fail('MIGRATION_UNVERIFIED','Migration progress could not be verified in saved settings.');uncertain=null;return clone(next);}catch(error){try{const actual=await reconcile();if(revision(actual)===revision(next))return clone(next);throw Object.assign(Error(`Migration progress was not saved: ${error.message}`),{code:'MIGRATION_UNVERIFIED'});}catch(readError){if(readError.code==='MIGRATION_UNVERIFIED')throw readError;uncertain={before,next,error:error.message,readbackError:readError.message};writableNamespace().migration={...(before??{version:1,mappings:{}}),ownership:'preparing',checkpoint:'uncertain',uncertain:true};fail('MIGRATION_UNCERTAIN','Migration save outcome is uncertain. Engine configuration stays locked until saved settings can be read back.');}}}
     function addRecoverable(records,base){
         records.push(base);
         const copy=base.record?.copy??base.record;
@@ -39,14 +39,14 @@ export function createConfigurationMigration({getContext,listHistory,readChat,sa
     }
     async function enumerate(){
         const ctx=getContext(),records=[];
-        const pocket=namespace()??{};
-        if(pocket.global)addRecoverable(records,{id:'global',source:{kind:'global',label:'Global',family:'chat-completion'},record:clone(pocket.global)});
+        const stm=namespace()??{};
+        if(stm.global)addRecoverable(records,{id:'global',source:{kind:'global',label:'Global',family:'chat-completion'},record:clone(stm.global)});
         for(const character of ctx.characters??[]){
-            const settings=character.data?.extensions?.pocket_tavern?.settings;
+            const settings=character.data?.extensions?.stm?.settings;
             if(settings!==undefined)addRecoverable(records,{id:`character:${character.avatar}`,source:{kind:'character',key:character.avatar,label:character.name||character.avatar,family:'chat-completion'},record:clone(settings)});
             for(const row of await listHistory(character.avatar)){
                 const chat=await readChat({characterKey:character.avatar,chatId:row.chatId});
-                const value=chat.metadata?.pocket_tavern?.settings;
+                const value=chat.metadata?.stm?.settings;
                 if(value!==undefined)addRecoverable(records,{id:`chat:${character.avatar}:${row.chatId}`,source:{kind:'chat',characterKey:character.avatar,chatId:row.chatId,label:`${character.name||character.avatar} · ${row.chatId}`,family:'chat-completion'},record:clone(value)});
             }
         }
@@ -83,7 +83,7 @@ export function createConfigurationMigration({getContext,listHistory,readChat,sa
             if(uncertain)fail('MIGRATION_UNCERTAIN','Migration save outcome is uncertain. Reopen this page after saved settings are reachable.');
             if(argument.action==='scan'){
                 if(isBusy())fail('BUSY','Finish current engine work before scanning configuration.');
-                if(Number(namespace()?.version??1)>3)fail('UNSUPPORTED_SETTINGS','A newer Pocket settings schema blocks configuration cutover.');
+                if(Number(namespace()?.version??1)>3)fail('UNSUPPORTED_SETTINGS','A newer STM settings schema blocks configuration cutover.');
                 inventory=await enumerate();const pendingIds=inventory.pending.map(item=>item.id);await quarantinePending(pendingIds);inventory=await enumerate();const manifest=archiveManifest(archivedRecords(inventory));
                 const current={...journal(),version:1,ownership:'preparing',checkpoint:'scanned',inventoryRevision:manifest.inventoryRevision,manifest,legacyRecordCount:inventory.records.length,sourceIds:inventory.records.map(item=>item.id),quarantinedPending:pendingIds,mappings:journal().mappings??{}};
                 await persist(current);return {journal:current,manifest,recordCount:inventory.records.length,pendingCount:inventory.pending.length};
@@ -94,17 +94,17 @@ export function createConfigurationMigration({getContext,listHistory,readChat,sa
             }
             if(argument.action==='verifyArchive'){
                 const {manifest:current}=await liveInventory(journal().inventoryRevision),records=redactConfiguration(argument.archive?.records??[]),manifest=argument.archive?.manifest;
-                if(!manifest||manifest.kind!=='pocket-tavern-configuration-preservation'||manifest.inventoryRevision!==current.inventoryRevision||manifest.count!==current.count||manifest.count!==records.length||compactRevision(records)!==manifest.inventoryRevision)fail('ARCHIVE_INVALID','The preservation archive is incomplete or no longer matches the live legacy inventory.');
+                if(!manifest||manifest.kind!=='stm-configuration-preservation'||manifest.inventoryRevision!==current.inventoryRevision||manifest.count!==current.count||manifest.count!==records.length||compactRevision(records)!==manifest.inventoryRevision)fail('ARCHIVE_INVALID','The preservation archive is incomplete or no longer matches the live legacy inventory.');
                 const next={...journal(),ownership:'preparing',checkpoint:'archive-verified',archiveRevision:compactRevision({manifest,records}),archiveVerifiedAt:new Date().toISOString()};await persist(next);return {journal:next,archiveRevision:next.archiveRevision,recordCount:records.length};
             }
             if(argument.action==='materialize'){
                 if(isBusy())fail('BUSY','Finish current engine work before creating a native preset.');
                 if(!journal().archiveRevision||!['archive-verified','verified'].includes(journal().checkpoint))fail('PRESERVATION_REQUIRED','Verify the complete preservation archive before creating a native preset.');
-                const {value}=await liveInventory(argument.expectedInventoryRevision);if(getContext().mainApi!=='openai')fail('API_FAMILY_UNSUPPORTED','Legacy Pocket copies are Chat Completion presets. Switch to a Chat Completion connection before materializing one.');
+                const {value}=await liveInventory(argument.expectedInventoryRevision);if(getContext().mainApi!=='openai')fail('API_FAMILY_UNSUPPORTED','Legacy STM copies are Chat Completion presets. Switch to a Chat Completion connection before materializing one.');
                 const source=value.records.find(record=>record.id===argument.sourceId);if(!source)fail('NOT_FOUND','The selected legacy configuration no longer exists.');
                 const copy=chosenCopy(source),manager=presetManager();if(!manager?.savePreset)fail('UNSUPPORTED_OPERATION','The active API has no writable native preset manager.');
                 const sourceRevision=compactRevision(source.record),existing=journal().mappings?.[source.id];if(existing&&existing.sourceRevision===sourceRevision&&existing.api===getContext().mainApi&&manager.getAllPresets?.().includes(existing.name)){const saved=completion(manager,existing.name);if(saved&&compactRevision(saved)===existing.nativeRevision)return clone(existing);}
-                const names=manager.getAllPresets?.()??Object.keys(manager.getPresetList?.().preset_names??{}),sourcePreset=String(copy?.preset??'Settings'),base=`Pocket legacy — ${source.source.label} — ${sourcePreset}`;
+                const names=manager.getAllPresets?.()??Object.keys(manager.getPresetList?.().preset_names??{}),sourcePreset=String(copy?.preset??'Settings'),base=`STM legacy — ${source.source.label} — ${sourcePreset}`;
                 const data=clone(copy?.generation??{});if(!Object.keys(data).length)fail('UNSUPPORTED_OPERATION','This legacy record has no fields that map to the active native preset manager.');
                 let name=names.find(candidate=>(candidate===base||candidate.startsWith(`${base} (`))&&compactRevision(completion(manager,candidate))===compactRevision(data)),saved=name?completion(manager,name):null;
                 if(!name){name=collisionSafeName(base,names);await manager.savePreset(name,data);saved=completion(manager,name);}if(compactRevision(saved)!==compactRevision(data))fail('PRESET_UNVERIFIED','The native preset did not match the materialized legacy record.');

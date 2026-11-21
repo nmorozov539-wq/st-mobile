@@ -55,9 +55,9 @@ test('changes left from an earlier session, including the old review queue, wait
 });
 test('the --mock refusal on a normal install names the exact commands for a separate mock install',()=>{
     const {readLaunch}=require('../phone-package/start.cjs');
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-mock-message-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-mock-message-'));
     try{
-        fs.writeFileSync(path.join(root,'.pocket-tavern.json'),JSON.stringify({version:1,mode:'combined',mock:false,source:'/home/me/SillyTavern'}));
-        assert.throws(()=>readLaunch(root,true),error=>/separate --mock/.test(error.message)&&error.message.includes('node prepare.cjs /home/me/SillyTavern ~/pocket-tavern-mock --mock')&&error.message.includes('start.cjs --mock'));
+        fs.writeFileSync(path.join(root,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false,source:'/home/me/SillyTavern'}));
+        assert.throws(()=>readLaunch(root,true),error=>/separate --mock/.test(error.message)&&error.message.includes('node prepare.cjs /home/me/SillyTavern ~/stm-mock --mock')&&error.message.includes('start.cjs --mock'));
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });

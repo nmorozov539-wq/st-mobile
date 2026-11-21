@@ -16,7 +16,7 @@ export function createConfigurationMigrationPage({rpc,notify=()=>{},onComplete=(
         }catch(error){failure=error.message;throw error;}finally{busy=false;}
     }
     function download(){
-        if(!archive)return;const blob=new Blob([`${JSON.stringify(archive,null,2)}\n`],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`pocket-configuration-${archive.manifest.inventoryRevision}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);
+        if(!archive)return;const blob=new Blob([`${JSON.stringify(archive,null,2)}\n`],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`stm-configuration-${archive.manifest.inventoryRevision}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);
     }
     async function commit(sourceId=null){
         if(!archive)throw Error('Preserve and verify the current legacy inventory first.');busy=true;failure='';try{
@@ -26,10 +26,10 @@ export function createConfigurationMigrationPage({rpc,notify=()=>{},onComplete=(
     }
     function render(container,action){
         container.replaceChildren();const page=el('div','','migration-page');
-        page.append(el('p','Pocket preserves every legacy global, character and uncapped chat configuration before native SillyTavern takes ownership. Existing records stay unchanged for rollback/export.','sp-note'));
+        page.append(el('p','STM preserves every legacy global, character and uncapped chat configuration before native SillyTavern takes ownership. Existing records stay unchanged for rollback/export.','sp-note'));
         if(!inspection){page.append(el('p','Reading migration state…','sp-note'));container.append(page);return;}
-        if(inspection.futureSchema){page.append(el('p','A newer Pocket settings schema is present. Browsing remains available, but this build will not change ownership.','sp-note err'));container.append(page);return;}
-        const status=el('section','','migration-status');status.append(el('strong',inspection.ownership==='native'?'Native SillyTavern ownership':inspection.ownership==='preparing'?'Preservation in progress':'Legacy Pocket scopes'),el('small',inspection.ownership==='native'?'Opening a chat or sending no longer reapplies Pocket scopes.':'Generation stays on the legacy path until archive verification and native preset readback complete.'));page.append(status);
+        if(inspection.futureSchema){page.append(el('p','A newer STM settings schema is present. Browsing remains available, but this build will not change ownership.','sp-note err'));container.append(page);return;}
+        const status=el('section','','migration-status');status.append(el('strong',inspection.ownership==='native'?'Native SillyTavern ownership':inspection.ownership==='preparing'?'Preservation in progress':'Legacy STM scopes'),el('small',inspection.ownership==='native'?'Opening a chat or sending no longer reapplies STM scopes.':'Generation stays on the legacy path until archive verification and native preset readback complete.'));page.append(status);
         if(inspection.ownership==='native'){page.append(el('p','The retained archive and legacy records are not deleted. Rollback is manual and must use a tested disposable restoration rehearsal.','sp-note'));container.append(page);return;}
         const preserveButton=btn(inspection.ownership==='preparing'?'Rescan and verify archive':inspection.legacyNamespace?'Preserve legacy settings':'Prepare native ownership',()=>action(async()=>{try{await preserve();}finally{render(container,action);}}),'btn primary sp-primary');preserveButton.disabled=busy;page.append(preserveButton);
         if(archive){page.append(btn('Download verified archive',download,'btn secondary sp-secondary'),el('p',`${archive.manifest.count} preserved record${archive.manifest.count===1?'':'s'} · ${archive.manifest.inventoryRevision.slice(0,12)}`,'sp-note'));

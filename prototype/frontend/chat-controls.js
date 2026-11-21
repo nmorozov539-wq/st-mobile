@@ -31,7 +31,7 @@ export function createChatControls({onBack,atRoot=()=>false}) {
     document.addEventListener('click',e=>{if(suppress&&suppress.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();}suppress=null;},true);
     document.addEventListener('contextmenu',e=>{if(iconOnly(e.target))e.preventDefault();},true);
     for(const node of document.querySelectorAll('[data-icon]'))node.replaceChildren(icon(node.dataset.icon));
-    const dismiss=()=>{const open=dialogs.filter(d=>d.open).at(-1);if(open){const event=new Event('pocket-back',{cancelable:true});if(open.dispatchEvent(event))close(open);return true;}return false;};
+    const dismiss=()=>{const open=dialogs.filter(d=>d.open).at(-1);if(open){const event=new Event('stm-back',{cancelable:true});if(open.dispatchEvent(event))close(open);return true;}return false;};
     for(const dialog of dialogs) {
         dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(dialog.classList.contains('menu-dialog')||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close(dialog);});
         dialog.addEventListener('cancel',()=>{if(dialog.classList.contains('menu-dialog')&&restoreFocus?.isConnected)restoreFocus.focus({preventScroll:true});});
@@ -85,12 +85,12 @@ export function createChatControls({onBack,atRoot=()=>false}) {
     const shown=new Set();
     for(const dialog of dialogs)dialog.addEventListener('close',sync);
     let backing=false,owed=0;
-    const push=()=>{if(!watching)history.pushState({pocketNavigation:'app'},'');};
+    const push=()=>{if(!watching)history.pushState({stmNavigation:'app'},'');};
     const pay=()=>{for(;owed>0;owed--)push();};
     for(const type of ['pointerdown','keydown'])window.addEventListener(type,pay,true);
     const showModal=HTMLDialogElement.prototype.showModal;
     HTMLDialogElement.prototype.showModal=function(...args){const result=showModal.apply(this,args);if(!shown.has(this)){shown.add(this);this.addEventListener('close',()=>shown.delete(this),{once:true});}if(!backing)push();sync();return result;};
-    if(!history.state?.pocketNavigation)history.replaceState({pocketNavigation:'base'},'');
+    if(!history.state?.stmNavigation)history.replaceState({stmNavigation:'base'},'');
     window.addEventListener('popstate',()=>{backing=true;let handled;try{handled=dismiss()||onBack();}finally{backing=false;}if(handled)owed++;else history.back();});
     return {openMenu,close,dismiss,sync,step(){if(!backing)push();}};
 }

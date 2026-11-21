@@ -7,8 +7,8 @@ export function assertRevision(actual, expected) {
 export function invalidateMemory(snapshot, firstChanged) {
     const memory = snapshot.metadata?.summaryception;
     if (!memory || firstChanged > (memory.summarizedUpTo ?? -1)) return snapshot;
-    snapshot.metadata.pocket_tavern ??= {};
-    snapshot.metadata.pocket_tavern.memoryInvalid = {reason:'Memory needs rebuilding after history changes',at:new Date().toISOString()};
+    snapshot.metadata.stm ??= {};
+    snapshot.metadata.stm.memoryInvalid = {reason:'Memory needs rebuilding after history changes',at:new Date().toISOString()};
     for (const message of snapshot.messages) if (message.extra?.sc_ghosted) {
         delete message.extra.sc_ghosted;
         for(const info of message.swipe_info??[])if(info.extra?.sc_ghosted)delete info.extra.sc_ghosted;
@@ -37,7 +37,7 @@ export function alterHistory(before, change) {
         const m=value.messages[id];if(!m || !Number.isInteger(change.swipeId)||!m.swipes?.[change.swipeId])throw Error('Choose an existing alternative.');
         if(m.mes!==m.swipes[change.swipeId])invalidateMemory(value,id);m.swipe_id=change.swipeId;m.mes=m.swipes[change.swipeId];
         const info=m.swipe_info?.[change.swipeId];if(info){m.extra=clone(info.extra??{});m.send_date=info.send_date??m.send_date;m.gen_started=info.gen_started;m.gen_finished=info.gen_finished;}
-        if(value.metadata.pocket_tavern?.memoryInvalid && m.extra?.sc_ghosted){delete m.extra.sc_ghosted;if(!m.is_hidden)m.is_system=false;}
+        if(value.metadata.stm?.memoryInvalid && m.extra?.sc_ghosted){delete m.extra.sc_ghosted;if(!m.is_hidden)m.is_system=false;}
     } else throw Error('Unknown history operation.');
     value.metadata.tainted=true;return value;
 }

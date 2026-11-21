@@ -1,4 +1,4 @@
-// Pure World Info rules for the Pocket bridge. No ST imports, so everything here is unit-testable.
+// Pure World Info rules for the STM bridge. No ST imports, so everything here is unit-testable.
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 export const GENERATION_TRIGGERS = ['normal', 'continue', 'impersonate', 'swipe', 'regenerate', 'quiet'];
 

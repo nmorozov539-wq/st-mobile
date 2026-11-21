@@ -2,7 +2,7 @@
 // a foreground service in the ":runtime" process that runs Node on its own thread
 // and kills the process on destroy. Rewritten for this spike (no updates, token,
 // polling, or generation notifications). Step 2: unpacks and runs SillyTavern.
-package app.pockettavern
+package app.stm
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -43,7 +43,7 @@ class EngineService : Service() {
         }
         if (!started) {
             started = true
-            Thread({ runNode() }, "PocketTavern-Node").start()
+            Thread({ runNode() }, "stm-Node").start()
         }
         // Auto-restart after a crash comes in a later step.
         return START_NOT_STICKY
@@ -96,7 +96,7 @@ class EngineService : Service() {
         )
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_engine)
-            .setContentTitle("Pocket Tavern engine running")
+            .setContentTitle("STM engine running")
             .setContentText("SillyTavern on 127.0.0.1:${Engine.PORT}")
             .setContentIntent(open)
             .setOngoing(true)
@@ -113,9 +113,9 @@ class EngineService : Service() {
     }
 
     companion object {
-        private const val TAG = "PocketTavernEngine"
+        private const val TAG = "stmEngine"
         private const val CHANNEL = "engine"
         private const val NOTIFICATION_ID = 1001
-        const val ACTION_STOP = "app.pockettavern.STOP_ENGINE"
+        const val ACTION_STOP = "app.stm.STOP_ENGINE"
     }
 }

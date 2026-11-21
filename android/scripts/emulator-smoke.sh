@@ -5,8 +5,8 @@
 set -uo pipefail
 APK=$1
 OUT=$2
-PKG=app.pockettavern.debug
-ACTIVITY=$PKG/app.pockettavern.MainActivity
+PKG=app.stm.debug
+ACTIVITY=$PKG/app.stm.MainActivity
 mkdir -p "$OUT"
 
 collect() {

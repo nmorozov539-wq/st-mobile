@@ -29,13 +29,13 @@ function copyPackageSource(destination){
 function makeRemote(root){
     const work=path.join(root,'source'),remote=path.join(root,'remote.git');fs.mkdirSync(work);copyPackageSource(work);
     fs.writeFileSync(path.join(work,'prototype/frontend/obsolete-updater-fixture.txt'),'revision one\n');
-    command(work,['git','init','-b','dev']);command(work,['git','add','.']);command(work,['git','commit','-m','revision one'],{GIT_AUTHOR_NAME:'Pocket Test',GIT_AUTHOR_EMAIL:'test@example.invalid',GIT_COMMITTER_NAME:'Pocket Test',GIT_COMMITTER_EMAIL:'test@example.invalid'});
+    command(work,['git','init','-b','dev']);command(work,['git','add','.']);command(work,['git','commit','-m','revision one'],{GIT_AUTHOR_NAME:'STM Test',GIT_AUTHOR_EMAIL:'test@example.invalid',GIT_COMMITTER_NAME:'STM Test',GIT_COMMITTER_EMAIL:'test@example.invalid'});
     const first=command(work,['git','rev-parse','HEAD']);
     command(root,['git','clone','--bare',work,remote]);
     return {work,remote,first,advance(label='revision two'){
         fs.rmSync(path.join(work,'prototype/frontend/obsolete-updater-fixture.txt'),{force:true});
         fs.appendFileSync(path.join(work,'prototype/frontend/index.html'),`\n<!-- ${label} -->\n`);
-        command(work,['git','add','.']);command(work,['git','commit','-m',label],{GIT_AUTHOR_NAME:'Pocket Test',GIT_AUTHOR_EMAIL:'test@example.invalid',GIT_COMMITTER_NAME:'Pocket Test',GIT_COMMITTER_EMAIL:'test@example.invalid'});
+        command(work,['git','add','.']);command(work,['git','commit','-m',label],{GIT_AUTHOR_NAME:'STM Test',GIT_AUTHOR_EMAIL:'test@example.invalid',GIT_COMMITTER_NAME:'STM Test',GIT_COMMITTER_EMAIL:'test@example.invalid'});
         command(work,['git','push',remote,'dev']);return command(work,['git','rev-parse','HEAD']);
     }};
 }
@@ -61,7 +61,7 @@ function installation(root,sharedKit=null){
 function dataHash(target){return crypto.createHash('sha256').update(fs.readFileSync(path.join(target,'data/default-user/chats/keep.jsonl'))).digest('hex');}
 
 test('Git updater installs exact revisions, removes stale managed files, no-ops and rolls back matched code',async()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-git-update-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-git-update-'));
     try{
         const remote=makeRemote(root),install=installation(root);
         const first=await updateFromGit({target:install.target,source:remote.remote,ref:'dev',ports:[]});
@@ -76,12 +76,12 @@ test('Git updater installs exact revisions, removes stale managed files, no-ops 
         assert.equal(rolled.kind,'rollback');assert.equal(rolled.marker.update.installedCommit,remote.first);
         assert.equal(fs.readFileSync(path.join(install.target,'public/st-mobile/obsolete-updater-fixture.txt'),'utf8'),'revision one\n');
         assert.equal(dataHash(install.target),install.dataHash);
-        assert.equal(fs.readdirSync(path.join(install.target,'.pocket-backups')).filter(name=>fs.existsSync(path.join(install.target,'.pocket-backups',name,'backup-metadata.json'))).length<=2,true);
+        assert.equal(fs.readdirSync(path.join(install.target,'.stm-backups')).filter(name=>fs.existsSync(path.join(install.target,'.stm-backups',name,'backup-metadata.json'))).length<=2,true);
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
 test('interrupted replacement is restored before the next Git update and never changes user data',async()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-git-recover-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-git-recover-'));
     try{
         const remote=makeRemote(root),install=installation(root);
         await assert.rejects(updateFromGit({target:install.target,source:remote.remote,ref:'dev',failAt:'after-install:public/st-mobile',ports:[]}),/Injected update failure/);
@@ -92,27 +92,27 @@ test('interrupted replacement is restored before the next Git update and never c
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
-test('the first Git update can roll back to a compatible pre-manifest baseline code set',async()=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-first-rollback-'));try{const remote=makeRemote(root),install=installation(root),baseline=fs.readFileSync(path.join(install.target,'public/st-mobile/index.html'),'utf8');await updateFromGit({target:install.target,source:remote.remote,ref:'dev',ports:[]});const result=await updateFromGit({target:install.target,rollback:true,ref:null,source:null,ports:[]});assert.equal(result.kind,'rollback');assert.equal(fs.readFileSync(path.join(install.target,'public/st-mobile/index.html'),'utf8'),baseline);assert.equal(JSON.parse(fs.readFileSync(path.join(install.target,'.pocket-tavern.json'))).update,undefined);assert.equal(dataHash(install.target),install.dataHash);}finally{fs.rmSync(root,{recursive:true,force:true});}});
+test('the first Git update can roll back to a compatible pre-manifest baseline code set',async()=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-first-rollback-'));try{const remote=makeRemote(root),install=installation(root),baseline=fs.readFileSync(path.join(install.target,'public/st-mobile/index.html'),'utf8');await updateFromGit({target:install.target,source:remote.remote,ref:'dev',ports:[]});const result=await updateFromGit({target:install.target,rollback:true,ref:null,source:null,ports:[]});assert.equal(result.kind,'rollback');assert.equal(fs.readFileSync(path.join(install.target,'public/st-mobile/index.html'),'utf8'),baseline);assert.equal(JSON.parse(fs.readFileSync(path.join(install.target,'.stm.json'))).update,undefined);assert.equal(dataHash(install.target),install.dataHash);}finally{fs.rmSync(root,{recursive:true,force:true});}});
 
 test('updater validates refs, strips URL credentials, refuses live ownership and leaves a dirty source checkout untouched',async()=>{
     assert.equal(sanitizeRemoteUrl('https://person:secret@example.com/repo.git'),'https://example.com/repo.git');
     assert.throws(()=>validateRef('--upload-pack=bad'),/Invalid Git ref/);assert.throws(()=>validateRef('../dev'),/Invalid Git ref/);
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-git-guards-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-git-guards-'));
     try{
         const remote=makeRemote(root),install=installation(root),dirty=path.join(remote.work,'personal-note.txt');fs.writeFileSync(dirty,'do not discard');
-        const release=acquireLifecycleLock(install.target,'Pocket launcher');
+        const release=acquireLifecycleLock(install.target,'STM launcher');
         await assert.rejects(updateFromGit({target:install.target,source:remote.remote,ref:'dev',ports:[]}),/lifecycle operation is active/);
         release();
         await updateFromGit({target:install.target,source:remote.remote,ref:'dev',ports:[]});
         assert.equal(fs.readFileSync(dirty,'utf8'),'do not discard');
-        const before=JSON.parse(fs.readFileSync(path.join(install.target,'.pocket-tavern.json'))).update.installedCommit;
+        const before=JSON.parse(fs.readFileSync(path.join(install.target,'.stm.json'))).update.installedCommit;
         await assert.rejects(updateFromGit({target:install.target,source:path.join(root,'missing-remote.git'),ref:'dev',ports:[]}),/Git failed|does not appear|network access failed/i);
-        assert.equal(JSON.parse(fs.readFileSync(path.join(install.target,'.pocket-tavern.json'))).update.installedCommit,before);
+        assert.equal(JSON.parse(fs.readFileSync(path.join(install.target,'.stm.json'))).update.installedCommit,before);
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
 test('every journaled install checkpoint restores the prior matched code and user data after interruption',()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-checkpoints-')),kit=path.join(root,'kit');
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-checkpoints-')),kit=path.join(root,'kit');
     try{
         stagePackage(path.resolve('.'),kit,{sourceCommit:'checkpoint-new'});
         const discoveryRoot=path.join(root,'discovery');fs.mkdirSync(discoveryRoot);const discovery=installation(discoveryRoot,kit),checkpoints=[];
@@ -127,7 +127,7 @@ test('every journaled install checkpoint restores the prior matched code and use
 });
 
 test('recovery is idempotent when interrupted between filesystem reconciliation and journal persistence',()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-recovery-checkpoints-')),kit=path.join(root,'kit');
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-recovery-checkpoints-')),kit=path.join(root,'kit');
     try{
         stagePackage(path.resolve('.'),kit,{sourceCommit:'recovery-new'});const install=installation(root,kit),managed=path.join(install.target,'public/st-mobile/index.html');fs.appendFileSync(managed,'\n<!-- recovery-old -->\n');const before=fs.readFileSync(managed,'utf8');
         assert.throws(()=>installPreparedKit(install.target,kit,{sourceCommit:'recovery-new',sourceUrl:'local',ref:'dev'},{failAt:'after-install-rename-before-journal:public/st-mobile'}),/Injected update failure/);
@@ -137,15 +137,15 @@ test('recovery is idempotent when interrupted between filesystem reconciliation 
 });
 
 test('stale lifecycle ownership is reclaimed and an interrupted updater recovers automatically',async()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-stale-lifecycle-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-stale-lifecycle-'));
     try{
         const remote=makeRemote(root),install=installation(root);await assert.rejects(updateFromGit({target:install.target,source:remote.remote,ref:'dev',failAt:'after-install-rename-before-journal:public/st-mobile',ports:[]}),/Injected update failure/);
-        fs.writeFileSync(path.join(install.target,LEGACY_UNIFIED_LOCK),JSON.stringify({kind:'Pocket update',pid:2147483647}));
+        fs.writeFileSync(path.join(install.target,LEGACY_UNIFIED_LOCK),JSON.stringify({kind:'STM update',pid:2147483647}));
         const result=await updateFromGit({target:install.target,source:remote.remote,ref:'dev',ports:[]});assert.equal(result.recovery.action,'restored');assert.equal(result.commit,remote.first);assert.equal(dataHash(install.target),install.dataHash);
     }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
-test('launcher and updater contend on one atomic installation lifecycle lock',()=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-lifecycle-race-'));try{const release=acquireLifecycleLock(root,'Pocket launcher');assert.throws(()=>acquireLifecycleLock(root,'Pocket update'),/lifecycle operation is active/);release();const updateRelease=acquireLifecycleLock(root,'Pocket update');assert.throws(()=>acquireLifecycleLock(root,'Pocket launcher'),/lifecycle operation is active/);updateRelease();}finally{fs.rmSync(root,{recursive:true,force:true});}});
+test('launcher and updater contend on one atomic installation lifecycle lock',()=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-lifecycle-race-'));try{const release=acquireLifecycleLock(root,'STM launcher');assert.throws(()=>acquireLifecycleLock(root,'STM update'),/lifecycle operation is active/);release();const updateRelease=acquireLifecycleLock(root,'STM update');assert.throws(()=>acquireLifecycleLock(root,'STM launcher'),/lifecycle operation is active/);updateRelease();}finally{fs.rmSync(root,{recursive:true,force:true});}});
 
 const waitForFile=async(file,timeout=5000)=>{const end=Date.now()+timeout;while(Date.now()<end){if(fs.existsSync(file))return;await new Promise(resolve=>setTimeout(resolve,10));}throw Error(`Timed out waiting for ${file}`);};
 const waitForExit=child=>new Promise((resolve,reject)=>{child.once('error',reject);child.once('exit',(code,signal)=>resolve({code,signal}));});
@@ -153,12 +153,12 @@ const worker=(root,{id,pauseStage='none',mode='normal',hold=true}={})=>{
     const directory=path.join(root,'barriers');fs.mkdirSync(directory,{recursive:true});
     const paths={signal:path.join(directory,`${id}.signal`),resume:path.join(directory,`${id}.resume`),hold:path.join(directory,`${id}.hold`),result:path.join(directory,`${id}.result`)};
     if(!hold)fs.writeFileSync(paths.hold,'go');
-    const child=spawn(process.execPath,[path.resolve('tests/fixtures/lifecycle-lock-worker.cjs'),root,`Pocket ${id}`,paths.signal,paths.resume,paths.hold,paths.result,pauseStage,mode],{stdio:['ignore','pipe','pipe']});
+    const child=spawn(process.execPath,[path.resolve('tests/fixtures/lifecycle-lock-worker.cjs'),root,`STM ${id}`,paths.signal,paths.resume,paths.hold,paths.result,pauseStage,mode],{stdio:['ignore','pipe','pipe']});
     return {child,paths,exit:waitForExit(child)};
 };
 
 test('multiprocess stale observation cannot steal or unlink a replacement lifecycle owner',async()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-lifecycle-stale-race-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-lifecycle-stale-race-'));
     try{
         fs.writeFileSync(path.join(root,LEGACY_UNIFIED_LOCK),JSON.stringify({kind:'old lifecycle owner',pid:2147483647}));
         const a=worker(root,{id:'A',pauseStage:'legacy-stale-observed'}),b=worker(root,{id:'B',pauseStage:'legacy-stale-observed',hold:false});
@@ -174,17 +174,17 @@ test('multiprocess stale observation cannot steal or unlink a replacement lifecy
 });
 
 test('partial publication, dead owners and ownership-bound release recover without deleting replacements',async()=>{
-    const root=fs.mkdtempSync(path.join(os.tmpdir(),'pocket-lifecycle-publication-'));
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'stm-lifecycle-publication-'));
     try{
         const partial=worker(root,{id:'partial',pauseStage:'claim-publication-open',mode:'partial',hold:false});await waitForFile(partial.paths.signal);
         const publication=JSON.parse(fs.readFileSync(partial.paths.signal));assert.equal(fs.readFileSync(publication.temporary,'utf8'),'{"pid":');
         partial.child.kill('SIGKILL');await partial.exit;
-        const recovered=acquireLifecycleLock(root,'Pocket recovered');assert.equal(fs.existsSync(publication.temporary),false);assert.equal(activeLifecycleClaims(root).length,1);recovered();assert.equal(activeLifecycleClaims(root).length,0);
+        const recovered=acquireLifecycleLock(root,'STM recovered');assert.equal(fs.existsSync(publication.temporary),false);assert.equal(activeLifecycleClaims(root).length,1);recovered();assert.equal(activeLifecycleClaims(root).length,0);
 
         const dead=worker(root,{id:'dead'});await waitForFile(`${dead.paths.result}.acquired`);dead.child.kill('SIGKILL');await dead.exit;
-        const afterDeath=acquireLifecycleLock(root,'Pocket after death');assert.equal(activeLifecycleClaims(root).length,1);afterDeath();assert.equal(activeLifecycleClaims(root).length,0);
+        const afterDeath=acquireLifecycleLock(root,'STM after death');assert.equal(activeLifecycleClaims(root).length,1);afterDeath();assert.equal(activeLifecycleClaims(root).length,0);
 
-        const release=acquireLifecycleLock(root,'Pocket release owner');
+        const release=acquireLifecycleLock(root,'STM release owner');
         fs.writeFileSync(release.claimPath,JSON.stringify({schemaVersion:2,actor:'replacement',kind:'replacement',pid:process.pid,choosing:false,ticket:release.ticket}));
         assert.equal(release(),false);assert.equal(fs.existsSync(release.claimPath),true);fs.unlinkSync(release.claimPath);
     }finally{fs.rmSync(root,{recursive:true,force:true});}

@@ -46,7 +46,7 @@ export async function startNewChat(arg,{read,readCard,activate,createNative,veri
         await guardCard();
         await createNative(fresh,{id:operationId,source:target,deleteRequested:deleteCurrent});
         let saved=await verifyNative(fresh);
-        if(saved.metadata.pocket_tavern?.newChat?.id!==operationId||saved.messages.length!==1||saved.messages[0].is_user||saved.messages[0].is_system||!String(saved.messages[0].mes??'').trim())fail('GREETING_NOT_VERIFIED','The new greeting could not be verified. The old chat has been kept.');
+        if(saved.metadata.stm?.newChat?.id!==operationId||saved.messages.length!==1||saved.messages[0].is_user||saved.messages[0].is_system||!String(saved.messages[0].mes??'').trim())fail('GREETING_NOT_VERIFIED','The new greeting could not be verified. The old chat has been kept.');
         if(!deleteCurrent)return {snapshot:saved};
         await guardSource();
         // A final native read verifies the replacement immediately before deletion.

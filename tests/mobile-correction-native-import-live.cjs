@@ -1,8 +1,8 @@
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/home/Riv/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {execFileSync}=require('node:child_process');
-const origin=process.env.POCKET_BASE_URL||'http://127.0.0.1:8123',out=path.resolve(__dirname,'../docs/mobile-correction-evidence');fs.mkdirSync(out,{recursive:true});
-const largePath='/tmp/pocket-valid-native.json',badPath='/tmp/pocket-malformed.json',name=`Native Import ${Date.now()}`;
+const origin=process.env.STM_BASE_URL||'http://127.0.0.1:8123',out=path.resolve(__dirname,'../docs/mobile-correction-evidence');fs.mkdirSync(out,{recursive:true});
+const largePath='/tmp/stm-valid-native.json',badPath='/tmp/stm-malformed.json',name=`Native Import ${Date.now()}`;
 function serverPid(){for(const line of execFileSync('ps',['-eo','pid=,args='],{encoding:'utf8'}).split('\n')){const match=line.trim().match(/^(\d+)\s+.*node.*server\.js.*--port\s+8123/);if(!match)continue;try{if(fs.readlinkSync(`/proc/${match[1]}/cwd`).startsWith('/tmp/st-mobile-pc-'))return Number(match[1]);}catch{}}throw Error('Disposable ST process was not found.');}
 const rss=pid=>Number(fs.readFileSync(`/proc/${pid}/status`,'utf8').match(/^VmRSS:\s+(\d+)/m)?.[1]||0);
 (async()=>{const payload={spec:'chara_card_v2',spec_version:'2.0',data:{name,description:'Real native importer proof',first_mes:'The native card was saved.',padding:'x'.repeat(1024*1024)}};fs.writeFileSync(largePath,JSON.stringify(payload));fs.writeFileSync(badPath,'{"spec":"chara_card_v2","data":');const size=fs.statSync(largePath).size;assert.ok(size>1024*1024&&size<30*1024*1024);

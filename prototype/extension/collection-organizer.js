@@ -9,9 +9,9 @@ const stable=value=>{
 };
 function parse(raw,{allowMissing=true}={}){
     if(raw===undefined&&allowMissing)return empty();
-    if(!raw||typeof raw!=='object'||Array.isArray(raw))fail('INVALID_COLLECTION_SETTINGS','Character folder settings are malformed. Update Pocket or restore saved settings before changing folders.');
+    if(!raw||typeof raw!=='object'||Array.isArray(raw))fail('INVALID_COLLECTION_SETTINGS','Character folder settings are malformed. Update STM or restore saved settings before changing folders.');
     if(!Number.isInteger(raw.version))fail('INVALID_COLLECTION_SETTINGS','Character folder settings have no supported schema version.');
-    if(raw.version>1)fail('UNSUPPORTED_SETTINGS','These character folders were saved by a newer Pocket Tavern version.');
+    if(raw.version>1)fail('UNSUPPORTED_SETTINGS','These character folders were saved by a newer STM version.');
     if(raw.version!==1||!Number.isInteger(raw.revision)||raw.revision<0||!Array.isArray(raw.folders)||!raw.assignments||typeof raw.assignments!=='object'||Array.isArray(raw.assignments))fail('INVALID_COLLECTION_SETTINGS','Character folder settings are malformed.');
     const ids=new Set(),folders=raw.folders.map(folder=>{
         if(!folder||typeof folder!=='object'||Array.isArray(folder)||typeof folder.id!=='string'||!folder.id||!cleanName(folder.name)||cleanName(folder.name)!==folder.name||ids.has(folder.id))fail('INVALID_COLLECTION_SETTINGS','A saved character folder is malformed or duplicated.');
@@ -22,9 +22,9 @@ function parse(raw,{allowMissing=true}={}){
 }
 export function createCollectionOrganizer({getContext,saveSettings,readSavedSettings,isBusy=()=>false,onBusy=()=>{}}){
     let mutating=false,uncertain=null;
-    const liveRaw=()=>getContext().extensionSettings?.pocket_tavern?.collections;
-    const setLive=value=>{const context=getContext(),namespace=context.extensionSettings.pocket_tavern??={version:3};if(value===undefined)delete namespace.collections;else namespace.collections=clone(value);};
-    const diskRaw=async()=>{const saved=await readSavedSettings();return saved.extension_settings?.pocket_tavern?.collections;};
+    const liveRaw=()=>getContext().extensionSettings?.stm?.collections;
+    const setLive=value=>{const context=getContext(),namespace=context.extensionSettings.stm??={version:3};if(value===undefined)delete namespace.collections;else namespace.collections=clone(value);};
+    const diskRaw=async()=>{const saved=await readSavedSettings();return saved.extension_settings?.stm?.collections;};
     const reconcile=async()=>{
         if(!uncertain)return parse(liveRaw());
         let actual;try{actual=await diskRaw();}catch{fail('COLLECTIONS_UNCERTAIN','Character folder save outcome is uncertain. Reopen after saved settings are reachable.');}

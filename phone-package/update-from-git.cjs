@@ -25,7 +25,7 @@ function repositoryOrigin(repository=path.resolve(__dirname,'..')) {
 }
 
 function prepareCheckout(target,source,ref) {
-    const root=path.join(target,'.pocket-updater'),gitDir=path.join(root,'source.git'),checkout=path.join(root,`checkout-${crypto.randomBytes(5).toString('hex')}`);
+    const root=path.join(target,'.stm-updater'),gitDir=path.join(root,'source.git'),checkout=path.join(root,`checkout-${crypto.randomBytes(5).toString('hex')}`);
     fs.mkdirSync(root,{recursive:true});
     if(!fs.existsSync(gitDir))runGit(['init','--bare',gitDir]);
     runGit([`--git-dir=${gitDir}`,'fetch','--force','--tags',source,ref],{cwd:root});
@@ -37,7 +37,7 @@ function prepareCheckout(target,source,ref) {
 
 async function updateFromGit(options) {
     const target=fs.realpathSync(options.target);readMarker(target);
-    const releaseLock=acquireLifecycleLock(target,'Pocket update');
+    const releaseLock=acquireLifecycleLock(target,'STM update');
     try {
         await assertStopped(target,options.ports);
         const recovery=recoverInterrupted(target,options.recoveryOptions);
@@ -67,9 +67,9 @@ if(require.main===module){
         const options=parseArguments(process.argv.slice(2));
         const result=await updateFromGit(options);
         if(result.recovery?.action==='restored')console.log(`Recovered interrupted update ${result.recovery.transactionId} before continuing.`);
-        if(result.kind==='noop')console.log(`Pocket Tavern is already at ${result.commit}. No files changed.`);
-        else if(result.kind==='rollback')console.log(`Rolled back Pocket code to ${result.marker.update?.installedCommit??'the previous matched build'}. User data was not changed.`);
-        else console.log(`Installed Pocket Tavern ${result.marker.update.packageVersion} from ${result.commit}.`);
+        if(result.kind==='noop')console.log(`STM is already at ${result.commit}. No files changed.`);
+        else if(result.kind==='rollback')console.log(`Rolled back STM code to ${result.marker.update?.installedCommit??'the previous matched build'}. User data was not changed.`);
+        else console.log(`Installed STM ${result.marker.update.packageVersion} from ${result.commit}.`);
         console.log(`Target: ${result.target??path.resolve(options.target)}`);
         console.log(`Next: cd ${JSON.stringify(path.resolve(options.target))} && node start.cjs`);
     })().catch(error=>{console.error(error.message);process.exitCode=1;});

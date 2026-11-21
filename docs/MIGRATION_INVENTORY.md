@@ -29,3 +29,6 @@ The compatibility patches match exact 1.19.0 source and refuse to apply otherwis
 
 ## Android
 Package `app.pockettavern` (Kotlin dirs and JNI symbols). A new application ID is a separate app identity with no access to the old app's private data.
+
+## Decision record
+- 21 November 2026, user (confirmed in thread): use `app.stm` as the Android package ID during development. It is provisional, not the final name. Android build and device work stays deferred until the Termux setup is working and polished, so only the source rename is in scope, not a new APK.

@@ -59,3 +59,4 @@ import './color-theme.test.js';
 import './transition-exporter.test.js';
 import './transition-st-data.test.js';
 import './transition-importer.test.js';
+import './transition-fetch-st.test.js';

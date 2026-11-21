@@ -1,9 +1,9 @@
 // Settings page: Connection and Appearance & reading. Connection writes reuse the verified `configure` bridge actions.
-import {el, btn} from './wi-ui.js?build=0.9.1';
-import {icon} from './icons.js?build=0.9.1';
-import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.9.1';
-import {FRONTEND_BUILD} from './build.js?build=0.9.1';
-import {createConfigurationMigrationPage} from './configuration-migration-page.js?build=0.9.1';
+import {el, btn} from './wi-ui.js?build=0.9.2';
+import {icon} from './icons.js?build=0.9.2';
+import {normalizeAppearance, SPACING, TEXT_SIZE} from './appearance.js?build=0.9.2';
+import {FRONTEND_BUILD} from './build.js?build=0.9.2';
+import {createConfigurationMigrationPage} from './configuration-migration-page.js?build=0.9.2';
 
 export const PROXY_ENDPOINT = 'http://127.0.0.1:8001/api/v1';
 export const DEFAULT_DIRECT = 'https://openrouter.ai/api/v1';

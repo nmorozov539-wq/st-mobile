@@ -1,4 +1,4 @@
-import {revision} from './workspace-data.js?build=0.9.1';
+import {revision} from './workspace-data.js?build=0.9.2';
 
 const SECRET_FIELDS=new Set(['apikey','api_key','api-key','api_secret','client_secret','secret','password','authorization','cookie','access_token','refresh_token','auth_token','bearer_token']);
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};

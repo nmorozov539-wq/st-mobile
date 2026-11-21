@@ -8,7 +8,7 @@ const playwrightPath = process.env.PLAYWRIGHT_MODULE || '/home/Riv/.cache/codex-
 const {chromium} = require(playwrightPath);
 
 const project = path.resolve(__dirname, '..');
-const archive = path.resolve(process.argv[2] || path.join(project, 'dist/pocket-tavern-combined-v0.9.1.zip'));
+const archive = path.resolve(process.argv[2] || path.join(project, 'dist/pocket-tavern-combined-v0.9.2.zip'));
 const source = path.resolve(process.argv[3] || '/home/Riv/SillyTavern');
 const evidence = path.join(project, 'docs/mobile-correction-evidence');
 
@@ -40,9 +40,9 @@ const waitForServer = async () => {
         const installedBuildPath = path.join(install, 'public/st-mobile/build.js');
         const installedManifest = JSON.parse(fs.readFileSync(installedManifestPath));
         const installedBuild = fs.readFileSync(installedBuildPath, 'utf8');
-        assert.equal(installedManifest.version, '0.9.1');
-        assert.match(installedBuild, /FRONTEND_BUILD = '0\.9\.1'/);
-        assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# Pocket Tavern combined prototype v0\.9\.1/m);
+        assert.equal(installedManifest.version, '0.9.2');
+        assert.match(installedBuild, /FRONTEND_BUILD = '0\.9\.2'/);
+        assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# Pocket Tavern combined prototype v0\.9\.2/m);
 
         launcher = spawn(process.execPath, [path.join(install, 'start.cjs'), '--mock'], {cwd: install, stdio: ['ignore', 'pipe', 'pipe']});
         for (const stream of [launcher.stdout, launcher.stderr]) stream.on('data', chunk => { logs.push(String(chunk)); if (logs.length > 300) logs.shift(); });
@@ -144,7 +144,7 @@ const waitForServer = async () => {
             frame.contentWindow.postMessage({type: 'st-mobile-connect'}, location.origin, [channel.port2]);
             setTimeout(() => channel.port1.postMessage({id: 1, method: 'handshake'}), 200);
         }));
-        assert.equal(handshake.bridgeBuild, '0.9.1');
+        assert.equal(handshake.bridgeBuild, '0.9.2');
         assert.equal(handshake.protocolVersion, 2);
         assert.equal(handshake.capabilities.legacyConfigurationMigration, true);
         assert.deepEqual(errors, []);
@@ -154,7 +154,7 @@ const waitForServer = async () => {
             archiveSha256: crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex'),
             installFlow: 'extract ZIP -> packaged prepare.cjs --mock -> installed start.cjs --mock',
             installedManifestVersion: installedManifest.version,
-            frontendBuild: '0.9.1',
+            frontendBuild: '0.9.2',
             handshake: {bridgeBuild: handshake.bridgeBuild, protocolVersion: handshake.protocolVersion, capabilities: handshake.capabilities},
             mockConversationSavedAfterReload: true,
             preferencesAfterReload: {theme: 'paper', messageFormat: 'messenger'},

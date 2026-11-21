@@ -8,7 +8,7 @@ import { saveSettings, saveMetadata } from '/script.js';
 import {
     bookRevision, validBookName, validFolderName, folderOf, ENTRY_RULES, checkEntryChanges, applyEntryChanges, nextDisplayIndex,
     summarizeBook, checkActivationChanges, checkImportedBook, ACTIVATION_RULES,
-} from './worldinfo-data.js?build=0.9.1';
+} from './worldinfo-data.js?build=0.9.2';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const clone = value => structuredClone(value);

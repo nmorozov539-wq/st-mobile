@@ -1,6 +1,6 @@
-import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.9.1';
-import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.9.1';
-import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.9.1';
+import {convertWorldInfoToCharacterBook} from './character-book.js?build=0.9.2';
+import {characterAssociations,associationRevision,removeCharacterPersona,changeAdditionalBooks} from './character-associations.js?build=0.9.2';
+import { safeObject, assetName, characterUpdate, assertUnchanged, personaRecord, containsData, validatePreset } from './asset-data.js?build=0.9.2';
 export function createAssetStore({getContext,getAssociationState,characterFileName,saveSettings,setUserName,getPresetManager,getPresetApplicationPromise,getUserAvatars,getUserAvatar,applyPreset,duplicateCharacter,deleteCharacter,fetch:fetcher=globalThis.fetch}) {
     const CHARACTER_IMPORT_MAX_BYTES=30*1024*1024;
     const manager = () => getPresetManager('openai');

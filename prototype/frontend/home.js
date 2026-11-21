@@ -1,7 +1,7 @@
 // Home: a starting point. Continue the last chat, jump to a recent one, or pick a character.
 // Status comes from known state only; nothing here sends a paid request.
-import {icon} from './icons.js?build=0.9.1';
-import {plainPreview} from './preview.js?build=0.9.1';
+import {icon} from './icons.js?build=0.9.2';
+import {plainPreview} from './preview.js?build=0.9.2';
 
 export function homeStatus({connected, initializing, generating, onlineStatus, apiChecked}) {
  const engine = initializing ? {label: 'Connecting…', tone: 'wait'} : !connected ? {label: 'Not connected', tone: 'bad'} : generating ? {label: 'Working', tone: 'ok'} : {label: 'Connected', tone: 'ok'};

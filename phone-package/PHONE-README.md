@@ -1,4 +1,4 @@
-# Pocket Tavern combined prototype v0.9.1
+# Pocket Tavern combined prototype v0.9.2
 
 ## Update your existing phone installation
 
@@ -19,7 +19,7 @@ cd ~/st-mobile
 node phone-package/update-from-git.cjs --target ~/pocket-tavern --rollback
 ```
 
-The complete ZIP and repair script remain an offline/manual fallback. Put matching copies of **pocket-tavern-combined-v0.9.1.zip** and **repair-pocket.cjs** in Android Downloads, stop the launcher, then run:
+The complete ZIP and repair script remain an offline/manual fallback. Put matching copies of **pocket-tavern-combined-v0.9.2.zip** and **repair-pocket.cjs** in Android Downloads, stop the launcher, then run:
 
 ```sh
 node ~/storage/downloads/repair-pocket.cjs
@@ -28,7 +28,7 @@ node ~/storage/downloads/repair-pocket.cjs
 For a manual update from an extracted complete kit:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.9.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.9.2
 node update-test.cjs ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs --proxy
@@ -56,7 +56,7 @@ Use `--diagnostics-port <port>` only when the default local diagnostics port is 
 The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.9.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.9.2
 node prepare.cjs ~/SillyTavern ~/pocket-tavern
 cd ~/pocket-tavern
 node start.cjs
@@ -116,7 +116,7 @@ Phone testing is deferred at the user’s request. Keep the outstanding checks i
 Use a different fresh folder so mock testing cannot touch real-provider data:
 
 ```sh
-cd ~/storage/downloads/pocket-tavern-combined-v0.9.1
+cd ~/storage/downloads/pocket-tavern-combined-v0.9.2
 node prepare.cjs ~/SillyTavern ~/pocket-tavern-combined-test --mock
 cd ~/pocket-tavern-combined-test
 node start.cjs --mock

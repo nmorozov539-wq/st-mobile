@@ -1,5 +1,7 @@
 # Layout v4 — discussion and decisions
 
+Design reference for the preserved implementation. As of 21 November 2026, delivery order and extension architecture follow the [STM foundation roadmap](FOUNDATION_ROADMAP.md). Preserve visual intent; old WIhero-specific product commitments do not govern the new foundation.
+
 Updated: 18 November 2026. Status: structural discussion consolidated; detailed design remains open; not implemented.
 
 This is the living record for the current layout conversation. The entire layout is open to reconsideration. This work concerns navigation, hierarchy, interaction and access to functions; styling and branding are separate. Decisions here do not authorize implementation on their own. Update this document as discussion continues, keeping settled decisions distinct from proposals.
@@ -57,7 +59,7 @@ This is not approval for arbitrary rearrangement of every control. Decide suppor
 - Extensions are essential to the product direction and continue running inside actual ST.
 - Summaryception/Memory loses its privileged built-in product role. Its UI must follow the same extension access/placement rules as other extensions, rather than assuming everyone uses it. This does not authorize deleting saved memories or removing operational safeguards; the technical transition belongs to extension integration.
 - The Extensions hub is a confirmed navigation destination in the fourth or fifth default position. Keep a placeholder until extension work begins; hub layout and contextual surfaces remain open. Do not prematurely design or populate the hub.
-- Detailed compatibility and bridge work is deferred to [EXTENSION_INTEGRATION.md](EXTENSION_INTEGRATION.md) and a dedicated conversation.
+- Detailed compatibility and bridge work is deferred to [the current architecture research](EXTENSION_ARCHITECTURE_RESEARCH.md) and a dedicated conversation.
 - Keep message swiping for saved alternatives and eligible generation, plus Android system Back with appropriate navigation/layer handling.
 - Retire the existing header/composer swipe side panels. Their useful tools remain available through explicit controls; Memory follows ordinary extension placement.
 - Do not add swiping between main destinations or other new gestures for now. Embedded editors may need horizontal gestures themselves, and configurable navigation makes page-swiping less predictable. Revisit gestures only when a concrete need emerges.

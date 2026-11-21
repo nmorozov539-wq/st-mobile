@@ -5,7 +5,7 @@ import {createNativeSettingsHost} from '../prototype/extension/native-settings-h
 import {createNativeHostLock,nativeHostOwnsEngine} from '../prototype/extension/native-host-lock.js';
 
 test('protocol v2 handshake is explicit and unavailable capabilities stay false',()=>{
- const value=handshakeContract({bridgeBuild:'0.9.1',sessionId:'s',adapter:{runtimeVersion:'1.19.0'}});
+ const value=handshakeContract({bridgeBuild:'0.9.2',sessionId:'s',adapter:{runtimeVersion:'1.19.0'}});
  assert.equal(value.protocolVersion,PROTOCOL_VERSION);assert.deepEqual(value.capabilities.nativeSettingsHost,{connection:false,presets:false});
 });
 test('bridge rejects malformed and unknown operations promptly',async()=>{

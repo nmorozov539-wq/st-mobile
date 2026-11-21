@@ -1,4 +1,4 @@
-import {icon} from './icons.js?build=0.9.1';
+import {icon} from './icons.js?build=0.9.2';
 
 export function createModelPanel({load,select,action,windowList,openConnection}) {
     const $=id=>document.getElementById(id),dialog=$('model-picker'),list=$('model-list'),scroller=$('model-scroll');

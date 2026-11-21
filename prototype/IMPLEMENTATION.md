@@ -1,6 +1,8 @@
 # Pocket Tavern implementation history and technical notes
 
-> Status notice, 18 November 2026: this is an accumulated record with older baseline sections followed by later milestones. Statements below that Android architecture is undecided, or that implemented features remain deferred, are historical. Current source establishes behavior; consult the [product roadmap](../docs/ANDROID_PRODUCT_ROADMAP.md) for milestone order and the selected host, and [Layout v4](../docs/LAYOUT.md) for the new layout discussion.
+Historical record through 0.9.1. Not current implementation instructions or 0.9.2 validation. Follow docs/HANDOFF_0_9_2.md and docs/FOUNDATION_ROADMAP.md; obsolete paths below describe their original revisions.
+
+> Status notice, 18 November 2026: this is an accumulated record with older baseline sections followed by later milestones. Statements below that Android architecture is undecided, or that implemented features remain deferred, are historical. Current source establishes behavior; consult the [product roadmap](../docs/FOUNDATION_ROADMAP.md) for milestone order and the selected host, and [Layout v4](../docs/LAYOUT.md) for the new layout discussion.
 
 Pocket Tavern’s product goal is an Android app. This document describes the current browser/Termux proof of concept and its storage/operation boundaries, not a decision to ship the final product as a browser page. Android packaging, framework and lifecycle integration remain undecided future work.
 

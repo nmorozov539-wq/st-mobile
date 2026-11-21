@@ -1,12 +1,12 @@
-# Pocket Tavern development
+# STM development
 
-This is the `dev` branch for active Pocket Tavern work. It is where the Termux/web interface, SillyTavern bridge, themes, and other new features are developed.
+This is the `dev` branch for STM, the technical identity for the next generation of this mobile SillyTavern interface. The public brand remains open. Version 0.9.2 is a transition-only handoff: the 0.9.1 application behavior is preserved. Runtime names and commands below still use the previous identity. Full STM code renaming and ST 1.19.1 qualification remain required implementation preflight before 0.10.
 
-SillyTavern remains the engine: it owns characters, chats, settings, prompt building, and generation. Pocket Tavern provides the phone-friendly interface. The Android host uses the same frontend, but APK releases are prepared from `main`, not from this branch.
+The new direction is an installable ST interface extension that also runs inside the Android APK, with optional platform capabilities. SillyTavern owns characters, chats, settings, prompt building, generation and extension loading. APK releases are prepared from `main`, not from this branch.
 
 ## Working areas
 
-Current documentation starts at [docs/README.md](docs/README.md). The ongoing [Layout v4 discussion](docs/LAYOUT.md) and parked [extension integration investigation](docs/EXTENSION_INTEGRATION.md) replace older design guidance.
+Start with the [0.9.2 handoff](docs/HANDOFF_0_9_2.md), [foundation roadmap](docs/FOUNDATION_ROADMAP.md) and [implementation preflight](docs/PREPARATION_0_9_2.md). The [documentation map](docs/README.md) separates current guidance from preserved design and implementation evidence.
 
 - `prototype/frontend/` — interface and theme system
 - `prototype/frontend/themes/` — built-in complete themes
@@ -41,4 +41,4 @@ Then open `http://127.0.0.1:8123/st-mobile/` on the phone.
 
 Develop and review features here. Once an iteration is ready for APK integration, merge it into `main` and build the release there.
 
-Detailed architecture and safety notes are in [prototype/IMPLEMENTATION.md](prototype/IMPLEMENTATION.md). The Android convergence plan is in [docs/ANDROID_PRODUCT_ROADMAP.md](docs/ANDROID_PRODUCT_ROADMAP.md).
+Existing implementation notes are in [prototype/IMPLEMENTATION.md](prototype/IMPLEMENTATION.md). New architecture and Android integration follow the [foundation roadmap](docs/FOUNDATION_ROADMAP.md).

@@ -1,7 +1,7 @@
-import { hasActiveSecret, providerSecretKey, validateEndpoint, listedModel } from './configuration-state.js?build=0.9.1';
-import { connectThroughST } from './connection-check.js?build=0.9.1';
-import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.9.1';
-import { testConnection } from './connection-test.js?build=0.9.1';
+import { hasActiveSecret, providerSecretKey, validateEndpoint, listedModel } from './configuration-state.js?build=0.9.2';
+import { connectThroughST } from './connection-check.js?build=0.9.2';
+import { selectPersonaWithoutCardEdit } from './persona-selection.js?build=0.9.2';
+import { testConnection } from './connection-test.js?build=0.9.2';
 import { saveSettings } from '/script.js';
 import { amount_gen, max_context } from '/script.js';
 import { getPresetManager } from '/scripts/preset-manager.js';
@@ -24,7 +24,7 @@ export function createConfigurationRuntime(getContext) {
             model: getChatCompletionModel() ?? '', endpoint: settings.custom_url ?? '', preset: settings.preset_settings_openai,
             persona: user_avatar, lorebooks: [...selected_world_info], thinking: !!settings.show_thoughts, toolCalling: !!settings.function_calling };
         const actions=textCompletion?{nativeConnection:true,nativePresets:true,modelRefresh:false,testGeneration:false,promptManager:false,context:true,instruct:true,formatting:true}:{nativeConnection:true,nativePresets:true,modelRefresh:true,testGeneration:true,promptManager:true,context:false,instruct:false,formatting:false};
-        return { bridgeBuild: '0.9.1', selected, revision: JSON.stringify(selected), presets,
+        return { bridgeBuild: '0.9.2', selected, revision: JSON.stringify(selected), presets,
             personas: Object.entries(ctx.powerUserSettings.personas ?? {}).map(([id,name]) => { const d = ctx.powerUserSettings.persona_descriptions?.[id]; return { id, name, title: typeof d?.title === 'string' ? d.title.slice(0,120) : '', description: typeof d?.description === 'string' ? d.description.slice(0,240) : '' }; }),
             lorebooks: [...(world_names ?? [])],
             models: textCompletion?[]:model_list.map(model => ({ id: model.id, name: model.name ?? model.id })),actions,

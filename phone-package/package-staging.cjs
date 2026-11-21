@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const PACKAGE_VERSION = '0.9.1';
+const PACKAGE_VERSION = '0.9.2';
 const ENGINE_VERSION = '1.19.0';
 const BRIDGE_PROTOCOL = 2;
 

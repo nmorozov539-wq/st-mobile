@@ -1,8 +1,8 @@
 // Phase 6: World Info library page (folders, books, entries). Entry editor and Activation live in their own modules.
-import {icon} from './icons.js?build=0.9.1';
-import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.9.1';
-import {createEntryEditor} from './wi-entry.js?build=0.9.1';
-import {createActivationPage} from './wi-activation.js?build=0.9.1';
+import {icon} from './icons.js?build=0.9.2';
+import {el, btn, confirmDialog, promptDialog, menuDialog, modal, select, field, download} from './wi-ui.js?build=0.9.2';
+import {createEntryEditor} from './wi-entry.js?build=0.9.2';
+import {createActivationPage} from './wi-activation.js?build=0.9.2';
 
 const REGISTRY_KEY = 'pocket-tavern.wi-folders.v1';
 const MARKERS = {keyword: 'Keyword', constant: 'Always on', vectorized: 'Vector'};

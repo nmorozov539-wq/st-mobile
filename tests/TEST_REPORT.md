@@ -1,5 +1,7 @@
 # Verification report
 
+Historical record through 0.9.1. Not current implementation instructions or 0.9.2 validation. Follow docs/HANDOFF_0_9_2.md and docs/FOUNDATION_ROADMAP.md; obsolete paths below describe their original revisions.
+
 ## Milestone 2 — Versioned theme contract v2
 
 Verified 18 November 2026 on `dev` with no Android-source changes.

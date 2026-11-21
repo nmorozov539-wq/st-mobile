@@ -1,5 +1,5 @@
 // Neutral importer: accepts only the stm.migration.v1 bundle. No legacy-key support.
-import {validateBundle} from './exporter.js';
+import {validateBundle} from './bundle.js';
 const TARGET = {
   drafts: 'stm.v1.drafts', lastTarget: 'stm.v1.target', appearance: 'stm.appearance.v1', layout: 'stm.layout.v1',
   themes: 'stm.themes.v1', colorThemes: 'stm.color-themes.v1', listPrefs: 'stm.lists.v1',

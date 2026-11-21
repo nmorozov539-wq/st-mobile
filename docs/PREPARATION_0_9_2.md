@@ -51,7 +51,7 @@ Progress on branches `prep/0.9.2-inventory` and `prep/rename-stm` (21 November 2
 
 - Rename to `stm` applied across active code, packaging, tests and Android source (provisional package `app.stm`, confirmed by the user as non-final). 358 unit tests pass. No APK was built; Android stays deferred until the Termux setup is polished.
 - Transition exporter, ST-side export and CLI built and exercised against a live ST 1.19.0 test copy; preserved at local tag `transition-exporter-v1`. Active tree keeps only the neutral importer and its rollback tests. The importer for ST-side namespaces (`st-import.js`) is unit-tested only; it has not been run against a live ST.
-- ST pin moved to 1.19.1 (`82b64a45c34facbc98ff4b9f33c067d3ccab6a17`); the exact-match compatibility patches apply cleanly to 1.19.1 source. Live qualification (native popups, configuration save/close, generation) is NOT done.
+- ST pin moved to 1.19.1 (`82b64a45c34facbc98ff4b9f33c067d3ccab6a17`); the exact-match compatibility patches apply cleanly to 1.19.1 source. Partial live check on ST 1.19.1 (PC sandbox, mock model, 390 px Chromium, 21 November 2026): the interface loads and passes the engine version guard with no page errors, a new chat starts, and a message round-trips through ST's normal generation pipeline; the Connection/configuration screen opens. Native popups and configuration save/close were NOT exercised, so the engine gate stays open.
 - Not done: Summaryception removal from packaging with data recovery, single product version source, Android migration route verification, browser/Termux package staging validation on a real phone.
 
 

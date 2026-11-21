@@ -1,6 +1,6 @@
 // Side panels opened by a horizontal swipe that starts on the chat header or
 // composer: model and preset slide in from the right (swipe left), persona
-// and memory from the left (swipe right). Swipes on messages stay for
+// from the left (swipe right). Swipes on messages stay for
 // alternate replies, and swipes from the screen edge stay Android's Back,
 // so a swipe that starts within EDGE px of either edge is ignored.
 export const EDGE=24,START=18,OPEN=60;

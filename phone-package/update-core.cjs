@@ -25,7 +25,6 @@ const BACKUP_ROOT = '.stm-backups';
 const ROOT_MANAGED = Object.freeze([
     'public/st-mobile',
     'public/scripts/extensions/third-party/st-mobile-experiment',
-    'public/scripts/extensions/third-party/Extension-Summaryception',
     'public/scripts/tokenizers.js',
     'src/server-main.js',
     'src/fetch-patch.js',
@@ -208,7 +207,6 @@ function buildManagedStage(target,kit,stage) {
     const copies=[
         ['frontend','public/st-mobile'],
         ['extension','public/scripts/extensions/third-party/st-mobile-experiment'],
-        ['summaryception','public/scripts/extensions/third-party/Extension-Summaryception'],
         ['mock-model.mjs','mock-model.mjs'],
         ['start.cjs','start.cjs'],['log-supervisor.cjs','log-supervisor.cjs'],['diagnostics-server.cjs','diagnostics-server.cjs'],['diagnostics-viewer.cjs','diagnostics-viewer.cjs'],['update-core.cjs','update-core.cjs'],['compatibility.cjs','compatibility.cjs'],['package-staging.cjs','package-staging.cjs'],
     ];
@@ -228,7 +226,7 @@ function buildManagedStage(target,kit,stage) {
         fs.mkdirSync(path.join(stage,'.stm-proxy'),{recursive:true});
         fs.copyFileSync(path.join(kit,'proxy.cjs'),path.join(stage,'.stm-proxy/index.cjs'));
     }
-    for (const [bundleName,installedName] of [['extension','st-mobile-experiment'],['summaryception','Extension-Summaryception']]) {
+    for (const [bundleName,installedName] of [['extension','st-mobile-experiment']]) {
         const local=`data/default-user/extensions/${installedName}`;
         if (fs.existsSync(path.join(target,safeRelative(local)))) fs.cpSync(path.join(kit,bundleName),path.join(stage,safeRelative(local)),{recursive:true});
     }
@@ -238,7 +236,7 @@ function buildManagedStage(target,kit,stage) {
 function walkStageRoots(stage,target) {
     const roots=[...ROOT_MANAGED];
     if (fs.existsSync(path.join(stage,'.stm-proxy/index.cjs'))) roots.push('.stm-proxy/index.cjs');
-    for (const name of ['st-mobile-experiment','Extension-Summaryception']) {
+    for (const name of ['st-mobile-experiment']) {
         const relative=`data/default-user/extensions/${name}`;
         if (fs.existsSync(path.join(stage,safeRelative(relative))) && fs.existsSync(path.join(target,safeRelative(relative)))) roots.push(relative);
     }

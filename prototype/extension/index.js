@@ -26,12 +26,12 @@ const versionInfo = await versionResponse.json();
 const sessionId = crypto.randomUUID();
 const runtime = createGenerationRuntime(getContext);
 let nativeSettings,bridgePort,migrationBusy=false,collectionBusy=false;
-const isBusy = ({owner,excludeNative=false,excludeMigration=false,excludeCollections=false}={}) => isGenerating() || isChatSaving || (!excludeNative&&nativeHostOwnsEngine(nativeSettings)) || (!excludeMigration&&migrationBusy) || (!excludeCollections&&collectionBusy) || [...(window.stmExtensions?.values()??[])].some(extension=>{const state=extension.read();return state.busy && !(owner==='generation' && state.id==='summaryception' && state.waiting);});
+const isBusy = ({owner,excludeNative=false,excludeMigration=false,excludeCollections=false}={}) => isGenerating() || isChatSaving || (!excludeNative&&nativeHostOwnsEngine(nativeSettings)) || (!excludeMigration&&migrationBusy) || (!excludeCollections&&collectionBusy);
 const configuration = createConfigurationRuntime(getContext);
 const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||adapter.activity({ignoreExternal:true}).busy,configuration});
 const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
     supportedVersion: '1.19.1', runtimeVersion: versionInfo.pkgVersion,
-    generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext), extensions: window.stmExtensions,
+    generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext),
     prepareGeneration: () => workspace.prepareGeneration(),sessionId });
 const configurationProjection=()=>({...configuration.read(),ownership:workspace.ownership(),sessionId,readiness:{engine:true,configured:getContext().onlineStatus!=='no_connection'}});
 const readSavedSettings=async()=>{const response=await fetch('/api/settings/get',{method:'POST',headers:getContext().getRequestHeaders(),cache:'no-store'});if(!response.ok)throw Object.assign(Error('Could not verify saved migration state.'),{code:'MIGRATION_UNVERIFIED'});const data=await response.json();return JSON.parse(data.settings);};
@@ -44,15 +44,7 @@ const migration=createConfigurationMigration({getContext,listHistory:key=>worksp
     quarantinePending:async ids=>{if(!ids.length)return;const key='stm.pending-changes.v1',items=JSON.parse(window.parent.localStorage.getItem(key)??'[]'),wanted=new Set(ids),next=items.map(item=>wanted.has(item.id)?{...item,state:'interrupted',error:'Preserved for native configuration migration; this legacy change will not be replayed.'}:item);window.parent.localStorage.setItem(key,JSON.stringify(next));const saved=JSON.parse(window.parent.localStorage.getItem(key)??'[]');if(saved.some(item=>wanted.has(item.id)&&['pending','applying'].includes(item.state)))throw Object.assign(Error('Pending configuration changes could not be quarantined.'),{code:'QUARANTINE_UNVERIFIED'});},
     applyPreset:async name=>{const manager=getPresetManager(),value=manager?.findPreset(name);if(value===undefined||value===null)throw Object.assign(Error('The active native preset cannot be selected.'),{code:'PRESET_UNVERIFIED'});await manager.selectPreset(value);await saveSettings();return manager.getSelectedPresetName();}});
 
-window.stmEngineBusy = () => {try{return isGenerating() || isChatSaving || nativeHostOwnsEngine(nativeSettings) || migrationBusy || collectionBusy || workspace.busy() || adapter.activity({ignoreExternal:true}).busy || [...(window.stmExtensions?.entries()??[])].some(([id,extension])=>id!=='summaryception' && extension.read().busy);}catch{return true;}};
-window.stmVerifyMemory = () => runtime.verifyPersistence(adapter.snapshot());
-window.stmSaveSettings = async expected => {
-    await saveSettings();
-    const response=await fetch('/api/settings/get',{method:'POST',headers:getContext().getRequestHeaders(),cache:'no-store'});
-    if(!response.ok)throw Error('Memory settings save could not be verified.');
-    const saved=JSON.parse((await response.json()).settings).extension_settings?.summaryception;
-    if(!saved || Object.entries(expected).some(([key,value])=>key!=='promptPreset' && JSON.stringify(saved[key])!==JSON.stringify(value)))throw Error('Memory settings do not match the saved copy.');
-};
+window.stmEngineBusy = () => {try{return isGenerating() || isChatSaving || nativeHostOwnsEngine(nativeSettings) || migrationBusy || collectionBusy || workspace.busy() || adapter.activity({ignoreExternal:true}).busy;}catch{return true;}};
 
 // The engine frame is marked by its name: any query string on ST's URL makes jQuery UI load the whole
 // page into the Backgrounds tab, duplicating #form_create and doubling every saved character field.
@@ -66,8 +58,8 @@ if (window.parent !== window && (window.name === 'stm-engine' || new URLSearchPa
         send: arg => adapter.sendMessage(arg), stop: arg => adapter.stopGeneration(arg),
         status: arg => adapter.operationStatus(arg), change: arg => adapter.changeMessage(arg),
         chats: () => adapter.listChats(), manage: arg => adapter.manageChat(arg),
-        extensions: async arg => {if(arg?.action==='summarize')await workspace.prepareGeneration();else if(arg?.action==='choice')await workspace.prepareGeneration().catch(()=>{});const value=await adapter.extensions(arg);const current=getContext();return {...value,target:{characterKey:current.characters[current.characterId]?.avatar,chatId:current.chatId}};}, assets: arg => adapter.assets(arg), worldinfo: arg => adapter.worldInfo(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
-        activity: () => ({...adapter.activity(),locks:[...(isGenerating()?['ST generation/swipe']:[]),...(isChatSaving?['ST chat save']:[]),...(workspace.busy()?['workspace change']:[]),...(collectionBusy?['character folder save']:[]),...[...(window.stmExtensions?.values()??[])].filter(e=>e.read().busy).map(e=>e.read().waiting?`Memory waiting (${e.read().waitingFor??'deferred'})`:'Memory running')]}), reconcile: () => adapter.reconcile(), tokens: async arg => { const texts = Array.isArray(arg?.texts) ? arg.texts.slice(0, 100) : []; return Promise.all(texts.map(text => getContext().getTokenCountAsync(String(text ?? ''), 0))); }, reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
+        assets: arg => adapter.assets(arg), worldinfo: arg => adapter.worldInfo(arg), settings: () => adapter.settings(), configure: arg => adapter.configure(arg),
+        activity: () => ({...adapter.activity(),locks:[...(isGenerating()?['ST generation/swipe']:[]),...(isChatSaving?['ST chat save']:[]),...(workspace.busy()?['workspace change']:[]),...(collectionBusy?['character folder save']:[])]}), reconcile: () => adapter.reconcile(), tokens: async arg => { const texts = Array.isArray(arg?.texts) ? arg.texts.slice(0, 100) : []; return Promise.all(texts.map(text => getContext().getTokenCountAsync(String(text ?? ''), 0))); }, reloadSaved: () => adapter.reloadSaved(), health: () => runtime.health() };
     window.addEventListener('message', async event => {
         if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'st-mobile-connect' || !event.ports[0]) return;
         try{await nativeSettings.disconnect();}catch(error){event.ports[0].postMessage({id:event.data?.id,error:{code:error.code??'SAVE_UNVERIFIED',message:error.message}});event.ports[0].close();return;}port?.close(); port = event.ports[0];bridgePort=port;

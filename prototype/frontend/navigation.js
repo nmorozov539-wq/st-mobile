@@ -1,5 +1,5 @@
 export const TOP_LEVEL_ROUTES = new Set(['home', 'chats', 'library', 'wi', 'extensions']);
-export const FOCUSED_ROUTES = new Set(['chat', 'new-chat', 'character-detail', 'character-edit', 'persona-editor', 'persona-picker', 'memory', 'wi-entry', 'wi-activation', 'settings']);
+export const FOCUSED_ROUTES = new Set(['chat', 'new-chat', 'character-detail', 'character-edit', 'persona-editor', 'persona-picker', 'wi-entry', 'wi-activation', 'settings']);
 
 export function normalizeRoute(route) {
     if (!route || typeof route.name !== 'string') return {name: 'home', origin: null, section: null, topic: null};

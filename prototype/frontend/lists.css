@@ -93,10 +93,6 @@
 .persona-current-chip{color:var(--color-accent);border-color:color-mix(in srgb,var(--color-accent) 40%,transparent)}
 
 /* Sheets on the same parts: section labels, switches, status colours */
-.memory-toggle{justify-content:space-between}
-.memory-toggle input.toggle[type=checkbox]{width:40px;height:24px;accent-color:initial}
-#page-content .memory-status{color:var(--color-success)}
-#page-content .memory-page>.memory-hint{margin-left:0;margin-right:56px}
 .preset-caption,.model-caption{font:500 12px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--color-muted-text);margin:4px 0 8px}
 #preset-scopes>button,#model-scopes>button{font-size:13px;min-height:40px}
 

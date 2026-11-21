@@ -11,7 +11,6 @@ const PACKAGE_ENTRIES = Object.freeze([
     ...['prepare-test.cjs','start-test.cjs','update-test.cjs','update-from-git.cjs','update-core.cjs','compatibility.cjs','session-init.mjs','PHONE-README.md','prepare.cjs','start.cjs','log-supervisor.cjs','diagnostics-server.cjs','diagnostics-viewer.cjs','import-data.cjs','setup-proxy.cjs','proxy.cjs','repair-stm.cjs','package-staging.cjs'].map(name => ({source:`phone-package/${name}`, destination:name})),
     {source:'prototype/frontend', destination:'frontend'},
     {source:'prototype/extension', destination:'extension'},
-    {source:'vendor/Extension-Summaryception', destination:'summaryception'},
     {source:'LICENSE', destination:'LICENSE'},
     {source:'THIRD_PARTY_NOTICES.md', destination:'THIRD_PARTY_NOTICES.md'},
 ]);

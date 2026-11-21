@@ -17,7 +17,6 @@ import './connection-check.test.js';
 import './proxy.test.js';
 
 import './connection-test.test.js';
-import './summaryception.test.js';
 import './asset-store.test.js';
 
 import './preset-order.test.js';

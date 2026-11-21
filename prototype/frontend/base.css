@@ -71,7 +71,7 @@ details[open]>summary::before{transform:rotate(90deg)}
 .wi-mark,.wi-caret,.wi-folder-icon{display:inline-grid;place-items:center}
 .character-chat-line .icon{width:16px;height:16px;margin-left:6px;vertical-align:-3px}
 .persona-check .icon,.model-row>span:last-child>.icon,.preset-choice>span:last-child>.icon{color:var(--color-accent)}
-#jump .icon,#new-chat .icon,.memory-secondary .icon{width:18px;height:18px;margin-right:6px;vertical-align:-4px}
+#jump .icon,#new-chat .icon{width:18px;height:18px;margin-right:6px;vertical-align:-4px}
 
 /* Keyboard focus is always visible, everywhere. */
 :is(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}

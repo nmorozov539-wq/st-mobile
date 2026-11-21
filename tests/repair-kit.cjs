@@ -25,7 +25,7 @@ const {extractKit,locateArchive,locateProxy,repair}=require('../phone-package/re
   for(const folder of ['public/scripts','src','data/default-user'])fs.mkdirSync(path.join(target,folder),{recursive:true});
   fs.cpSync(path.join(fixture,'.stm-base'),path.join(target,'.stm-base'),{recursive:true});
   fs.symlinkSync(path.join(fixture,'node_modules'),path.join(target,'node_modules'),'dir');
-  fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.0'}));
+  fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.1'}));
   fs.writeFileSync(path.join(target,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false,source:'fixture'}));
   fs.writeFileSync(path.join(target,'data/default-user/settings.json'),'SAVED SETTINGS');
   const localSummary=path.join(target,'data/default-user/extensions/Extension-Summaryception');fs.mkdirSync(localSummary,{recursive:true});fs.writeFileSync(path.join(localSummary,'index.js'),'ORIGINAL LOCAL CODE');

@@ -27,10 +27,10 @@ It includes or downloads the following third-party work.
   and others). The full text ships as `libraries/Node-22-LICENSE` inside the runtime zip and at
   https://github.com/nodejs/node/blob/v22.23.2/LICENSE.
 
-## SillyTavern 1.19.0 (AGPL-3.0)
+## SillyTavern 1.19.1 (AGPL-3.0)
 
-- Source: https://github.com/SillyTavern/SillyTavern at tag `1.19.0`, commit
-  `7e8663cd9c184a550b37238218bdd32c6efc68e9` (pinned in `android/sillytavern.properties`).
+- Source: https://github.com/SillyTavern/SillyTavern at tag `1.19.1`, commit
+  `82b64a45c34facbc98ff4b9f33c067d3ccab6a17` (pinned in `android/sillytavern.properties`).
 - License: GNU AGPL-3.0. Its `LICENSE` file ships inside the APK with the rest of its tree
   (`assets/engine/sillytavern.zip`).
 - Bundled **unmodified**. At build time `android/scripts/prepare-sillytavern.mjs` fetches that commit,
@@ -38,4 +38,4 @@ It includes or downloads the following third-party work.
   and removes files not used at runtime (git metadata, CI config, tests, `docker/`, `colab/`,
   `src/electron/`, and source maps / TypeScript declarations inside `node_modules`). No source file is edited.
 - The npm dependencies keep their own license files inside `node_modules/` in the zip. The exact set and
-  versions are those in SillyTavern 1.19.0's `package-lock.json` (production dependencies only).
+  versions are those in SillyTavern 1.19.1's `package-lock.json` (production dependencies only).

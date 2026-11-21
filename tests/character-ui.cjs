@@ -1,4 +1,4 @@
-// Run only against the prepared local ST 1.19.0 mock fixture; never a personal install.
+// Run only against the prepared local ST 1.19.1 mock fixture; never a personal install.
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 let browser,passed=0;const check=(value,name)=>{assert.ok(value,name);passed++;console.log('PASS '+name);};

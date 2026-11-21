@@ -10,7 +10,7 @@ function prepare(source, target, bundle = __dirname, options = {}) {
     let existing = target;
     while (!fs.existsSync(existing)) existing = path.dirname(existing);
     target = path.join(fs.realpathSync(existing), path.relative(existing, target));
-    if (JSON.parse(fs.readFileSync(path.join(source, 'package.json'))).version !== '1.19.0') throw Error('This package requires ST 1.19.0. Your installation was not changed.');
+    if (JSON.parse(fs.readFileSync(path.join(source, 'package.json'))).version !== '1.19.1') throw Error('This package requires ST 1.19.1. Your installation was not changed.');
     if (fs.existsSync(target)) throw Error(`Test folder already exists: ${target}. Use start-test.cjs to reopen it; preparation never overwrites it.`);
     for (const name of ['public','src','default','node_modules','server.js','package.json','default/config.yaml','default/content/settings.json']) {
         if (!fs.existsSync(path.join(source,name))) throw Error(`Missing ST component: ${name}. Use the ST folder containing server.js and installed dependencies.`);

@@ -15,7 +15,7 @@ async function start(){
 async function stop(){if(!server||server.exitCode!==null)return;server.kill('SIGINT');await exited;}
 (async()=>{
  const marker=JSON.parse(fs.readFileSync(path.join(fixture,'.stm.json')));
- if(marker.mode!=='combined'||!marker.mock||JSON.parse(fs.readFileSync(path.join(fixture,'package.json'))).version!=='1.19.0')throw Error('Only an isolated prepared ST 1.19.0 mock fixture is permitted.');
+ if(marker.mode!=='combined'||!marker.mock||JSON.parse(fs.readFileSync(path.join(fixture,'package.json'))).version!=='1.19.1')throw Error('Only an isolated prepared ST 1.19.1 mock fixture is permitted.');
  fs.mkdirSync(output,{recursive:true});process.env.STM_TEST_RESTART='1';
  global.stmStopTestEngine=stop;global.stmStartTestEngine=start;
  process.on('exit',()=>{if(server?.exitCode===null)server.kill('SIGINT');});

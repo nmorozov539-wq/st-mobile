@@ -1,4 +1,4 @@
-// ST 1.19.0 native World Info → card-book mapping, adapted from src/endpoints/characters.js.
+// ST 1.19.1 native World Info → card-book mapping, adapted from src/endpoints/characters.js.
 // Keep parity with the supported engine; native originalData is preserved by the caller.
 export function convertWorldInfoToCharacterBook(name, entries) {
     /** @type {{ entries: object[]; name: string }} */

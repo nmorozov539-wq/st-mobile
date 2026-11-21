@@ -4,8 +4,8 @@ import {probeEngine} from '../prototype/frontend/engine-health.js';
 test('direct health check requires a fresh valid server response rather than cached iframe state',async()=>{
     const result=await probeEngine(async(url,options)=>{
         assert.match(url,/^\/version\?stmHealth=/);assert.equal(options.cache,'no-store');assert.ok(options.signal);
-        return {ok:true,json:async()=>({pkgVersion:'1.19.0'})};
-    });assert.equal(result.pkgVersion,'1.19.0');
+        return {ok:true,json:async()=>({pkgVersion:'1.19.1'})};
+    });assert.equal(result.pkgVersion,'1.19.1');
     for(const request of [async()=>{throw Error('offline');},async()=>({ok:false}),async()=>({ok:true,json:async()=>({pkgVersion:'wrong'})})]){
         await assert.rejects(probeEngine(request),{code:'ENGINE_UNAVAILABLE'});
     }

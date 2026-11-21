@@ -53,7 +53,7 @@ Use `--diagnostics-port <port>` only when the default local diagnostics port is 
 
 ## Fresh normal installation
 
-The kit copies ST 1.19.0 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
+The kit copies ST 1.19.1 code and installed dependencies from your existing phone installation. It contains no personal data or bundled Node dependencies. It refuses an existing destination.
 
 ```sh
 cd ~/storage/downloads/stm-combined-v0.9.2
@@ -138,7 +138,7 @@ The importer refuses existing destination user data, merges, mock installs and s
 
 Browser storage keeps drafts, committed pending changes and short-lived deletion recovery. Drafts flush roughly one second after typing and on navigation/hiding. Clearing browser storage removes them. An uncertain request is never auto-resent. After a restart, review saved data and pending work before Resume; discard conflicts and reapply explicitly. A same-session generation can be observed. Undo expires after 12 seconds.
 
-ST 1.19.0 compatibility patches keep CSRF/path checks enabled. Each installation has its own cookie; startup validates the token before saving settings. The original ST installation is not patched. Future ST versions and Android lifecycle behavior require separate validation.
+ST 1.19.1 compatibility patches keep CSRF/path checks enabled. Each installation has its own cookie; startup validates the token before saving settings. The original ST installation is not patched. Future ST versions and Android lifecycle behavior require separate validation.
 
 ### Character conversation selector — 0.7.6
 

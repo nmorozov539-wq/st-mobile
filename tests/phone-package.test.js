@@ -13,7 +13,7 @@ test('phone preparation isolates data and config, preserves source, and refuses 
     try {
         const source=path.join(root,'engine'),target=path.join(root,'test'),bundle=path.join(root,'bundle');
         for(const dir of ['public','src','default/content','node_modules','data']) fs.mkdirSync(path.join(source,dir),{recursive:true});
-        fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.19.0'}));
+        fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.19.1'}));
         fs.writeFileSync(path.join(source,'server.js'),'// fixture');
         fs.mkdirSync(path.join(source,'public/scripts'),{recursive:true});
         fs.writeFileSync(path.join(source,'public/scripts/tokenizers.js'),"import { characters, event_types, other } from \"/script.js\";\nconst data = await jQuery.ajax({\n                async: true,\n                type: 'POST', //\n                url: tokenizerEndpoint,\n                data: JSON.stringify([message]),\n                dataType: 'json',\n                contentType: 'application/json',\n            });");
@@ -94,7 +94,7 @@ test('phone preparation isolates data and config, preserves source, and refuses 
         assert.throws(()=>prepare(source,target,bundle),/already exists/);
         assert.equal(fs.readFileSync(path.join(target,'keep.txt'),'utf8'),'keep');
         fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.18.0'}));
-        const invalid=path.join(root,'invalid');assert.throws(()=>prepare(source,invalid,bundle),/requires ST 1.19.0/);
+        const invalid=path.join(root,'invalid');assert.throws(()=>prepare(source,invalid,bundle),/requires ST 1.19.1/);
         assert.equal(fs.existsSync(invalid),false);
     } finally {fs.rmSync(root,{recursive:true,force:true});}
 });
@@ -106,7 +106,7 @@ test('data import preserves standard files, leaves source untouched and refuses 
         const source=path.join(root,'old/data/default-user'),target=path.join(root,'combined');
         fs.mkdirSync(source,{recursive:true});fs.mkdirSync(target);
         fs.writeFileSync(path.join(source,'settings.json'),'{}');fs.mkdirSync(path.join(source,'chats'));fs.writeFileSync(path.join(source,'chats/test.jsonl'),'ST CHAT');
-        fs.writeFileSync(path.join(target,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false}));fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.0'}));
+        fs.writeFileSync(path.join(target,'.stm.json'),JSON.stringify({version:1,mode:'combined',mock:false}));fs.writeFileSync(path.join(target,'package.json'),JSON.stringify({version:'1.19.1'}));
         const linked=path.join(root,'linked-target'),outside=path.join(root,'outside');fs.mkdirSync(linked);fs.mkdirSync(outside);
         fs.copyFileSync(path.join(target,'.stm.json'),path.join(linked,'.stm.json'));fs.copyFileSync(path.join(target,'package.json'),path.join(linked,'package.json'));fs.symlinkSync(outside,path.join(linked,'data'),'dir');
         assert.throws(()=>importData(source,linked),/must not be a symlink/);assert.equal(fs.existsSync(path.join(outside,'default-user')),false);

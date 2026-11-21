@@ -30,7 +30,7 @@ const isBusy = ({owner,excludeNative=false,excludeMigration=false,excludeCollect
 const configuration = createConfigurationRuntime(getContext);
 const workspace = createWorkspace({getContext,isBusy:()=>isBusy()||adapter.activity({ignoreExternal:true}).busy,configuration});
 const adapter = createAdapter({ getContext, isBusy: options => isBusy(options) || workspace.busy(),
-    supportedVersion: '1.19.0', runtimeVersion: versionInfo.pkgVersion,
+    supportedVersion: '1.19.1', runtimeVersion: versionInfo.pkgVersion,
     generation: runtime, configuration, assets: createAssetRuntime(getContext), worldInfo: createWorldInfoRuntime(getContext), extensions: window.stmExtensions,
     prepareGeneration: () => workspace.prepareGeneration(),sessionId });
 const configurationProjection=()=>({...configuration.read(),ownership:workspace.ownership(),sessionId,readiness:{engine:true,configured:getContext().onlineStatus!=='no_connection'}});
@@ -185,7 +185,7 @@ ctx.eventSource.on(ctx.eventTypes.APP_READY, () => {
     adapter.markReady();
     try {
         output.textContent = JSON.stringify(adapter.handshake(), null, 2);
-        status.textContent = 'Connected to ST 1.19.0'; ready = true;
+        status.textContent = 'Connected to ST 1.19.1'; ready = true;
         adapter.subscribe(event => {
             if (event.type === 'text.replace') { reply.textContent = event.text; stop.disabled = false; }
             if (event.type === 'operation.started') { reply.textContent = ''; status.textContent = 'Generating…'; }

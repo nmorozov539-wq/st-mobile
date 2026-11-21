@@ -62,7 +62,7 @@ function readMarker(target) {
     const markerPath=path.join(target,'.stm.json');
     const marker=readJson(markerPath);
     if (marker.version!==1 || marker.mode!=='combined' || marker.dataRoot!=='data') throw Error('Not a recognized combined STM installation.');
-    if (readJson(path.join(target,'package.json')).version!=='1.19.0') throw Error('This updater supports the pinned ST 1.19.0 installation only. The installation was not changed.');
+    if (readJson(path.join(target,'package.json')).version!=='1.19.1') throw Error('This updater supports the pinned ST 1.19.1 installation only. The installation was not changed.');
     return {marker,markerPath};
 }
 
@@ -217,7 +217,7 @@ function buildManagedStage(target,kit,stage) {
     const engineFiles=['public/scripts/tokenizers.js','src/server-main.js','src/fetch-patch.js','public/script.js'];
     for (const name of engineFiles) {
         const source=path.join(target,'.stm-base',safeRelative(name));
-        if (!fs.existsSync(source)) throw Error(`Installation is missing its retained ST 1.19.0 base file: ${name}`);
+        if (!fs.existsSync(source)) throw Error(`Installation is missing its retained ST 1.19.1 base file: ${name}`);
         const destination=path.join(stage,safeRelative(name));fs.mkdirSync(path.dirname(destination),{recursive:true});fs.copyFileSync(source,destination);
     }
     patchEngine(stage,target,{cookieRoot:target});
@@ -261,7 +261,7 @@ function manifestForStage(stage,metadata,managedRoots) {
 
 function manifestForInstalled(target,managedRoots,marker) {
     const manifestPath=path.join(target,'public/scripts/extensions/third-party/st-mobile-experiment/manifest.json');let packageVersion='unknown';try{packageVersion=readJson(manifestPath).version??'unknown';}catch{}
-    return manifestForStage(target,{sourceCommit:marker.update?.installedCommit??null,packageVersion,engineVersion:'1.19.0',bridgeProtocol:2,sourceUrl:marker.update?.sourceUrl??null,ref:marker.update?.ref??null},managedRoots);
+    return manifestForStage(target,{sourceCommit:marker.update?.installedCommit??null,packageVersion,engineVersion:'1.19.1',bridgeProtocol:2,sourceUrl:marker.update?.sourceUrl??null,ref:marker.update?.ref??null},managedRoots);
 }
 
 function verifyInstalled(target,manifest) {

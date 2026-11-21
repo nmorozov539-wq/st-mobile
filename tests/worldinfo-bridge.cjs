@@ -1,4 +1,4 @@
-// Exercises the World Info runtime against a real isolated ST 1.19.0 fixture (port 8123, mock model on 8124).
+// Exercises the World Info runtime against a real isolated ST 1.19.1 fixture (port 8123, mock model on 8124).
 const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
 const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';

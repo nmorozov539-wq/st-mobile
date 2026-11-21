@@ -13,8 +13,8 @@ parser.add_argument('--mock-model', action='store_true', help='Configure fresh s
 args = parser.parse_args()
 source = args.source.resolve()
 project = pathlib.Path(__file__).resolve().parents[1]
-if json.loads((source / 'package.json').read_text()).get('version') != '1.19.0':
-    raise SystemExit('This prototype requires the tested ST package version 1.19.0.')
+if json.loads((source / 'package.json').read_text()).get('version') != '1.19.1':
+    raise SystemExit('This prototype requires the tested ST package version 1.19.1.')
 target = pathlib.Path(tempfile.mkdtemp(prefix='st-mobile-pc-'))
 for name in ('public', 'src', 'default'):
     shutil.copytree(source / name, target / name)

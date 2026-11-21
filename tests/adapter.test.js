@@ -8,14 +8,14 @@ function setup() {
         chat: [{ mes: 'hello', extra: { custom: 42 } }], chatMetadata: { unknown: true },
         async selectCharacterById(id) { this.characterId = id; } };
     const adapter = createAdapter({ getContext: () => ctx, isBusy: () => busy,
-        supportedVersion: '1.19.0', runtimeVersion: '1.19.0' });
+        supportedVersion: '1.19.1', runtimeVersion: '1.19.1' });
     return { ctx, adapter, setBusy(value) { busy = value; } };
 }
 test('readiness and version mismatch block operations', () => {
     const { adapter } = setup();
     assert.throws(() => adapter.handshake(), { code: 'NOT_READY' });
     const other = createAdapter({ getContext: () => ({}), isBusy: () => false,
-        supportedVersion: '1.19.0', runtimeVersion: '1.18.0' });
+        supportedVersion: '1.19.1', runtimeVersion: '1.18.0' });
     other.markReady();
     assert.throws(() => other.handshake(), { code: 'VERSION_MISMATCH' });
 });
@@ -66,7 +66,7 @@ function withGeneration(overrides = {}, adapterOptions = {}) {
         async verifyPersistence() {}, stop() { return true; }, ...overrides,
     };
     const adapter = createAdapter({ getContext: () => ctx, isBusy: () => false,
-        supportedVersion: '1.19.0', runtimeVersion: '1.19.0', generation, ...adapterOptions });
+        supportedVersion: '1.19.1', runtimeVersion: '1.19.1', generation, ...adapterOptions });
     adapter.markReady();
     const request = { requestId: 'request-1', text: 'hello', characterKey: 'a.png', chatId: 'fixture' };
     return { adapter, ctx, request, count: () => count };
@@ -196,7 +196,7 @@ function withChats() {
     const generation = { verifyPersistence: async () => {}, listChats: async () => structuredClone(rows),
         openChat: async name => { opened++; fixture.ctx.chatId = name; if (!rows.some(row=>row.id===name)) rows.push({id:name}); },
         renameChat: async (old,name) => { fixture.ctx.chatId=name; rows=rows.filter(row=>row.id!==old).concat({id:name}); } };
-    const adapter = createAdapter({getContext:()=>fixture.ctx,isBusy:()=>false,supportedVersion:'1.19.0',runtimeVersion:'1.19.0',generation}); adapter.markReady();
+    const adapter = createAdapter({getContext:()=>fixture.ctx,isBusy:()=>false,supportedVersion:'1.19.1',runtimeVersion:'1.19.1',generation}); adapter.markReady();
     return {...fixture,adapter,generation,opened:()=>opened};
 }
 test('history guards prevent nonexistent opens, name collisions and path-like filenames', async () => {
@@ -222,7 +222,7 @@ test('failed management persistence never opens or overwrites a conversation', a
 test('recovery reloads saved state without saving or replaying a request and guards concurrent work', async () => {
     const ctx = {characters:[{avatar:'a.png',name:'A'}],characterId:0,groupId:null,chatId:'fixture',chat:[{mes:'unsaved partial'}],chatMetadata:{unknown:true}};
     let busy = true, reloaded = 0, verified = 0;
-    const adapter = createAdapter({getContext:()=>ctx,isBusy:()=>busy,supportedVersion:'1.19.0',runtimeVersion:'1.19.0',generation:{
+    const adapter = createAdapter({getContext:()=>ctx,isBusy:()=>busy,supportedVersion:'1.19.1',runtimeVersion:'1.19.1',generation:{
         reloadSavedChat:async()=>{reloaded++;ctx.chat=[{mes:'saved reply'}];},
         verifyPersistence:async snapshot=>{verified++;assert.equal(snapshot.messages[0].mes,'saved reply');},
         submit:()=>assert.fail('must never resend'),saveChat:()=>assert.fail('must never save during recovery'),
@@ -237,7 +237,7 @@ test('recovery reloads saved state without saving or replaying a request and gua
 test('configuration rejects stale revisions and shares the chat operation lock', async () => {
     const {ctx} = withGeneration(); let finish, changes=0;
     const configuration={read:()=>({revision:'current',selected:{preset:'Default'}}),change:()=>new Promise(resolve=>{changes++;finish=()=>resolve(configuration.read());})};
-    const adapter=createAdapter({getContext:()=>ctx,isBusy:()=>false,supportedVersion:'1.19.0',runtimeVersion:'1.19.0',configuration});adapter.markReady();
+    const adapter=createAdapter({getContext:()=>ctx,isBusy:()=>false,supportedVersion:'1.19.1',runtimeVersion:'1.19.1',configuration});adapter.markReady();
     await assert.rejects(adapter.configure({revision:'old',kind:'preset'}),{code:'STALE_SETTINGS'});assert.equal(changes,0);
     const pending=adapter.configure({revision:'current',kind:'preset'});
     await assert.rejects(adapter.selectCharacter('a.png'),{code:'BUSY'});
@@ -266,7 +266,7 @@ test('reasoning streams separately from reply text and survives the completion s
 test('library and extension mutations share the engine lock while extension read/stop remain available',async()=>{
  let release;const extensions=new Map([['memory',{run:async arg=>arg.action==='read'?{busy:true}:arg.action==='stop'?{stopping:true}:{done:true}}]]);
  const ctx={characters:[],chat:[],chatMetadata:{}};
- const adapter=createAdapter({getContext:()=>ctx,isBusy:()=>false,supportedVersion:'1.19.0',runtimeVersion:'1.19.0',extensions,assets:{run:async()=>new Promise(resolve=>release=resolve)}});adapter.markReady();
+ const adapter=createAdapter({getContext:()=>ctx,isBusy:()=>false,supportedVersion:'1.19.1',runtimeVersion:'1.19.1',extensions,assets:{run:async()=>new Promise(resolve=>release=resolve)}});adapter.markReady();
  const writing=adapter.assets({action:'write'});
  await assert.rejects(adapter.extensions({id:'memory',action:'settings'}),{code:'BUSY'});
  assert.deepEqual(await adapter.extensions({id:'memory',action:'read'}),{busy:true});
@@ -284,7 +284,7 @@ test('snapshot reports current persona and preset without rewriting historical m
 test('generation can verify its save while Memory is waiting, but another send stays blocked',async()=>{
  const ctx={characters:[{avatar:'a.png',name:'A'}],characterId:0,groupId:null,chatId:'fixture',chat:[],chatMetadata:{}};
  let waiting=false;
- const adapter=createAdapter({getContext:()=>ctx,isBusy:({owner}={})=>waiting&&owner!=='generation',supportedVersion:'1.19.0',runtimeVersion:'1.19.0',generation:{validate(){},subscribeText(){return()=>{};},async submit(text){ctx.chat.push({mes:text,is_user:true},{mes:'reply',is_user:false});waiting=true;},async verifyPersistence(){},stop(){return true;}}});
+ const adapter=createAdapter({getContext:()=>ctx,isBusy:({owner}={})=>waiting&&owner!=='generation',supportedVersion:'1.19.1',runtimeVersion:'1.19.1',generation:{validate(){},subscribeText(){return()=>{};},async submit(text){ctx.chat.push({mes:text,is_user:true},{mes:'reply',is_user:false});waiting=true;},async verifyPersistence(){},stop(){return true;}}});
  adapter.markReady();const request={requestId:'memory-wait',text:'hello',characterKey:'a.png',chatId:'fixture'};
  const result=await adapter.sendMessage(request);assert.equal(result.state,'completed');assert.equal(result.persistence,'verified');
  assert.equal(adapter.activity().busy,true);assert.equal(adapter.activity({ignoreExternal:true}).busy,false);

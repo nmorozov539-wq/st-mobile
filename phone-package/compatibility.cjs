@@ -17,7 +17,7 @@ const tokenizerNew=`const response = await fetch(tokenizerEndpoint, {
             const data = await response.json();`;
 function replaceExact(source,oldText,newText,label){
     if(source.includes(newText))return source;
-    if(source.split(oldText).length!==2)throw Error(`${label} source does not match tested ST 1.19.0. Refusing to patch it.`);
+    if(source.split(oldText).length!==2)throw Error(`${label} source does not match tested ST 1.19.1. Refusing to patch it.`);
     return source.replace(oldText,newText);
 }
 function patchEngine(target,source,{apply=true,cookieRoot=target}={}){

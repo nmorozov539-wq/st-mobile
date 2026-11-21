@@ -1,4 +1,4 @@
-// Real STM DOM + isolated ST 1.19.0 + local mock only. Never use user data.
+// Real STM DOM + isolated ST 1.19.1 + local mock only. Never use user data.
 // STM_PLAYWRIGHT_MODULE points at an installed Playwright package.
 const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');

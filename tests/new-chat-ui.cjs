@@ -1,4 +1,4 @@
-// Isolated ST 1.19.0 fixture and mock provider only. Never run against personal ST.
+// Isolated ST 1.19.1 fixture and mock provider only. Never run against personal ST.
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 fs.mkdirSync('/tmp/stm-new-chat-ui',{recursive:true});

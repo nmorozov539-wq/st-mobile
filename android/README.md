@@ -1,6 +1,6 @@
 # STM for Android (Step 2: bundled SillyTavern)
 
-Runs **unmodified SillyTavern 1.19.0** on Node.js 22, **in-process** (libnode via JNI) inside the app's own
+Runs **unmodified SillyTavern 1.19.1** on Node.js 22, **in-process** (libnode via JNI) inside the app's own
 `:runtime` process, started by a foreground service. No Termux. The WebView shows SillyTavern's own UI.
 
 - Build time: `scripts/prepare-sillytavern.mjs` fetches the commit pinned in `sillytavern.properties`, runs

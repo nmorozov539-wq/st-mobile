@@ -8,7 +8,7 @@ function importData(source,target){
     const marker=JSON.parse(fs.readFileSync(path.join(target,'.stm.json')));
     if(marker.version!==1||marker.mode!=='combined'||marker.mock)throw Error('Use a fresh normal combined installation, not a mock fixture.');
     if(path.basename(source)!=='default-user'||!fs.existsSync(path.join(source,'settings.json')))throw Error('Supply a standard ST data/default-user folder containing settings.json.');
-    if(JSON.parse(fs.readFileSync(path.join(target,'package.json'))).version!=='1.19.0')throw Error('This importer requires the supported ST 1.19.0 installation.');
+    if(JSON.parse(fs.readFileSync(path.join(target,'package.json'))).version!=='1.19.1')throw Error('This importer requires the supported ST 1.19.1 installation.');
     const parent=path.join(target,'data'),destination=path.join(parent,'default-user');
     if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink())throw Error('The destination data directory must not be a symlink.');
     if(fs.existsSync(destination))throw Error('The destination already has user data. Prepare a NEW combined installation before importing; data is never merged or overwritten.');

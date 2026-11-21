@@ -43,7 +43,7 @@ function makeRemote(root){
 function engineSource(root){
     const source=path.join(root,'engine');
     for(const dir of ['public/scripts','src','default/content','node_modules/@jsquash/png/codec'])fs.mkdirSync(path.join(source,dir),{recursive:true});
-    fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.19.0'}));fs.writeFileSync(path.join(source,'server.js'),'// fixture');
+    fs.writeFileSync(path.join(source,'package.json'),JSON.stringify({version:'1.19.1'}));fs.writeFileSync(path.join(source,'server.js'),'// fixture');
     fs.writeFileSync(path.join(source,'public/scripts/tokenizers.js'),`import { characters, event_types, other } from "/script.js";\nconst data = await jQuery.ajax({\n                async: true,\n                type: 'POST', //\n                url: tokenizerEndpoint,\n                data: JSON.stringify([message]),\n                dataType: 'json',\n                contentType: 'application/json',\n            });`);
     fs.writeFileSync(path.join(source,'src/server-main.js'),`name: getCookieSessionName(),\napp.get('/csrf-token', (req, res) => {\n        res.json({\n            'token': csrfSyncProtection.generateToken(req),\n        });\n    });`);
     fs.writeFileSync(path.join(source,'public/script.js'),`async function firstLoadInit() {\nconst tokenResponse = await fetch('/csrf-token');\n        const tokenData = await tokenResponse.json();\n        token = tokenData.token;\n}`);

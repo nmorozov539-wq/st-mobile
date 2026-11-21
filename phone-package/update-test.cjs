@@ -12,7 +12,7 @@ function update(target,bundle=__dirname){
     const source=combined?target:fs.realpathSync(marker.source);
     const base=combined?path.join(target,'.stm-base'):source;
     if(!combined && (source===target||target.startsWith(source+path.sep)))throw Error('Refusing to update the regular ST installation.');
-    for(const folder of [source,target])if(JSON.parse(fs.readFileSync(path.join(folder,'package.json'))).version!=='1.19.0')throw Error('Both engines must report ST 1.19.0.');
+    for(const folder of [source,target])if(JSON.parse(fs.readFileSync(path.join(folder,'package.json'))).version!=='1.19.1')throw Error('Both engines must report ST 1.19.1.');
     for(const name of ['frontend/index.html','extension/index.js','mock-model.mjs'])if(!fs.existsSync(path.join(bundle,name)))throw Error('Incomplete phone kit. Extract the new ZIP completely.');
     const stage=fs.mkdtempSync(path.join(target,'.stm-update-'));
     const code=['public/scripts/tokenizers.js','src/server-main.js','src/fetch-patch.js','public/script.js'];

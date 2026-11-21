@@ -4,7 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 
 const PACKAGE_VERSION = '0.9.2';
-const ENGINE_VERSION = '1.19.0';
+const ENGINE_VERSION = '1.19.1';
 const BRIDGE_PROTOCOL = 2;
 
 const PACKAGE_ENTRIES = Object.freeze([
@@ -70,7 +70,7 @@ function transformPackage(destination) {
     for (const [from,to] of [
         ['PC prototype','phone prototype'],
         ['LOCAL PROTOTYPE','COMBINED PROTOTYPE'],
-        ['ST 1.19.0 · mock model','ST 1.19.0'],
+        ['ST 1.19.1 · mock model','ST 1.19.1'],
         ['Local test: try [slow] to stop a reply, or [fail] to test recovery.','Generation and saved conversations are managed by SillyTavern.'],
     ]) html = replaceOptional(html,from,to);
     fs.writeFileSync(htmlPath,html);

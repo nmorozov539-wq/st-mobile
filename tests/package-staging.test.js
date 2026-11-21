@@ -14,7 +14,7 @@ test('shared phone staging produces a complete matched and licensed manifest',()
         const manifest=stagePackage(path.resolve('.'),staged,{sourceCommit:'0123456789abcdef'});
         assert.equal(manifest.sourceCommit,'0123456789abcdef');
         assert.equal(manifest.packageVersion,'0.9.2');
-        assert.equal(manifest.engineVersion,'1.19.0');
+        assert.equal(manifest.engineVersion,'1.19.1');
         assert.equal(manifest.bridgeProtocol,2);
         assert.ok(manifest.files['LICENSE']);
         assert.ok(manifest.files['THIRD_PARTY_NOTICES.md']);

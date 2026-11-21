@@ -1,4 +1,4 @@
-// Real STM DOM at phone width against the isolated ST 1.19.0 fixture (8123) + mock model (8124).
+// Real STM DOM at phone width against the isolated ST 1.19.1 fixture (8123) + mock model (8124).
 const {chromium}=require(process.env.STM_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');const fs=require('node:fs');
 const origin=process.env.STM_TEST_ORIGIN||'http://127.0.0.1:8123';

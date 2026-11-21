@@ -32,7 +32,7 @@ async function launch(target,mock=false,proxy=false,{diagnosticsOnly=false,diagn
         for(const port of portChecks??plan.ports)await portFree(port);
         logger=new LogSupervisor(plan.target,loggerOptions);
         const manifest=path.join(plan.target,'public/scripts/extensions/third-party/st-mobile-experiment/manifest.json'),packageVersion=fs.existsSync(manifest)?JSON.parse(fs.readFileSync(manifest)).version:'unknown';
-        logger.setStatus({engineState:diagnosticsOnly?'not started':'starting',intentional:false,exitCode:null,packageVersion,installedCommit:plan.marker.update?.installedCommit??null,engineVersion:'1.19.0',runtime:process.version,target:plan.target});
+        logger.setStatus({engineState:diagnosticsOnly?'not started':'starting',intentional:false,exitCode:null,packageVersion,installedCommit:plan.marker.update?.installedCommit??null,engineVersion:'1.19.1',runtime:process.version,target:plan.target});
         diagnostics=serverFactory({logger,status:()=>logger.getStatus(),port:diagnosticsPort,host:'127.0.0.1'});let endpoint;
         try{endpoint=await diagnostics.start();}catch(error){throw Error(`Diagnostics could not bind to 127.0.0.1:${diagnosticsPort}: ${error.message}. Choose another explicit port with --diagnostics-port <port>.`);}
         console.log(`Private engine log: ${endpoint.privateUrl}`);

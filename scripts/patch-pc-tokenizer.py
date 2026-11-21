@@ -1,4 +1,4 @@
-"""Use fetch for ST 1.19.0 async OpenAI token counts in the isolated PC copy.
+"""Use fetch for ST 1.19.1 async OpenAI token counts in the isolated PC copy.
 The embedded test browser drops headers from legacy AJAX requests. Keep CSRF on.
 """
 import pathlib
@@ -20,6 +20,6 @@ new = """const response = await fetch(tokenizerEndpoint, {
             if (!response.ok) throw new Error(`Tokenizer request failed: HTTP ${response.status}`);
             const data = await response.json();"""
 if source.count(old) != 1:
-    raise SystemExit('ST tokenizer source does not match the tested 1.19.0 patch. Refusing to modify it.')
+    raise SystemExit('ST tokenizer source does not match the tested 1.19.1 patch. Refusing to modify it.')
 source = source.replace(old, new).replace('import { characters, event_types,', 'import { getRequestHeaders, characters, event_types,')
 path.write_text(source)

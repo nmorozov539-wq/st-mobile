@@ -200,7 +200,7 @@ fs.mkdirSync(out, {recursive: true});
 
     assert.deepEqual(errors, []);
     fs.writeFileSync(path.join(out, 'gate-e-layout-matrix.json'), JSON.stringify({
-        build: '0.9.2', checks, errors,
+        build: require('../package.json').version, checks, errors,
         viewports: [{width: 390, height: 844}, {width: 1024, height: 768}, {width: 800, height: 768}],
         uiTextScaling: 'root font-size 32px at 1024px (200%)',
         timestamp: new Date().toISOString(),

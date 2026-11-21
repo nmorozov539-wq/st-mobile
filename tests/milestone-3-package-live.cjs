@@ -40,7 +40,7 @@ const waitForServer = async () => {
         const installedBuildPath = path.join(install, 'public/st-mobile/build.js');
         const installedManifest = JSON.parse(fs.readFileSync(installedManifestPath));
         const installedBuild = fs.readFileSync(installedBuildPath, 'utf8');
-        assert.equal(installedManifest.version, '0.9.2');
+        assert.equal(installedManifest.version, require('../package.json').version);
         assert.match(installedBuild, /FRONTEND_BUILD = '0\.9\.2'/);
         assert.match(fs.readFileSync(path.join(kit, 'PHONE-README.md'), 'utf8'), /^# STM combined prototype v0\.9\.2/m);
 
@@ -144,7 +144,7 @@ const waitForServer = async () => {
             frame.contentWindow.postMessage({type: 'st-mobile-connect'}, location.origin, [channel.port2]);
             setTimeout(() => channel.port1.postMessage({id: 1, method: 'handshake'}), 200);
         }));
-        assert.equal(handshake.bridgeBuild, '0.9.2');
+        assert.equal(handshake.bridgeBuild, require('../package.json').version);
         assert.equal(handshake.protocolVersion, 2);
         assert.equal(handshake.capabilities.legacyConfigurationMigration, true);
         assert.deepEqual(errors, []);
@@ -154,7 +154,7 @@ const waitForServer = async () => {
             archiveSha256: crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex'),
             installFlow: 'extract ZIP -> packaged prepare.cjs --mock -> installed start.cjs --mock',
             installedManifestVersion: installedManifest.version,
-            frontendBuild: '0.9.2',
+            frontendBuild: require('../package.json').version,
             handshake: {bridgeBuild: handshake.bridgeBuild, protocolVersion: handshake.protocolVersion, capabilities: handshake.capabilities},
             mockConversationSavedAfterReload: true,
             preferencesAfterReload: {theme: 'paper', messageFormat: 'messenger'},

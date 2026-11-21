@@ -57,3 +57,4 @@ import './chat-phase2.test.js';
 import './color-theme.test.js';
 import './transition-importer.test.js';
 import './transition-st-import.test.js';
+import './version-sync.test.js';

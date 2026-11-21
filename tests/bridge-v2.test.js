@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {createBridgeDispatcher,handshakeContract,PROTOCOL_VERSION} from '../prototype/extension/bridge-contract.js';
 import {createNativeSettingsHost} from '../prototype/extension/native-settings-host.js';
 import {createNativeHostLock,nativeHostOwnsEngine} from '../prototype/extension/native-host-lock.js';
+import {readFileSync as __r} from 'node:fs';
+const PRODUCT_VERSION=JSON.parse(__r(new URL('../package.json',import.meta.url),'utf8')).version;
 
 test('protocol v2 handshake is explicit and unavailable capabilities stay false',()=>{
- const value=handshakeContract({bridgeBuild:'0.9.2',sessionId:'s',adapter:{runtimeVersion:'1.19.1'}});
+ const value=handshakeContract({bridgeBuild:PRODUCT_VERSION,sessionId:'s',adapter:{runtimeVersion:'1.19.1'}});
  assert.equal(value.protocolVersion,PROTOCOL_VERSION);assert.deepEqual(value.capabilities.nativeSettingsHost,{connection:false,presets:false});
 });
 test('bridge rejects malformed and unknown operations promptly',async()=>{

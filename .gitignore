@@ -28,3 +28,9 @@ __pycache__/
 *.b64
 *.pid
 /.handoff/
+
+# Generated validation output; historical captures remain in Git history
+/docs/followup-evidence/
+/docs/milestone-3-evidence/
+/docs/mobile-correction-evidence/
+/docs/theme-references/

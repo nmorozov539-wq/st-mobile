@@ -8,7 +8,9 @@
 - Product package, frontend, bridge, cache identifiers and matching release assertions aligned to 0.9.2.
 - One current roadmap, architecture decision record, feature inventory and implementation preflight.
 - Superseded Android roadmap and old extension/mobile/layout execution plans removed. Recover their original versions from `v0.9.1`.
-- Original AI proposals separated into historical inputs. Retained layout/theme references, reports and screenshot evidence are not new execution instructions.
+- Follow-up cleanup removes historical reports, screenshot folders, original AI proposals and accumulated technical/test notes from the active tree. They remain recoverable at `v0.9.2`. A current design brief replaces the old layout discussion; the theme contract remains.
+
+The cleanup correction is committed after the published `v0.9.2` tag on `dev`, still at product version 0.9.2. Use the latest `dev` for handoff; the published release tags are unchanged.
 
 ## First task for the next coding chat
 

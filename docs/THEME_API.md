@@ -1,8 +1,8 @@
-# Pocket Tavern theme API
+# STM theme contract
 
 Status: `ui-theme` version 2, introduced during Milestone 2.
 
-Pocket themes are validated data manifests. They can change atmosphere and
+STM themes are validated data manifests. They can change atmosphere and
 presentation, but they cannot supply CSS, scripts, fonts, SVG paths, layout,
 navigation, visibility rules or hit-target sizes.
 

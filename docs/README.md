@@ -11,14 +11,13 @@ Updated 21 November 2026. Start with the 0.9.2 handoff. This release changes doc
 - [Reuse inventory](FOUNDATION_REUSE.md): existing features and preservation requirements.
 - [Architecture research](EXTENSION_ARCHITECTURE_RESEARCH.md) and [compatibility inventory](EXTENSION_COMPATIBILITY_INVENTORY.md): source findings, not runtime certification.
 
-## Retained references
+## Current design references
 
-- [Layout reference](LAYOUT.md) and [theme contract](THEME_API.md): preserve design intent; architecture follows the new roadmap.
-- [Android phone validation](ANDROID_MILESTONE1_PHONE_VALIDATION.md).
-- [Layout implementation report](MILESTONE_3_IMPLEMENTATION_REPORT.md).
-- [Mobile correction report](MOBILE_CORRECTION_IMPLEMENTATION_REPORT.md).
-- [Updates and diagnostics report](UPDATES_ERRORS_DIAGNOSTICS_IMPLEMENTATION_REPORT.md).
-- [Earlier technical notes](../prototype/IMPLEMENTATION.md) and [test history](../tests/TEST_REPORT.md).
-- [Original AI proposals](archive/proposals/README.md): historical inputs, not instructions.
+- [Design brief](DESIGN_BRIEF.md): retained navigation, reading and interaction requirements without obsolete rollout instructions.
+- [Theme contract](THEME_API.md): current reusable theme behavior.
 
-Old execution plans and the superseded product roadmap were removed from the working tree. They remain recoverable at tag `v0.9.1`. Screenshots and recorded results retain their original build identities; they do not certify the new architecture or 0.9.2. No historical approval in those records authorizes broader work.
+## History
+
+Historical execution plans, reports, screenshots, AI proposals and accumulated implementation/test notes are removed from the active tree. Retrieve them from Git history: `v0.9.1` preserves the original implementation, and `v0.9.2` preserves the initial transition snapshot including research inputs. The cleanup correction follows that tag on `dev`; no published tag was rewritten.
+
+Live test scripts may generate fresh evidence directories when run; those outputs are ignored rather than carried as permanent historical documentation. Old approvals and reports are not instructions for the new phase.

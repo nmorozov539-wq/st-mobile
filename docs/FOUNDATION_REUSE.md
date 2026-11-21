@@ -20,7 +20,7 @@ Updated 21 November 2026. Initial source-based dispositions for the new foundati
 | Browser/Termux installation and updates | phone-package, staging/build scripts | Rename during preflight, adapt to shared artifact in 0.10 | Update/restart, provenance, data separation and independent extension updates |
 | Android host | MainActivity, Engine, EngineService, NodeRuntime and JNI | Retain platform foundations; rename coherently; add capability connection | Boot, lifecycle, file picker, Back and private data migration |
 | Proxy support | or-proxy and proxy tests | Audit; no automatic retirement | Record which provider flows depend on it before replacing/removing |
-| Tests and evidence | tests and docs evidence directories | Reuse behavioral cases; replace obsolete structural assertions | Old evidence remains attributed to its original revision |
+| Tests and evidence | tests and evidence retained in Git history | Reuse behavioral cases; replace obsolete structural assertions | Old evidence remains attributed to its original revision |
 
 ## Migration record required for each slice
 
@@ -28,4 +28,4 @@ Record old entrance/state owner, new entrance/state owner, retained behavior, re
 
 ## Naming and historical material
 
-Active code, tests, executable paths, manifests and generated release assets must use the STM identity before 0.10. Historical plans and screenshots may retain old names as evidence; the active documentation entry points use STM. Legacy-name migration code is retained only in the transition release/history, not as aliases embedded in the new foundation. Preserve third-party attribution and do not rewrite upstream projects for branding.
+Active code, tests, executable paths, manifests and generated release assets must use the STM identity before 0.10. Historical plans and screenshots are available only in Git history; active documentation entry points use STM. Legacy-name migration code is retained only in the transition release/history, not as aliases embedded in the new foundation. Preserve third-party attribution and do not rewrite upstream projects for branding.

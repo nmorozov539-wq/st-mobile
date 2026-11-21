@@ -41,4 +41,4 @@ Then open `http://127.0.0.1:8123/st-mobile/` on the phone.
 
 Develop and review features here. Once an iteration is ready for APK integration, merge it into `main` and build the release there.
 
-Existing implementation notes are in [prototype/IMPLEMENTATION.md](prototype/IMPLEMENTATION.md). New architecture and Android integration follow the [foundation roadmap](docs/FOUNDATION_ROADMAP.md).
+Architecture and Android integration follow the [foundation roadmap](docs/FOUNDATION_ROADMAP.md). Retained interface requirements are in the [design brief](docs/DESIGN_BRIEF.md); historical implementation notes are available through Git history.
